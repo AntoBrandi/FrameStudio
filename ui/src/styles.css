@@ -1,0 +1,108 @@
+@import "tailwindcss";
+@import "@fontsource/ibm-plex-sans/400.css";
+@import "@fontsource/ibm-plex-sans/500.css";
+@import "@fontsource/ibm-plex-sans/600.css";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+@import "@fontsource/barlow-condensed/600.css";
+@import "@fontsource/barlow-condensed/700.css";
+
+/* Tokens from the plan's look & feel: dark-first, our own tungsten accent.
+   Tungsten marks local work and primary actions; daylight marks hosted APIs. */
+:root,
+[data-theme="dark"] {
+  --stage: #0e1012;
+  --flat: #16191d;
+  --raised: #22262b;
+  --line: #2c3138;
+  --ink: #e8eaed;
+  --muted: #9aa3af;
+  --tungsten: #f2a65a;
+  --tungsten-ink: #1a1206;
+  --tungsten-soft: #3b2816;
+  --daylight: #7fa8f5;
+  --daylight-soft: #1b2843;
+  --ok: #73c99b;
+  --danger: #f08a7e;
+  --focus: #f2a65a;
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  --stage: #f3f4f6;
+  --flat: #ffffff;
+  --raised: #e8ebef;
+  --line: #d6dae0;
+  --ink: #15181c;
+  --muted: #586170;
+  --tungsten: #ae5612;
+  --tungsten-ink: #ffffff;
+  --tungsten-soft: #f7e6d6;
+  --daylight: #2356b5;
+  --daylight-soft: #dde7f8;
+  --ok: #2c7a4d;
+  --danger: #b3261e;
+  --focus: #ae5612;
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-stage: var(--stage);
+  --color-flat: var(--flat);
+  --color-raised: var(--raised);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-tungsten: var(--tungsten);
+  --color-tungsten-ink: var(--tungsten-ink);
+  --color-tungsten-soft: var(--tungsten-soft);
+  --color-daylight: var(--daylight);
+  --color-daylight-soft: var(--daylight-soft);
+  --color-ok: var(--ok);
+  --color-danger: var(--danger);
+  --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    margin: 0;
+    background: var(--stage);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: var(--tungsten-soft);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}

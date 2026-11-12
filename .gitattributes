@@ -1,0 +1,5 @@
+* text=auto eol=lf
+*.png binary
+*.mp4 binary
+ui/src/api/openapi.json linguist-generated
+ui/src/api/schema.d.ts linguist-generated

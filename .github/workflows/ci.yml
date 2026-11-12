@@ -1,0 +1,104 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 3 * * *" # nightly: Windows and macOS
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  BUN_VERSION: "1.4.4"
+  UV_VERSION: "0.13.8"
+
+jobs:
+  linux:
+    name: Linux (every PR)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: ${{ env.UV_VERSION }}
+      - name: System packages
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg xvfb
+      - name: Install
+        run: |
+          bun install --frozen-lockfile
+          uv sync --directory backend --locked
+          node desktop/node_modules/electron/install.js
+      - name: Lint
+        run: bun run lint
+      - name: Typecheck
+        run: bun run typecheck
+      - name: Backend tests
+        run: bun run test:py
+      - name: UI and shell tests
+        run: bun run test:ts
+      - name: API client matches the backend
+        run: |
+          bun run api:gen
+          git diff --exit-code -- ui/src/api || (echo "Run 'bun run api:gen' and commit the result." && exit 1)
+      - name: Build
+        run: bun run build
+      - name: End-to-end (Electron and Chrome)
+        run: xvfb-run -a bun run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report-linux
+          path: playwright-report/
+          retention-days: 7
+
+  nightly:
+    name: ${{ matrix.os }} (nightly)
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: ${{ env.UV_VERSION }}
+      - name: ffmpeg (macOS)
+        if: runner.os == 'macOS'
+        run: brew install ffmpeg
+      - name: ffmpeg (Windows)
+        if: runner.os == 'Windows'
+        run: choco install ffmpeg -y --no-progress
+      - name: Install
+        run: |
+          bun install --frozen-lockfile
+          uv sync --directory backend --locked
+          node desktop/node_modules/electron/install.js
+      - name: Tests
+        run: |
+          bun run typecheck
+          bun run test:py
+          bun run test:ts
+      - name: Build
+        run: bun run build
+      - name: End-to-end
+        run: bun run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report-${{ matrix.os }}
+          path: playwright-report/
+          retention-days: 7

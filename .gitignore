@@ -1,0 +1,20 @@
+# dependencies
+node_modules/
+backend/.venv/
+
+# builds
+ui/dist/
+desktop/out/
+
+# development data (bun run dev keeps its data here, apart from an installed app's)
+.data/
+
+# caches and reports
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+test-results/
+playwright-report/
+*.tsbuildinfo
+.DS_Store

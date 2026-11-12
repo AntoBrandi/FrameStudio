@@ -1,0 +1,155 @@
+{
+  "app": {
+    "name": "FrameStudio",
+    "skipToContent": "Skip to content"
+  },
+  "nav": {
+    "home": "Home",
+    "image": "Image",
+    "video": "Video",
+    "studio": "Studio",
+    "assets": "Assets",
+    "elements": "Elements",
+    "canvas": "Canvas",
+    "settings": "Settings",
+    "primary": "Main"
+  },
+  "shell": {
+    "toggleSidebar": "Toggle sidebar",
+    "toggleInspector": "Toggle inspector",
+    "inspector": "Inspector",
+    "nothingSelected": "Nothing selected",
+    "nothingSelectedHint": "Select an item to see its details here.",
+    "library": "Library",
+    "allAssets": "All assets",
+    "favorites": "Favorites",
+    "trash": "Trash",
+    "projects": "Projects",
+    "comingIn": "Arrives in {{milestone}}",
+    "openPalette": "Commands",
+    "themeLight": "Switch to light theme",
+    "themeDark": "Switch to dark theme"
+  },
+  "status": {
+    "connected": "Backend: connected",
+    "connecting": "Backend: connecting…",
+    "offline": "Backend: offline",
+    "version": "Version {{version}}"
+  },
+  "palette": {
+    "placeholder": "Type a command or search…",
+    "empty": "No matching commands.",
+    "go": "Go to",
+    "actions": "Actions",
+    "goTo": "Go to {{page}}",
+    "toggleTheme": "Toggle theme",
+    "toggleInspector": "Toggle inspector",
+    "toggleSidebar": "Toggle sidebar",
+    "fakeLocal": "Run a fake 10-second local job",
+    "fakeRemote": "Run a fake 10-second remote task"
+  },
+  "jobs": {
+    "title": "Jobs",
+    "trayLabel": "Jobs: {{count}} active",
+    "empty": "No jobs yet.",
+    "cancel": "Cancel",
+    "retry": "Retry",
+    "remote": "Remote",
+    "local": "Local",
+    "finished": "{{title}} finished",
+    "failed": "{{title}} failed",
+    "states": {
+      "queued": "Queued",
+      "submitting": "Sending",
+      "running": "Running",
+      "succeeded": "Done",
+      "failed": "Failed",
+      "cancelled": "Cancelled",
+      "interrupted": "Interrupted"
+    }
+  },
+  "auth": {
+    "title": "Sign in to this FrameStudio",
+    "body": "This backend needs its access token. On the machine running it, run the command below and paste the token here, or open the sign-in link it prints with --url.",
+    "label": "Access token",
+    "submit": "Sign in",
+    "wrong": "That token is not right."
+  },
+  "home": {
+    "eyebrow": "Local-first studio",
+    "title": "Frame it, then make it move",
+    "lede": "Images and video from the models on your machine or the hosted ones you connect. Everything stays in your library.",
+    "createImage": "Create an image",
+    "createVideo": "Create a video",
+    "machine": "This machine",
+    "dataDir": "Data folder",
+    "schema": "Database schema",
+    "ffmpeg": "ffmpeg"
+  },
+  "composer": {
+    "label": "Prompt",
+    "placeholderImage": "Describe the image…",
+    "placeholderVideo": "Describe the shot…",
+    "generate": "Generate",
+    "estimate": "Mock engine · about {{seconds}} s",
+    "mode": "Mode",
+    "image": "Image",
+    "video": "Video",
+    "batch": "Batch size",
+    "aspect": "Aspect ratio",
+    "duration": "Duration",
+    "audio": "Audio",
+    "model": "Model",
+    "mock": "Mock engine",
+    "failed": "Could not start the generation: {{error}}"
+  },
+  "feed": {
+    "emptyImage": "Your images will appear here.",
+    "emptyVideo": "Your clips will appear here.",
+    "open": "Open",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "failedTitle": "Generation failed",
+    "interruptedTitle": "Interrupted",
+    "cancelledTitle": "Cancelled",
+    "queued": "Queued",
+    "running": "Generating"
+  },
+  "viewer": {
+    "title": "Viewer",
+    "close": "Close",
+    "prompt": "Prompt",
+    "model": "Model",
+    "seed": "Seed",
+    "size": "Size",
+    "duration": "Duration",
+    "created": "Created",
+    "fileSize": "File",
+    "download": "Download"
+  },
+  "placeholder": {
+    "studio": "Projects, briefs and the floating composer arrive with the Studio workspace.",
+    "assets": "The library with folders, filters and search arrives in M1.",
+    "elements": "Characters, locations and props referenced by @handle arrive in M4.",
+    "canvas": "Node workflows and recipes come after v1."
+  },
+  "settings": {
+    "title": "Settings",
+    "general": "General",
+    "theme": "Theme",
+    "themes": { "dark": "Dark", "light": "Light", "system": "Match the system" },
+    "language": "Language",
+    "notify": "Notify me when a job finishes in the background",
+    "server": "Server",
+    "remoteAccess": "Allow other devices on the network (still needs the token)",
+    "restartRequired": "Restart FrameStudio to apply this.",
+    "signOut": "Sign out of this browser",
+    "developer": "Developer",
+    "mockLatency": "Mock engine latency (seconds)",
+    "mockFailure": "Mock engine failure rate",
+    "fakeLocal": "Fake local job (10 s)",
+    "fakeRemote": "Fake remote task (10 s)",
+    "about": "About",
+    "saved": "Saved"
+  }
+}

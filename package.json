@@ -1,0 +1,46 @@
+{
+  "name": "framestudio",
+  "version": "0.1.0",
+  "description": "Local-first studio for AI images and video: your machine, your models, your keys.",
+  "license": "AGPL-3.0-only",
+  "private": true,
+  "type": "module",
+  "packageManager": "bun@1.4.4",
+  "workspaces": [
+    "ui",
+    "desktop"
+  ],
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "dev": "node scripts/dev.mjs",
+    "dev:web": "node scripts/dev.mjs --web",
+    "start": "node scripts/start.mjs",
+    "build": "bun run --cwd ui build && bun run --cwd desktop build",
+    "api:gen": "uv run --directory backend framestudio openapi --out ../ui/src/api/openapi.json && bun run --cwd ui api:types",
+    "lint": "bun run lint:py && bun run lint:ts",
+    "lint:py": "uv run --directory backend ruff check . && uv run --directory backend ruff format --check .",
+    "lint:ts": "eslint . && prettier --check .",
+    "format": "uv run --directory backend ruff format . && prettier --write .",
+    "typecheck": "bun run --cwd ui typecheck && bun run --cwd desktop typecheck",
+    "test": "bun run test:py && bun run test:ts",
+    "test:py": "uv run --directory backend pytest",
+    "test:ts": "bun run --cwd ui test && bun run --cwd desktop test",
+    "test:e2e": "playwright test"
+  },
+  "trustedDependencies": [
+    "electron",
+    "esbuild"
+  ],
+  "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.65.0",
+    "@types/node": "^26.6.6",
+    "eslint": "^10.14.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.14.0",
+    "prettier": "^3.10.1",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.72.2"
+  }
+}

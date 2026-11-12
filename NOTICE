@@ -1,0 +1,22 @@
+FrameStudio
+Copyright (C) 2026 FrameStudio contributors
+
+FrameStudio is free software: you can redistribute it and/or modify it under
+the terms of the GNU Affero General Public License, version 3 only, as
+published by the Free Software Foundation. See LICENSE.
+
+Code from VoiceStudio
+---------------------
+FrameStudio follows the architecture of VoiceStudio
+(https://github.com/debpalash/VoiceStudio, AGPL-3.0-only) and may copy its
+modules. Every copied file keeps its original copyright header and is listed
+below with its source path and the commit it was copied from.
+
+  (none yet: milestone M0 reimplements the patterns it needed from scratch,
+   namely the local-API browser guard, token sign-in and SPA serving)
+
+Third-party components
+----------------------
+JavaScript and Python dependencies are listed with their licenses in
+bun.lock and backend/uv.lock. Fonts (IBM Plex Sans, IBM Plex Mono, Barlow
+Condensed) are bundled from @fontsource under the SIL Open Font License 1.1.

@@ -1,0 +1,58 @@
+[project]
+name = "framestudio-backend"
+version = "0.1.0"
+description = "FrameStudio backend: data, jobs, engines and the HTTP API that serves the UI."
+readme = "README.md"
+license = "AGPL-3.0-only"
+requires-python = ">=3.12,<3.15"
+dependencies = [
+    "fastapi>=0.120",
+    "uvicorn[standard]>=0.35",
+    "sqlalchemy>=2.0.40",
+    "alembic>=1.16",
+    "pydantic>=2.11",
+    "pydantic-settings>=2.10",
+    "platformdirs>=4.3",
+    "pillow>=11.3",
+]
+
+[project.scripts]
+framestudio = "framestudio.cli:main"
+
+[dependency-groups]
+dev = [
+    "httpx2>=2.16.0",
+    "pytest>=8.4",
+    "ruff>=0.12",
+]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["framestudio"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = [
+    "slow: tests that take more than a few seconds",
+]
+filterwarnings = ["error::DeprecationWarning:framestudio.*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["framestudio/db/migrations/versions"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF", "ASYNC", "S"]
+ignore = [
+    "S101",  # assert is fine in tests and internal invariants
+    "S603",  # subprocess calls use argument lists, never a shell
+    "S607",  # tools such as ffmpeg are resolved from PATH on purpose
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S104", "S105", "S106", "S108", "S311"]
