@@ -38,6 +38,8 @@ const generation = (overrides: Partial<GenerationOut> = {}): GenerationOut => ({
   error_message: null,
   job_id: "j1",
   parent_asset_id: null,
+  project_id: null,
+  folder_id: null,
   asset: null,
   created_at: "2026-11-12T10:00:00Z",
   started_at: null,

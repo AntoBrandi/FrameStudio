@@ -12,6 +12,7 @@ from sqlalchemy import Connection
 
 from framestudio.db import models  # noqa: F401  (registers tables on the metadata)
 from framestudio.db.base import Base
+from framestudio.db.migrate import include_object
 
 target_metadata = Base.metadata
 config = context.config
@@ -23,6 +24,7 @@ def _run(connection: Connection) -> None:
         target_metadata=target_metadata,
         render_as_batch=True,  # SQLite cannot ALTER most things in place
         compare_type=True,
+        include_object=include_object,
     )
     with context.begin_transaction():
         context.run_migrations()

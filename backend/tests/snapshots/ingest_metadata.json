@@ -1,0 +1,182 @@
+{
+  "alpha.webp": {
+    "codecs": [
+      null,
+      null
+    ],
+    "derived": [
+      true,
+      false,
+      false
+    ],
+    "duration": null,
+    "fps": null,
+    "has_audio": null,
+    "kind": "image",
+    "mime": "image/webp",
+    "size": [
+      64,
+      64
+    ]
+  },
+  "anim.gif": {
+    "codecs": [
+      null,
+      null
+    ],
+    "derived": [
+      true,
+      false,
+      false
+    ],
+    "duration": null,
+    "fps": null,
+    "has_audio": null,
+    "kind": "image",
+    "mime": "image/gif",
+    "size": [
+      48,
+      32
+    ]
+  },
+  "clip.mp4": {
+    "codecs": [
+      "h264",
+      "aac"
+    ],
+    "derived": [
+      true,
+      true,
+      true
+    ],
+    "duration": 1.0,
+    "fps": 24.0,
+    "has_audio": true,
+    "kind": "video",
+    "mime": "video/mp4",
+    "size": [
+      160,
+      90
+    ]
+  },
+  "clip.webm": {
+    "codecs": [
+      "vp9",
+      "opus"
+    ],
+    "derived": [
+      true,
+      true,
+      true
+    ],
+    "duration": 1.0,
+    "fps": 24.0,
+    "has_audio": true,
+    "kind": "video",
+    "mime": "video/webm",
+    "size": [
+      160,
+      90
+    ]
+  },
+  "rotated.jpg": {
+    "codecs": [
+      null,
+      null
+    ],
+    "derived": [
+      true,
+      false,
+      false
+    ],
+    "duration": null,
+    "fps": null,
+    "has_audio": null,
+    "kind": "image",
+    "mime": "image/jpeg",
+    "size": [
+      40,
+      80
+    ]
+  },
+  "silent.mov": {
+    "codecs": [
+      "h264",
+      null
+    ],
+    "derived": [
+      true,
+      true,
+      true
+    ],
+    "duration": 1.0,
+    "fps": 24.0,
+    "has_audio": false,
+    "kind": "video",
+    "mime": "video/quicktime",
+    "size": [
+      160,
+      90
+    ]
+  },
+  "song.mp3": {
+    "codecs": [
+      null,
+      "mp3"
+    ],
+    "derived": [
+      true,
+      false,
+      false
+    ],
+    "duration": 1.0,
+    "fps": null,
+    "has_audio": true,
+    "kind": "audio",
+    "mime": "audio/mpeg",
+    "size": [
+      null,
+      null
+    ]
+  },
+  "still.png": {
+    "codecs": [
+      null,
+      null
+    ],
+    "derived": [
+      true,
+      false,
+      false
+    ],
+    "duration": null,
+    "fps": null,
+    "has_audio": null,
+    "kind": "image",
+    "mime": "image/png",
+    "size": [
+      96,
+      64
+    ]
+  },
+  "tone.wav": {
+    "codecs": [
+      null,
+      "pcm_s16le"
+    ],
+    "derived": [
+      true,
+      false,
+      false
+    ],
+    "duration": 1.0,
+    "fps": null,
+    "has_audio": true,
+    "kind": "audio",
+    "mime": "audio/wav",
+    "size": [
+      null,
+      null
+    ]
+  }
+}

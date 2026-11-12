@@ -11,10 +11,141 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** List Assets */
+    /**
+     * List Assets
+     * @description Assets, newest first (or by relevance when ``q`` has words). Search
+     *     tokens: type:, model:, after:, before:, is:liked, is:downloaded.
+     */
     get: operations["list_assets"];
     put?: never;
     post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/assets/facets": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Asset Facets
+     * @description Counts by kind, model and month for the same filters (the date facet).
+     */
+    get: operations["asset_facets"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/assets/favorite": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Favorite Assets */
+    post: operations["favorite_assets"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/assets/move": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Move Assets */
+    post: operations["move_assets"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/assets/restore": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Restore Assets */
+    post: operations["restore_assets"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/assets/summary": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Library Summary */
+    get: operations["library_summary"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/assets/trash": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Trash Assets */
+    post: operations["trash_assets"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/assets/upload": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Upload Assets
+     * @description Import files. Each one is checked by content; duplicates of an asset
+     *     already in the same place are not added again; damaged or unsupported
+     *     files come back with an error instead of failing the whole request.
+     */
+    post: operations["upload_assets"];
     delete?: never;
     options?: never;
     head?: never;
@@ -35,7 +166,8 @@ export interface paths {
     delete?: never;
     options?: never;
     head?: never;
-    patch?: never;
+    /** Patch Asset */
+    patch: operations["patch_asset"];
     trace?: never;
   };
   "/api/assets/{asset_id}/file": {
@@ -47,11 +179,100 @@ export interface paths {
     };
     /**
      * Asset File
-     * @description The media file, with HTTP range support for video scrubbing.
+     * @description The media file, with range requests for scrubbing; ``download=true``
+     *     sends it as an attachment and records the download.
      */
     get: operations["asset_file"];
     put?: never;
     post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/assets/{asset_id}/location": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Asset Location
+     * @description Absolute path on the backend machine (for "Reveal in folder").
+     */
+    get: operations["asset_location"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/assets/{asset_id}/poster": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Asset Poster */
+    get: operations["asset_poster"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/assets/{asset_id}/preview": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Asset Preview */
+    get: operations["asset_preview"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/assets/{asset_id}/thumb": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Asset Thumb */
+    get: operations["asset_thumb"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/assets/{asset_id}/viewed": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Asset Viewed */
+    post: operations["asset_viewed"];
     delete?: never;
     options?: never;
     head?: never;
@@ -95,6 +316,59 @@ export interface paths {
     options?: never;
     head?: never;
     patch?: never;
+    trace?: never;
+  };
+  "/api/folders": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Folders */
+    get: operations["list_folders"];
+    put?: never;
+    /** Create Folder */
+    post: operations["create_folder"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/folders/reorder": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Reorder Folders */
+    post: operations["reorder_folders"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/folders/{folder_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    /** Delete Folder */
+    delete: operations["delete_folder"];
+    options?: never;
+    head?: never;
+    /** Patch Folder */
+    patch: operations["patch_folder"];
     trace?: never;
   };
   "/api/generations": {
@@ -281,6 +555,76 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/projects": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Projects */
+    get: operations["list_projects"];
+    put?: never;
+    /** Create Project */
+    post: operations["create_project"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/projects/{project_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Project */
+    get: operations["get_project"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** Patch Project */
+    patch: operations["patch_project"];
+    trace?: never;
+  };
+  "/api/projects/{project_id}/restore": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Restore Project */
+    post: operations["restore_project"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/projects/{project_id}/trash": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Trash Project */
+    post: operations["trash_project"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/settings": {
     parameters: {
       query?: never;
@@ -299,6 +643,23 @@ export interface paths {
     patch: operations["patch_settings"];
     trace?: never;
   };
+  "/api/storage": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Storage */
+    get: operations["storage"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/system/info": {
     parameters: {
       query?: never;
@@ -310,6 +671,26 @@ export interface paths {
     get: operations["system_info"];
     put?: never;
     post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/trash/empty": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Empty Trash
+     * @description Permanently delete everything in the trash.
+     */
+    post: operations["empty_trash"];
     delete?: never;
     options?: never;
     head?: never;
@@ -375,17 +756,51 @@ export interface components {
       /** Theme */
       theme?: ("dark" | "light" | "system") | null;
     };
+    /** AssetFacets */
+    AssetFacets: {
+      /** Kinds */
+      kinds: {
+        [key: string]: number;
+      };
+      /** Models */
+      models: {
+        [key: string]: number;
+      };
+      /** Months */
+      months: components["schemas"]["MonthCount"][];
+    };
+    /** AssetIds */
+    AssetIds: {
+      /** Asset Ids */
+      asset_ids: string[];
+    };
+    /** AssetLocation */
+    AssetLocation: {
+      /** Path */
+      path: string;
+    };
     /** AssetOut */
     AssetOut: {
+      /** Audio Codec */
+      audio_codec: string | null;
+      /** Caption */
+      caption: string | null;
       /**
        * Created At
        * Format: date-time
        */
       created_at: string;
+      /** Deleted At */
+      deleted_at: string | null;
       /** Duration */
       duration: number | null;
+      /** Favorite */
+      favorite: boolean;
+      /** Folder Id */
+      folder_id: string | null;
       /** Fps */
       fps: number | null;
+      generation: components["schemas"]["GenerationSummary"] | null;
       /** Has Audio */
       has_audio: boolean | null;
       /** Height */
@@ -397,18 +812,87 @@ export interface components {
        * @enum {string}
        */
       kind: "image" | "video" | "audio";
+      /** Last Downloaded At */
+      last_downloaded_at: string | null;
+      /** Last Viewed At */
+      last_viewed_at: string | null;
       /** Mime */
       mime: string;
+      /** Notes */
+      notes: string;
+      /** Original Name */
+      original_name: string | null;
+      /** Poster Url */
+      poster_url: string | null;
+      /** Preview Url */
+      preview_url: string | null;
+      /** Project Id */
+      project_id: string | null;
+      /**
+       * Provenance
+       * @enum {string}
+       */
+      provenance: "uploaded" | "generated";
       /** Sha256 */
       sha256: string;
       /** Size Bytes */
       size_bytes: number;
       /** Source Generation Id */
       source_generation_id: string | null;
+      /** Thumb Url */
+      thumb_url: string | null;
       /** Url */
       url: string;
+      /** Video Codec */
+      video_codec: string | null;
       /** Width */
       width: number | null;
+    };
+    /** AssetPage */
+    AssetPage: {
+      /** Items */
+      items: components["schemas"]["AssetOut"][];
+      /** Next Cursor */
+      next_cursor: string | null;
+      /** Total */
+      total: number;
+    };
+    /** AssetPatch */
+    AssetPatch: {
+      /** Caption */
+      caption?: string | null;
+      /** Favorite */
+      favorite?: boolean | null;
+      /** Notes */
+      notes?: string | null;
+      /** Original Name */
+      original_name?: string | null;
+    };
+    /** Body_upload_assets */
+    Body_upload_assets: {
+      /**
+       * Files
+       * @description Images, video or audio
+       */
+      files: string[];
+      /** Folder Id */
+      folder_id?: string | null;
+      /** Project Id */
+      project_id?: string | null;
+    };
+    /** BulkResult */
+    BulkResult: {
+      /** Updated */
+      updated: number;
+    };
+    /** EmptyTrashResult */
+    EmptyTrashResult: {
+      /** Assets Deleted */
+      assets_deleted: number;
+      /** Bytes Freed */
+      bytes_freed: number;
+      /** Projects Deleted */
+      projects_deleted: number;
     };
     /** FakeJobCreate */
     FakeJobCreate: {
@@ -429,6 +913,63 @@ export interface components {
        */
       seconds?: number;
     };
+    /** FavoriteAssets */
+    FavoriteAssets: {
+      /** Asset Ids */
+      asset_ids: string[];
+      /** Favorite */
+      favorite: boolean;
+    };
+    /** FolderCreate */
+    FolderCreate: {
+      /**
+       * Color
+       * @default tungsten
+       * @enum {string}
+       */
+      color?: "tungsten" | "daylight" | "green" | "rose" | "violet" | "teal" | "amber" | "slate";
+      /** Name */
+      name: string;
+      /** Project Id */
+      project_id?: string | null;
+    };
+    /** FolderOrder */
+    FolderOrder: {
+      /** Folder Ids */
+      folder_ids: string[];
+    };
+    /** FolderOut */
+    FolderOut: {
+      /** Asset Count */
+      asset_count: number;
+      /**
+       * Color
+       * @enum {string}
+       */
+      color: "tungsten" | "daylight" | "green" | "rose" | "violet" | "teal" | "amber" | "slate";
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Id */
+      id: string;
+      /** Name */
+      name: string;
+      /** Project Id */
+      project_id: string | null;
+      /** Sort Order */
+      sort_order: number;
+    };
+    /** FolderPatch */
+    FolderPatch: {
+      /** Color */
+      color?: ("tungsten" | "daylight" | "green" | "rose" | "violet" | "teal" | "amber" | "slate") | null;
+      /** Name */
+      name?: string | null;
+      /** Sort Order */
+      sort_order?: number | null;
+    };
     /** GenerationCreate */
     GenerationCreate: {
       /**
@@ -436,6 +977,8 @@ export interface components {
        * @default 1
        */
       batch?: number;
+      /** Folder Id */
+      folder_id?: string | null;
       /**
        * Mode
        * @default image
@@ -453,6 +996,8 @@ export interface components {
       };
       /** Parent Asset Id */
       parent_asset_id?: string | null;
+      /** Project Id */
+      project_id?: string | null;
       /**
        * Prompt
        * @default
@@ -479,6 +1024,8 @@ export interface components {
       error_message: string | null;
       /** Finished At */
       finished_at: string | null;
+      /** Folder Id */
+      folder_id: string | null;
       /** Id */
       id: string;
       /** Job Id */
@@ -496,6 +1043,8 @@ export interface components {
       };
       /** Parent Asset Id */
       parent_asset_id: string | null;
+      /** Project Id */
+      project_id: string | null;
       /** Prompt */
       prompt: string;
       /** Provider */
@@ -509,6 +1058,23 @@ export interface components {
        * @enum {string}
        */
       status: "queued" | "running" | "succeeded" | "failed" | "cancelled" | "interrupted";
+    };
+    /** GenerationSummary */
+    GenerationSummary: {
+      /** Id */
+      id: string;
+      /** Mode */
+      mode: string;
+      /** Model Id */
+      model_id: string;
+      /** Params */
+      params: {
+        [key: string]: unknown;
+      };
+      /** Prompt */
+      prompt: string;
+      /** Seed */
+      seed: number | null;
     };
     /** HTTPValidationError */
     HTTPValidationError: {
@@ -531,6 +1097,21 @@ export interface components {
       status: "ok";
       /** Version */
       version: string;
+    };
+    /** IngestItem */
+    IngestItem: {
+      asset?: components["schemas"]["AssetOut"] | null;
+      /**
+       * Duplicate
+       * @default false
+       */
+      duplicate?: boolean;
+      /** Error */
+      error?: string | null;
+      /** Error Code */
+      error_code?: string | null;
+      /** Name */
+      name: string;
     };
     /** JobOut */
     JobOut: {
@@ -576,10 +1157,159 @@ export interface components {
       /** Title */
       title: string;
     };
+    /** LibrarySummary */
+    LibrarySummary: {
+      /** Favorites */
+      favorites: number;
+      /** Kinds */
+      kinds: {
+        [key: string]: number;
+      };
+      /** Last Downloaded Id */
+      last_downloaded_id: string | null;
+      /** Last Viewed Id */
+      last_viewed_id: string | null;
+      /** Models */
+      models: string[];
+      /** Total */
+      total: number;
+      /** Trashed */
+      trashed: number;
+    };
+    /** MonthCount */
+    MonthCount: {
+      /** Count */
+      count: number;
+      /** Month */
+      month: string;
+    };
+    /**
+     * MoveAssets
+     * @description Folder wins; without one, assets go to the project's root (or the
+     *     global library when ``project_id`` is null).
+     */
+    MoveAssets: {
+      /** Asset Ids */
+      asset_ids: string[];
+      /** Folder Id */
+      folder_id?: string | null;
+      /** Project Id */
+      project_id?: string | null;
+    };
+    /** ProjectCreate */
+    ProjectCreate: {
+      /**
+       * Description
+       * @default
+       */
+      description?: string;
+      /** Name */
+      name: string;
+    };
+    /** ProjectDetail */
+    ProjectDetail: {
+      /** Asset Count */
+      asset_count: number;
+      /** Brief */
+      brief: string;
+      /** Cover Asset Id */
+      cover_asset_id: string | null;
+      /** Cover Url */
+      cover_url: string | null;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Deleted At */
+      deleted_at: string | null;
+      /** Description */
+      description: string;
+      /** Id */
+      id: string;
+      /** Name */
+      name: string;
+      /** Slug */
+      slug: string;
+      /**
+       * Updated At
+       * Format: date-time
+       */
+      updated_at: string;
+    };
+    /** ProjectOut */
+    ProjectOut: {
+      /** Asset Count */
+      asset_count: number;
+      /** Cover Asset Id */
+      cover_asset_id: string | null;
+      /** Cover Url */
+      cover_url: string | null;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Deleted At */
+      deleted_at: string | null;
+      /** Description */
+      description: string;
+      /** Id */
+      id: string;
+      /** Name */
+      name: string;
+      /** Slug */
+      slug: string;
+      /**
+       * Updated At
+       * Format: date-time
+       */
+      updated_at: string;
+    };
+    /** ProjectPatch */
+    ProjectPatch: {
+      /** Brief */
+      brief?: string | null;
+      /** Cover Asset Id */
+      cover_asset_id?: string | null;
+      /** Description */
+      description?: string | null;
+      /** Name */
+      name?: string | null;
+      /** Slug */
+      slug?: string | null;
+    };
     /** SessionCreate */
     SessionCreate: {
       /** Token */
       token: string;
+    };
+    /** StorageReport */
+    StorageReport: {
+      /** By Kind */
+      by_kind: components["schemas"]["StorageRow"][];
+      /** By Project */
+      by_project: components["schemas"]["StorageRow"][];
+      /** Database Bytes */
+      database_bytes: number;
+      /** Derived Bytes */
+      derived_bytes: number;
+      /** Disk Bytes */
+      disk_bytes: number;
+      /** Media Bytes */
+      media_bytes: number;
+      trash: components["schemas"]["StorageRow"];
+    };
+    /** StorageRow */
+    StorageRow: {
+      /** Bytes */
+      bytes: number;
+      /** Count */
+      count: number;
+      /** Key */
+      key: string;
+      /** Label */
+      label: string;
     };
     /** SystemInfo */
     SystemInfo: {
@@ -658,7 +1388,22 @@ export interface operations {
   list_assets: {
     parameters: {
       query?: {
-        kind?: ("image" | "video" | "audio") | null;
+        /** @description A project id, or 'none' for the global library only */
+        project_id?: string | null;
+        /** @description A folder id, or 'none' for unfiled assets */
+        folder_id?: string | null;
+        kind?: ("image" | "video" | "audio")[];
+        /** @description Model ids; 'upload' for uploaded files */
+        model?: string[];
+        created_after?: string | null;
+        created_before?: string | null;
+        liked?: boolean | null;
+        downloaded?: boolean | null;
+        provenance?: ("uploaded" | "generated") | null;
+        trashed?: boolean;
+        q?: string | null;
+        sort?: "newest" | "oldest";
+        cursor?: string | null;
         limit?: number;
       };
       header?: never;
@@ -673,8 +1418,262 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["AssetOut"][];
+          "application/json": components["schemas"]["AssetPage"];
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  asset_facets: {
+    parameters: {
+      query?: {
+        /** @description A project id, or 'none' for the global library only */
+        project_id?: string | null;
+        /** @description A folder id, or 'none' for unfiled assets */
+        folder_id?: string | null;
+        kind?: ("image" | "video" | "audio")[];
+        /** @description Model ids; 'upload' for uploaded files */
+        model?: string[];
+        created_after?: string | null;
+        created_before?: string | null;
+        liked?: boolean | null;
+        downloaded?: boolean | null;
+        provenance?: ("uploaded" | "generated") | null;
+        trashed?: boolean;
+        q?: string | null;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AssetFacets"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  favorite_assets: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["FavoriteAssets"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["BulkResult"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  move_assets: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["MoveAssets"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["BulkResult"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  restore_assets: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AssetIds"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["BulkResult"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  library_summary: {
+    parameters: {
+      query?: {
+        project_id?: string | null;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["LibrarySummary"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  trash_assets: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AssetIds"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["BulkResult"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  upload_assets: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "multipart/form-data": components["schemas"]["Body_upload_assets"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["IngestItem"][];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Validation Error */
       422: {
@@ -707,6 +1706,55 @@ export interface operations {
           "application/json": components["schemas"]["AssetOut"];
         };
       };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  patch_asset: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        asset_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AssetPatch"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AssetOut"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
       /** @description Validation Error */
       422: {
         headers: {
@@ -720,6 +1768,46 @@ export interface operations {
   };
   asset_file: {
     parameters: {
+      query?: {
+        download?: boolean;
+      };
+      header?: never;
+      path: {
+        asset_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/octet-stream": unknown;
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  asset_location: {
+    parameters: {
       query?: never;
       header?: never;
       path: {
@@ -729,14 +1817,164 @@ export interface operations {
     };
     requestBody?: never;
     responses: {
-      /** @description Media file */
+      /** @description Successful Response */
       200: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/octet-stream": unknown;
+          "application/json": components["schemas"]["AssetLocation"];
         };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  asset_poster: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        asset_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "image/webp": unknown;
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  asset_preview: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        asset_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "video/mp4": unknown;
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  asset_thumb: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        asset_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "image/webp": unknown;
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  asset_viewed: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        asset_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Validation Error */
       422: {
@@ -836,10 +2074,197 @@ export interface operations {
       };
     };
   };
+  list_folders: {
+    parameters: {
+      query?: {
+        /** @description Omit for global folders */
+        project_id?: string | null;
+        q?: string | null;
+        sort?: "manual" | "name" | "count" | "created";
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["FolderOut"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  create_folder: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["FolderCreate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["FolderOut"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  reorder_folders: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["FolderOrder"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  delete_folder: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        folder_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  patch_folder: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        folder_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["FolderPatch"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["FolderOut"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
   list_generations: {
     parameters: {
       query?: {
         mode?: ("image" | "video") | null;
+        /** @description A project id, or 'none' */
+        project_id?: string | null;
+        hide_failed?: boolean;
+        model?: string[];
         limit?: number;
       };
       header?: never;
@@ -1171,6 +2596,228 @@ export interface operations {
       };
     };
   };
+  list_projects: {
+    parameters: {
+      query?: {
+        q?: string | null;
+        sort?: "updated" | "created" | "name";
+        trashed?: boolean;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ProjectOut"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  create_project: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ProjectCreate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ProjectDetail"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  get_project: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        project_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ProjectDetail"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  patch_project: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        project_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ProjectPatch"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ProjectDetail"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  restore_project: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        project_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ProjectDetail"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  trash_project: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        project_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ProjectDetail"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
   get_settings: {
     parameters: {
       query?: never;
@@ -1224,6 +2871,26 @@ export interface operations {
       };
     };
   };
+  storage: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["StorageReport"];
+        };
+      };
+    };
+  };
   system_info: {
     parameters: {
       query?: never;
@@ -1240,6 +2907,26 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["SystemInfo"];
+        };
+      };
+    };
+  };
+  empty_trash: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["EmptyTrashResult"];
         };
       };
     };

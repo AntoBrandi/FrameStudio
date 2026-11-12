@@ -28,6 +28,8 @@ const base: GenerationOut = {
   error_message: null,
   job_id: "j1",
   parent_asset_id: null,
+  project_id: null,
+  folder_id: null,
   asset: null,
   created_at: "2026-11-12T10:00:00Z",
   started_at: null,
@@ -132,7 +134,7 @@ describe("generation card", () => {
       url: "/api/assets/a1/file",
       source_generation_id: "g1",
       created_at: "",
-    };
+    } as unknown as NonNullable<GenerationOut["asset"]>;
     render(wrap(<GenerationCard generation={{ ...base, status: "succeeded", asset }} onOpen={onOpen} />));
     expect(screen.getByRole("img")).toHaveAttribute("src", "/api/assets/a1/file");
     await user.click(screen.getByTestId("open-viewer"));

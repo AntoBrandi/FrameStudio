@@ -6,18 +6,23 @@ import asyncio
 import secrets
 import uuid
 from datetime import datetime
-from pathlib import Path
 from typing import Any, ClassVar, Literal
 
-from PIL import Image
 from pydantic import BaseModel, ConfigDict, Field
-from sqlalchemy import select
+from sqlalchemy import and_, exists, not_, select
 from sqlalchemy.orm import Session
 
 from framestudio.db.base import utcnow
 from framestudio.db.models import Asset, Generation, Job
 from framestudio.jobs.base import JobContext, JobError, JobKind, JobSnapshot
-from framestudio.media.tools import MediaToolError, probe
+from framestudio.library.assets import (
+    AssetOut,
+    Placement,
+    asset_out,
+    ingest_file,
+    resolve_placement,
+)
+from framestudio.library.media import MediaError
 from framestudio.providers.base import GenerationOutput, GenerationProvider, GenerationRequest
 from framestudio.services import Services
 
@@ -34,22 +39,6 @@ _STATUS_FROM_JOB: dict[str, GenerationStatus] = {
 }
 
 
-class AssetOut(BaseModel):
-    id: str
-    kind: Literal["image", "video", "audio"]
-    mime: str
-    size_bytes: int
-    width: int | None
-    height: int | None
-    duration: float | None
-    fps: float | None
-    has_audio: bool | None
-    sha256: str
-    url: str
-    source_generation_id: str | None
-    created_at: datetime
-
-
 class GenerationCreate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -60,6 +49,10 @@ class GenerationCreate(BaseModel):
     batch: int = Field(default=1, ge=1, le=4)
     params: dict[str, Any] = Field(default_factory=dict)
     parent_asset_id: str | None = None
+    #: Where results land: a project, a folder (which implies its project), or
+    #: the global library when both are omitted.
+    project_id: str | None = None
+    folder_id: str | None = None
 
 
 class GenerationOut(BaseModel):
@@ -77,28 +70,12 @@ class GenerationOut(BaseModel):
     error_message: str | None
     job_id: str | None
     parent_asset_id: str | None
+    project_id: str | None
+    folder_id: str | None
     asset: AssetOut | None
     created_at: datetime
     started_at: datetime | None
     finished_at: datetime | None
-
-
-def asset_out(asset: Asset) -> AssetOut:
-    return AssetOut(
-        id=asset.id,
-        kind=asset.kind,  # type: ignore[arg-type]
-        mime=asset.mime,
-        size_bytes=asset.size_bytes,
-        width=asset.width,
-        height=asset.height,
-        duration=asset.duration,
-        fps=asset.fps,
-        has_audio=asset.has_audio,
-        sha256=asset.sha256,
-        url=f"/api/assets/{asset.id}/file",
-        source_generation_id=asset.source_generation_id,
-        created_at=asset.created_at,
-    )
 
 
 def generation_out(session: Session, generation: Generation) -> GenerationOut:
@@ -123,11 +100,40 @@ def generation_out(session: Session, generation: Generation) -> GenerationOut:
         error_message=generation.error_message,
         job_id=generation.job_id,
         parent_asset_id=generation.parent_asset_id,
-        asset=asset_out(asset) if asset else None,
+        project_id=generation.project_id,
+        folder_id=generation.folder_id,
+        asset=asset_out(asset, generation) if asset else None,
         created_at=generation.created_at,
         started_at=generation.started_at,
         finished_at=generation.finished_at,
     )
+
+
+def feed_query(
+    mode: str | None = None,
+    project_id: str | None = None,
+    hide_failed: bool = False,
+    models: list[str] | None = None,
+) -> Any:
+    """Generations for a feed. Finished ones whose results are all in the
+    trash are left out, as the results are."""
+    has_live_asset = exists().where(
+        Asset.source_generation_id == Generation.id, Asset.deleted_at.is_(None)
+    )
+    query = select(Generation).where(
+        not_(and_(Generation.status == "succeeded", not_(has_live_asset)))
+    )
+    if mode is not None:
+        query = query.where(Generation.mode == mode)
+    if project_id == "none":
+        query = query.where(Generation.project_id.is_(None))
+    elif project_id:
+        query = query.where(Generation.project_id == project_id)
+    if hide_failed:
+        query = query.where(Generation.status.not_in(("failed", "cancelled", "interrupted")))
+    if models:
+        query = query.where(Generation.model_id.in_(models))
+    return query.order_by(Generation.created_at.desc(), Generation.batch_index.asc())
 
 
 class UnknownModelError(ValueError):
@@ -201,49 +207,28 @@ def _load_request(services: Services, generation_id: str) -> tuple[GenerationReq
         return request, generation.provider
 
 
-def _image_size(path: Path) -> tuple[int, int]:
-    with Image.open(path) as image:
-        return image.size
-
-
 def _store_output(services: Services, generation_id: str, output: GenerationOutput) -> str:
-    width = height = None
-    duration = fps = None
-    has_audio: bool | None = None
-    if output.kind == "image":
-        width, height = _image_size(output.path)
-    else:
-        try:
-            info = probe(output.path)
-        except MediaToolError as exc:
-            raise JobError("probe_failed", str(exc)) from exc
-        width, height, duration, fps, has_audio = (
-            info.width,
-            info.height,
-            info.duration,
-            info.fps,
-            info.has_audio,
-        )
-    stored = services.media.put(output.path, output.ext)
     with services.db.session() as session:
-        asset = Asset(
-            kind=output.kind,
-            sha256=stored.sha256,
-            path=stored.rel_path,
-            mime=output.mime,
-            size_bytes=stored.size_bytes,
-            width=width,
-            height=height,
-            duration=duration,
-            fps=fps,
-            has_audio=has_audio,
-            source_generation_id=generation_id,
+        generation = session.get(Generation, generation_id)
+        placement = Placement(
+            project_id=generation.project_id if generation else None,
+            folder_id=generation.folder_id if generation else None,
         )
-        session.add(asset)
-        session.flush()
-        out = asset_out(asset)
-    services.events.publish("asset.created", out.model_dump(mode="json"))
-    return out.id
+    try:
+        asset, _ = ingest_file(
+            services,
+            output.path,
+            name=None,
+            provenance="generated",
+            placement=placement,
+            source_generation_id=generation_id,
+            dedupe=False,
+        )
+    except MediaError as exc:
+        raise JobError(
+            "bad_output", f"The engine produced an unreadable file: {exc.message}"
+        ) from exc
+    return asset.id
 
 
 async def create_generations(
@@ -253,6 +238,12 @@ async def create_generations(
 ) -> list[GenerationOut]:
     if request.model not in providers:
         raise UnknownModelError(f"Unknown model '{request.model}'.")
+
+    def place() -> Placement:
+        with services.db.session() as session:
+            return resolve_placement(session, request.project_id, request.folder_id)
+
+    placement = await asyncio.to_thread(place)  # LookupError when the target is gone
     base_seed = request.seed if request.seed is not None else secrets.randbelow(MAX_SEED)
     batch_id = uuid.uuid4().hex
     created: list[str] = []
@@ -279,6 +270,8 @@ async def create_generations(
                 progress=0.0,
                 job_id=job.id,
                 parent_asset_id=request.parent_asset_id,
+                project_id=placement.project_id,
+                folder_id=placement.folder_id,
             )
             session.add(generation)
             session.flush()

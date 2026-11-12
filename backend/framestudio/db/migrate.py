@@ -12,6 +12,15 @@ from alembic.script import ScriptDirectory
 from framestudio.db.session import Database
 
 MIGRATIONS_DIR = Path(__file__).resolve().parent / "migrations"
+#: Tables managed outside the ORM (the FTS5 index and its shadow tables).
+UNMANAGED_PREFIXES = ("asset_search",)
+
+
+def include_object(
+    obj: object, name: str | None, type_: str, reflected: bool, compare_to: object
+) -> bool:
+    """Leave unmanaged tables out of autogenerate comparisons."""
+    return not (type_ == "table" and name is not None and name.startswith(UNMANAGED_PREFIXES))
 
 
 def alembic_config(db: Database) -> AlembicConfig:
@@ -21,18 +30,35 @@ def alembic_config(db: Database) -> AlembicConfig:
     return cfg
 
 
-def upgrade(db: Database, revision: str = "head") -> None:
+def _run(db: Database, action: str, revision: str) -> None:
+    """Run with foreign keys off, as SQLite batch migrations require.
+
+    Batch mode rebuilds a table by copying it and dropping the original; with
+    foreign keys on, that drop would cascade (ON DELETE SET NULL) into the rows
+    that reference it. The check afterwards proves the copy kept every link.
+    """
     cfg = alembic_config(db)
-    with db.engine.begin() as connection:
-        cfg.attributes["connection"] = connection
-        command.upgrade(cfg, revision)
+    with db.engine.connect() as connection:
+        connection.exec_driver_sql("PRAGMA foreign_keys=OFF")
+        connection.commit()
+        try:
+            cfg.attributes["connection"] = connection
+            getattr(command, action)(cfg, revision)
+            connection.commit()
+            broken = connection.exec_driver_sql("PRAGMA foreign_key_check").fetchall()
+            if broken:
+                raise RuntimeError(f"migration left broken foreign keys: {broken[:5]}")
+        finally:
+            connection.exec_driver_sql("PRAGMA foreign_keys=ON")
+            connection.commit()
+
+
+def upgrade(db: Database, revision: str = "head") -> None:
+    _run(db, "upgrade", revision)
 
 
 def downgrade(db: Database, revision: str) -> None:
-    cfg = alembic_config(db)
-    with db.engine.begin() as connection:
-        cfg.attributes["connection"] = connection
-        command.downgrade(cfg, revision)
+    _run(db, "downgrade", revision)
 
 
 def current_revision(db: Database) -> str | None:

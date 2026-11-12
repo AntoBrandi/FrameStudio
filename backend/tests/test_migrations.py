@@ -34,7 +34,7 @@ def _tables(db: Database) -> set[str]:
 def test_upgrade_downgrade_upgrade_on_empty_database(db: Database) -> None:
     migrate.upgrade(db)
     assert migrate.current_revision(db) == migrate.head_revision()
-    assert {"settings", "jobs", "generations", "assets"} <= _tables(db)
+    assert {"settings", "jobs", "generations", "assets", "projects", "folders"} <= _tables(db)
     migrate.downgrade(db, "base")
     assert _tables(db) == set()
     migrate.upgrade(db)
@@ -73,7 +73,9 @@ def test_fixture_database_keeps_its_data(db: Database) -> None:
 def test_models_match_migrations(db: Database) -> None:
     migrate.upgrade(db)
     with db.engine.connect() as conn:
-        context = MigrationContext.configure(conn, opts={"compare_type": True})
+        context = MigrationContext.configure(
+            conn, opts={"compare_type": True, "include_object": migrate.include_object}
+        )
         diff = compare_metadata(context, Base.metadata)
     assert diff == [], f"Models and migrations disagree; add a migration: {diff}"
 
@@ -81,3 +83,31 @@ def test_models_match_migrations(db: Database) -> None:
 def test_single_head() -> None:
     script = migrate.script_directory()
     assert len(script.get_heads()) == 1
+
+
+def test_rebuilding_assets_keeps_links_to_it(db: Database) -> None:
+    """0004 rebuilds the assets table; rows pointing at assets must survive."""
+    migrate.upgrade(db, "0003_generations_assets")
+    with db.engine.begin() as conn:
+        conn.execute(
+            text(
+                "INSERT INTO assets (id, kind, sha256, path, mime, size_bytes, created_at) "
+                "VALUES ('a1', 'image', 'x', 'ab/cd/x.png', 'image/png', 1, '2026-11-01 10:00:00')"
+            )
+        )
+        conn.execute(
+            text(
+                "INSERT INTO generations (id, batch_id, batch_index, mode, model_id, provider, "
+                "prompt, params, status, progress, parent_asset_id, created_at) VALUES "
+                "('g1', 'b', 0, 'image', 'mock', 'mock', 'p', '{}', 'succeeded', 1, 'a1', "
+                "'2026-11-01 10:00:00')"
+            )
+        )
+    migrate.upgrade(db)
+    with db.engine.connect() as conn:
+        parent = conn.execute(text("SELECT parent_asset_id FROM generations")).scalar_one()
+        provenance = conn.execute(text("SELECT provenance FROM assets")).scalar_one()
+        indexed = conn.execute(text("SELECT count(*) FROM asset_search")).scalar_one()
+    assert parent == "a1"
+    assert provenance == "generated"
+    assert indexed == 1

@@ -57,7 +57,11 @@ def test_image_generation_produces_an_asset_with_lineage(authed: TestClient) -> 
         assert image.size == (1024, 576)
 
     listed = authed.get("/api/assets").json()
-    assert [a["id"] for a in listed] == [asset["id"]]
+    assert [a["id"] for a in listed["items"]] == [asset["id"]]
+    assert asset["provenance"] == "generated"
+    assert asset["generation"]["prompt"] == "a tuna sandwich in a neon kitchen"
+    thumb = authed.get(asset["thumb_url"])
+    assert thumb.headers["content-type"] == "image/webp"
     job = authed.get(f"/api/jobs/{done['job_id']}").json()
     assert job["state"] == "succeeded"
     assert job["result"] == {"asset_id": asset["id"]}

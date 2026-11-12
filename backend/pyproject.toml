@@ -14,6 +14,7 @@ dependencies = [
     "pydantic-settings>=2.10",
     "platformdirs>=4.3",
     "pillow>=11.3",
+    "python-multipart>=0.0.20",
 ]
 
 [project.scripts]
@@ -49,6 +50,7 @@ extend-exclude = ["framestudio/db/migrations/versions"]
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF", "ASYNC", "S"]
 ignore = [
+    "RUF001", "RUF002", "RUF003",  # typographic dashes and quotes in prose are intended
     "S101",  # assert is fine in tests and internal invariants
     "S603",  # subprocess calls use argument lists, never a shell
     "S607",  # tools such as ffmpeg are resolved from PATH on purpose

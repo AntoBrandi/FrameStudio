@@ -7,7 +7,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import JSON, Float, ForeignKey, Index, Integer, String, Text
+from sqlalchemy import JSON, Boolean, Float, ForeignKey, Index, Integer, String, Text, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from framestudio.db.base import Base, UTCDateTime, utcnow
@@ -76,6 +76,13 @@ class Generation(Base):
     parent_asset_id: Mapped[str | None] = mapped_column(
         ForeignKey("assets.id", ondelete="SET NULL", use_alter=True), nullable=True
     )
+    #: Where the result lands (M1): a project and/or a folder, or the global library.
+    project_id: Mapped[str | None] = mapped_column(
+        ForeignKey("projects.id", ondelete="SET NULL"), nullable=True
+    )
+    folder_id: Mapped[str | None] = mapped_column(
+        ForeignKey("folders.id", ondelete="SET NULL"), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, index=True)
     started_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
     finished_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
@@ -96,8 +103,70 @@ class Asset(Base):
     duration: Mapped[float | None] = mapped_column(Float, nullable=True)
     fps: Mapped[float | None] = mapped_column(Float, nullable=True)
     has_audio: Mapped[bool | None] = mapped_column(nullable=True)
+    video_codec: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    audio_codec: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    #: Derived files (relative to the media directory): WebP thumbnail, video
+    #: poster, short muted hover preview.
+    thumb_path: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    poster_path: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    preview_path: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    #: uploaded | generated
+    provenance: Mapped[str] = mapped_column(
+        String(16), default="generated", server_default="generated"
+    )
+    original_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     source_generation_id: Mapped[str | None] = mapped_column(
         ForeignKey("generations.id", ondelete="SET NULL"), nullable=True, index=True
     )
+    project_id: Mapped[str | None] = mapped_column(
+        ForeignKey("projects.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    folder_id: Mapped[str | None] = mapped_column(
+        ForeignKey("folders.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    favorite: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("0"))
+    notes: Mapped[str] = mapped_column(Text, default="", server_default="")
+    caption: Mapped[str | None] = mapped_column(Text, nullable=True)
+    tags: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
+    last_viewed_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
+    last_downloaded_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, index=True)
     deleted_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
+
+    __table_args__ = (Index("ix_assets_deleted_created", "deleted_at", "created_at"),)
+
+
+class Project(Base):
+    __tablename__ = "projects"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=new_id)
+    name: Mapped[str] = mapped_column(String(120))
+    #: Names exported folders; unique, stable across renames unless changed.
+    slug: Mapped[str] = mapped_column(String(140), unique=True)
+    description: Mapped[str] = mapped_column(String(140), default="", server_default="")
+    cover_asset_id: Mapped[str | None] = mapped_column(
+        ForeignKey("assets.id", ondelete="SET NULL", use_alter=True), nullable=True
+    )
+    brief: Mapped[str] = mapped_column(Text, default="", server_default="")
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, onupdate=utcnow)
+    deleted_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
+
+
+class Folder(Base):
+    __tablename__ = "folders"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=new_id)
+    #: ``None`` for folders in the global library.
+    project_id: Mapped[str | None] = mapped_column(
+        ForeignKey("projects.id", ondelete="CASCADE"), nullable=True, index=True
+    )
+    #: Reserved for nesting later; unused in M1.
+    parent_id: Mapped[str | None] = mapped_column(
+        ForeignKey("folders.id", ondelete="CASCADE"), nullable=True
+    )
+    name: Mapped[str] = mapped_column(String(80))
+    color: Mapped[str] = mapped_column(String(16), default="tungsten")
+    sort_order: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, onupdate=utcnow)

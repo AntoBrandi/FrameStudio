@@ -1,22 +1,19 @@
-"""Generations and assets."""
+"""Generations."""
 
 from __future__ import annotations
 
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, HTTPException, Query, status
-from fastapi.responses import FileResponse
-from sqlalchemy import select
 
 from framestudio.api.deps import ServicesDep
-from framestudio.db.models import Asset, Generation
+from framestudio.db.models import Generation
 from framestudio.generation import (
-    AssetOut,
     GenerationCreate,
     GenerationOut,
     UnknownModelError,
-    asset_out,
     create_generations,
+    feed_query,
     generation_out,
 )
 from framestudio.jobs.queue import JobNotFoundError, JobStateError
@@ -31,21 +28,24 @@ async def create_generation(body: GenerationCreate, services: ServicesDep) -> li
         return await create_generations(services, body, services.providers)
     except UnknownModelError as exc:
         raise HTTPException(422, str(exc)) from None
+    except LookupError as exc:
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND, f"{str(exc).capitalize()} not found"
+        ) from None
 
 
 @router.get("/generations", tags=["generations"])
 def list_generations(
     services: ServicesDep,
     mode: Literal["image", "video"] | None = None,
+    project_id: Annotated[str | None, Query(description="A project id, or 'none'")] = None,
+    hide_failed: bool = False,
+    model: Annotated[list[str], Query()] = [],  # noqa: B006
     limit: Annotated[int, Query(ge=1, le=200)] = 60,
 ) -> list[GenerationOut]:
+    query = feed_query(mode, project_id, hide_failed, list(model)).limit(limit)
     with services.db.session() as session:
-        query = select(Generation).order_by(
-            Generation.created_at.desc(), Generation.batch_index.asc()
-        )
-        if mode is not None:
-            query = query.where(Generation.mode == mode)
-        return [generation_out(session, g) for g in session.scalars(query.limit(limit)).all()]
+        return [generation_out(session, g) for g in session.scalars(query).all()]
 
 
 @router.get("/generations/{generation_id}", tags=["generations"])
@@ -83,51 +83,3 @@ async def retry_generation(generation_id: str, services: ServicesDep) -> Generat
 @router.post("/generations/{generation_id}/cancel", tags=["generations"])
 async def cancel_generation(generation_id: str, services: ServicesDep) -> GenerationOut:
     return await _job_action(generation_id, services, "cancel")
-
-
-@router.get("/assets", tags=["assets"])
-def list_assets(
-    services: ServicesDep,
-    kind: Literal["image", "video", "audio"] | None = None,
-    limit: Annotated[int, Query(ge=1, le=500)] = 100,
-) -> list[AssetOut]:
-    with services.db.session() as session:
-        query = select(Asset).where(Asset.deleted_at.is_(None)).order_by(Asset.created_at.desc())
-        if kind is not None:
-            query = query.where(Asset.kind == kind)
-        return [asset_out(a) for a in session.scalars(query.limit(limit)).all()]
-
-
-@router.get("/assets/{asset_id}", tags=["assets"])
-def get_asset(asset_id: str, services: ServicesDep) -> AssetOut:
-    with services.db.session() as session:
-        asset = session.get(Asset, asset_id)
-        if asset is None:
-            raise HTTPException(status.HTTP_404_NOT_FOUND, "Asset not found")
-        return asset_out(asset)
-
-
-@router.get(
-    "/assets/{asset_id}/file",
-    tags=["assets"],
-    response_class=FileResponse,
-    responses={200: {"content": {"application/octet-stream": {}}, "description": "Media file"}},
-)
-def asset_file(asset_id: str, services: ServicesDep) -> FileResponse:
-    """The media file, with HTTP range support for video scrubbing."""
-    with services.db.session() as session:
-        asset = session.get(Asset, asset_id)
-        if asset is None:
-            raise HTTPException(status.HTTP_404_NOT_FOUND, "Asset not found")
-        rel_path, mime = asset.path, asset.mime
-    try:
-        path = services.media.resolve(rel_path)
-    except ValueError:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Asset file not found") from None
-    if not path.is_file():
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Asset file is missing on disk")
-    return FileResponse(
-        path,
-        media_type=mime,
-        headers={"Cache-Control": "private, max-age=31536000, immutable"},
-    )

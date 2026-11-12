@@ -14,7 +14,7 @@ from starlette.datastructures import MutableHeaders
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from framestudio import __version__
-from framestudio.api import auth, jobs, media, system
+from framestudio.api import auth, jobs, library, media, system
 from framestudio.config import LOOPBACK_HOST, Config
 from framestudio.db import migrate
 from framestudio.db.session import Database
@@ -23,6 +23,7 @@ from framestudio.generation import GenerateJob
 from framestudio.jobs.base import JobKind
 from framestudio.jobs.fake import FakeRemoteJob, FakeSleepJob
 from framestudio.jobs.queue import JobQueue
+from framestudio.library.assets import backfill_derived
 from framestudio.media.store import MediaStore
 from framestudio.paths import DataPaths
 from framestudio.providers.base import GenerationProvider
@@ -138,11 +139,14 @@ def create_app(
     async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
         services.events.bind(asyncio.get_running_loop())
         await services.jobs.start()
+        # Thumbnails for assets made before the library existed (M0 data).
+        backfill = asyncio.create_task(asyncio.to_thread(backfill_derived, services))
         log.info("FrameStudio %s ready; data in %s", __version__, paths.root)
         try:
             yield
         finally:
             await services.jobs.stop()
+            await asyncio.wait({backfill}, timeout=5)
             db.dispose()
 
     app = FastAPI(
@@ -155,7 +159,7 @@ def create_app(
         generate_unique_id_function=_operation_id,
     )
     app.state.services = services
-    for router in (system.router, auth.router, jobs.router, media.router):
+    for router in (system.router, auth.router, jobs.router, media.router, library.router):
         app.include_router(router)
     mount_ui(app, config.resolved_ui_dist())
     app.add_middleware(AccessGuard, policy=policy)
