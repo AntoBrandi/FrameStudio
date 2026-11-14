@@ -701,6 +701,28 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/generations/preview": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Preview Generation Request
+     * @description What the model would be given for this request: the prompt it sees,
+     *     the pictures (attached and from elements) with their labels, and what was
+     *     left out (M4.4).
+     */
+    post: operations["preview_generation_request"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/generations/{generation_id}": {
     parameters: {
       query?: never;
@@ -1855,6 +1877,7 @@ export interface components {
       provider: string;
       /** References */
       references: string[];
+      resolved: components["schemas"]["Resolved"] | null;
       /** Seed */
       seed: number | null;
       /** Start Frame */
@@ -2410,6 +2433,60 @@ export interface components {
       requests: number;
       /** Video Seconds */
       video_seconds: number;
+    };
+    /** Resolved */
+    Resolved: {
+      /** Elements */
+      elements: components["schemas"]["ResolvedElement"][];
+      /** Model */
+      model: string;
+      /**
+       * Problems
+       * @default []
+       */
+      problems?: string[];
+      /** Prompt */
+      prompt: string;
+      /** References */
+      references: components["schemas"]["ResolvedReference"][];
+      /**
+       * Strategy
+       * @enum {string}
+       */
+      strategy: "multi_reference" | "single_image" | "description";
+      /** Warnings */
+      warnings: string[];
+    };
+    /** ResolvedElement */
+    ResolvedElement: {
+      /** Described */
+      described: boolean;
+      /** Handle */
+      handle: string;
+      /** Id */
+      id: string;
+      /** Images */
+      images: number;
+      /** Name */
+      name: string;
+      /** Version */
+      version: number;
+    };
+    /** ResolvedReference */
+    ResolvedReference: {
+      /** Asset Id */
+      asset_id: string;
+      /** Handle */
+      handle?: string | null;
+      /** Label */
+      label: string;
+      /**
+       * Source
+       * @enum {string}
+       */
+      source: "attached" | "element";
+      /** Thumb Url */
+      thumb_url?: string | null;
     };
     /** RouteOption */
     RouteOption: {
@@ -4383,6 +4460,39 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["GenerationEstimate"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  preview_generation_request: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["GenerationCreate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Resolved"];
         };
       };
       /** @description Validation Error */

@@ -26,6 +26,7 @@ const base: GenerationOut = {
   provider: "mock",
   prompt: "a red door",
   prompt_tokens: [{ type: "text", text: "a red door" }],
+  resolved: null,
   params: { aspect: "16:9" },
   references: [],
   start_frame: null,
@@ -197,21 +198,30 @@ describe("composer", () => {
     );
   });
 
-  it("sends element chips as tokens and warns about unknown handles", async () => {
+  it("sends element chips as tokens; shows what the model sees and its warnings", async () => {
     setup();
     const ghost = { type: "element" as const, handle: "ghost", element_id: null };
     const maya = { type: "element" as const, handle: "maya", element_id: "e1" };
     mockApi({
-      "POST /api/prompts/parse": {
-        tokens: [maya, { type: "text", text: " meets " }, ghost],
-        text: "@maya meets @ghost",
+      "POST /api/generations/preview": {
+        model: "mock",
+        strategy: "description",
+        prompt: "Maya Ortiz meets @ghost\n\nMaya Ortiz: short dark hair.",
+        references: [],
+        elements: [{ id: "e1", handle: "maya", name: "Maya Ortiz", version: 2, images: 0, described: true }],
         warnings: ["@ghost is not an element here; it is sent as plain text."],
+        problems: [],
       },
     });
     const user = userEvent.setup();
     render(withRouter(<Composer mode="image" />));
     act(() => useComposerStore.getState().setDraft("image", [maya, { type: "text", text: " meets " }, ghost]));
     expect(await screen.findByTestId("prompt-warnings")).toHaveTextContent("@ghost is not an element here");
+    await user.click(screen.getByTestId("request-preview-button"));
+    const preview = await screen.findByTestId("request-preview");
+    expect(preview).toHaveTextContent("elements are named and described in words");
+    expect(screen.getByTestId("request-prompt")).toHaveTextContent("Maya Ortiz: short dark hair.");
+    await user.keyboard("{Escape}");
     await user.click(screen.getByTestId("prompt-input"));
     await user.keyboard("{Enter}");
     await waitFor(() =>

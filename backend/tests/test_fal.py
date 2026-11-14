@@ -30,6 +30,7 @@ pytestmark = pytest.mark.skipif(not (ffmpeg_path() and ffprobe_path()), reason="
 
 VIDEO = "fal-ai/demo-video/image-to-video"
 IMAGE = "fal-ai/demo-image"
+EDIT = "fal-ai/demo-edit"
 
 
 class Network:
@@ -106,7 +107,7 @@ def import_models(client: TestClient, *endpoints: str) -> list[dict[str, Any]]:
 
 def test_search_and_import(client: TestClient, tmp_path: Path) -> None:
     found = client.get("/api/catalog/fal/search", params={"q": "demo"}).json()
-    assert {m["endpoint_id"] for m in found} == {VIDEO, IMAGE}
+    assert {m["endpoint_id"] for m in found} == {VIDEO, IMAGE, EDIT}
     assert all(m["supported"] for m in found)
     [video, image] = import_models(client, VIDEO, IMAGE)
     assert video["id"] == "fal-demo-video-image-to-video" and video["provider"] == "fal"
@@ -131,6 +132,21 @@ def test_imported_models_survive_a_restart(
     with make_client(tmp_path, fal, byteplus) as second:
         ids = [m["id"] for m in second.get("/api/models").json()]
         assert "fal-demo-video-image-to-video" in ids
+
+
+def test_an_edit_model_takes_one_picture(client: TestClient, fal: FakeFal) -> None:
+    """M4.4: image-to-image endpoints with one ``image_url`` take one picture."""
+    [edit] = import_models(client, EDIT)
+    assert edit["limits"]["max_references"] == 1
+    assert edit["capabilities"] == ["image_edit"]
+    refused = client.post("/api/generations", json={"model": edit["id"], "prompt": "bluer"})
+    assert refused.status_code == 422 and "changes a picture" in refused.text
+    still = upload(client)
+    done = run(client, model=edit["id"], prompt="bluer", references=[still])
+    assert done["status"] == "succeeded", done
+    [sent] = fal.submitted
+    assert sent["body"]["image_url"].startswith("data:image/png;base64,")
+    assert "start_image_url" not in sent["body"]
 
 
 def test_import_refuses_what_it_cannot_use(client: TestClient) -> None:

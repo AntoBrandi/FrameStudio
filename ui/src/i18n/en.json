@@ -603,5 +603,21 @@
     "suggestions": "Elements",
     "noElements": "No element matches “{{query}}”. Make one on the Elements page.",
     "global": "Global"
+  },
+  "preview": {
+    "button": "Preview",
+    "title": "What the model sees",
+    "strategies": {
+      "multi_reference": "{{model}} gets the elements' pictures as reference images, named in the prompt.",
+      "single_image": "{{model}} takes one picture: the first element's goes as the input image; the rest are described.",
+      "description": "{{model}} gets no pictures here: elements are named and described in words."
+    },
+    "prompt": "Prompt",
+    "noPrompt": "(no prompt)",
+    "pictures_one": "{{count}} picture",
+    "pictures_other": "{{count}} pictures",
+    "noPictures": "No pictures.",
+    "attached": "attached",
+    "empty": "Write a prompt to see what is sent."
   }
 }

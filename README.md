@@ -87,8 +87,10 @@ scripts/   dev, start and setup commands (plain Node, any OS)
   primary), global or per project, in folders, with Draft and Ready status. Export them as CSV or
   as a zip with their media, and import that into another library or project. In the prompt box,
   typing `@` suggests elements with their pictures and puts them in as chips; pasted prompts get
-  chips too, and handles that name no element are flagged. Sending the element's pictures and
-  description to each model comes next (M4.4).
+  chips too, and handles that name no element are flagged. Each model gets elements in the form it
+  can use: their pictures as reference images (Nano Banana, Seedance), one input picture
+  (image-to-image models), or their names and descriptions in words; Preview in the composer shows
+  exactly what will be sent.
 - **Test doubles ship with the product** (D8): the mock engine, a hosted "Mock cloud" model,
   fake local and remote jobs, a scripted fake LLM, and offline key checks
   (`FRAMESTUDIO_FAKE_PROVIDERS=1`, where keys starting `fs-test-ok` pass).

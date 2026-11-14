@@ -84,6 +84,15 @@ Test media: `backend/tests/fixtures/media` (regenerate with `make_corpus.py`).
   `prompt_tokens` and record `element_uses` ("Used in"). UI: `features/generate/tokens.ts`, the
   `TokenNode` chips and `@` menu in `PromptEditor.tsx`; the composer store keeps drafts as tokens.
   Enter priorities there: @ menu (CRITICAL) > pick guard (HIGH) > send (NORMAL).
+- Reference resolver (M4.4): `framestudio/references.py` turns tokens + attached pictures into
+  what a model gets, by strategy from its catalog limits: `multi_reference` (attached first, then
+  each element's primary, then more angles, ≤3 each, numbered "image N" in the prompt),
+  `single_image` (`max_references: 1`; fal image-to-image endpoints map one `image_url` to the
+  `reference` input), `description` (no pictures, or start/end frames). Element descriptions follow
+  the prompt; over-limit pictures and descriptions are dropped with warnings. Stored per generation
+  in `generations.resolved` (the job sends that prompt and those pictures; `reference_ids` stays the
+  hand-attached ones). `POST /api/generations/preview` returns it; the composer's Preview shows it.
+  Golden requests: `tests/golden/references/` (rewrite with `FRAMESTUDIO_UPDATE_GOLDEN=1`).
 - LLM contract fixtures: `backend/tests/contracts/fixtures/llm/<provider>/<case>.json`, synthetic
   until recorded (`uv run python -m tests.contracts.llm_wire` rewrites synthetic ones). Live runs:
   `LIVE_API=1 FRAMESTUDIO_LIVE_<PROVIDER>_KEY=… uv run pytest tests/contracts` (paid);

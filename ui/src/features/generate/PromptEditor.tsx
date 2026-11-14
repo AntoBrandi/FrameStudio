@@ -29,6 +29,7 @@ import {
   type EditorConfig,
   type EditorState,
   KEY_ENTER_COMMAND,
+  type LexicalEditor,
   type LexicalNode,
   type NodeKey,
   PASTE_COMMAND,
@@ -263,18 +264,31 @@ function $queryAtCaret(): { node: TextNode; start: number; end: number; query: s
   return { node, start: end - query.length - 1, end, query: query.toLowerCase() };
 }
 
-/** Replace the "@query" just before the caret with the element's chip and a space. */
-function $replaceQuery(element: ElementOut): void {
+/** Replace the "@query" just before the caret with the element's chip and a
+ * space. False when there is no "@query" at the caret (yet). */
+function $replaceQuery(element: ElementOut): boolean {
   const at = $queryAtCaret();
-  if (!at) return;
+  if (!at) return false;
   const parts = at.node.splitText(at.start, at.end);
   const typed = parts[at.start === 0 ? 0 : 1];
-  if (!typed) return;
+  if (!typed) return false;
   const chip = $createTokenNode("element", element.handle, element.id);
   typed.replace(chip);
   const space = $createTextNode(" ");
   chip.insertAfter(space);
   space.selectEnd();
+  return true;
+}
+
+/** Put the element's chip in place of the "@query". Chrome inserts typed
+ * characters before the editor's state catches up, so an Enter right after
+ * fast typing can see an older caret: try again for a few frames. */
+function pickElement(editor: LexicalEditor, element: ElementOut, tries = 6): void {
+  editor.update(() => {
+    if (!$replaceQuery(element) && tries > 0) {
+      setTimeout(() => pickElement(editor, element, tries - 1), 16);
+    }
+  });
 }
 
 const matches = (element: ElementOut, query: string) =>
@@ -323,7 +337,7 @@ function MentionsPlugin({ projectId }: { projectId?: string }) {
     if (!at) return "none";
     const first = found.find((element) => matches(element, at.query));
     if (first) {
-      editor.update(() => $replaceQuery(first));
+      pickElement(editor, first);
       return "picked";
     }
     return isFetching ? "loading" : "none";
@@ -346,7 +360,7 @@ function MentionsPlugin({ projectId }: { projectId?: string }) {
     if (!pendingPick.current) return;
     const at = editor.getEditorState().read($queryAtCaret);
     const first = at && found.find((element) => matches(element, at.query));
-    if (first) editor.update(() => $replaceQuery(first));
+    if (first) pickElement(editor, first);
     if (!at || first || !isFetching) pendingPick.current = false;
   }, [editor, found, isFetching]);
 
@@ -360,7 +374,7 @@ function MentionsPlugin({ projectId }: { projectId?: string }) {
       onSelectOption={(option, _node, closeMenu) => {
         // The "@query" before the caret is found again here: the plugin's own
         // match can lag behind fast typing.
-        editor.update(() => $replaceQuery(option.element));
+        pickElement(editor, option.element);
         closeMenu();
       }}
       menuRenderFn={(anchor, { selectedIndex, selectOptionAndCleanUp, setHighlightedIndex }) =>

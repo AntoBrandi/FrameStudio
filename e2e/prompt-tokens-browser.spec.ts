@@ -20,28 +20,31 @@ async function paste(page: Page, text: string) {
 }
 
 test("M4.3: @ suggests elements, chips go into the prompt and come back on Recreate", async ({ page, backend }) => {
+  const run = Array.from({ length: 5 }, () => "abcdefghijklmnopqrstuvwxyz"[Math.floor(Math.random() * 26)]).join("");
   const created = await backend.api("/api/elements", {
     method: "POST",
-    body: JSON.stringify({ name: "Tokens Maya E2E", category: "character", status: "ready" }),
+    // A name of its own per run: other tests share this backend.
+    body: JSON.stringify({ name: `Tk${run} Maya`, category: "character", status: "ready" }),
   });
   expect(created.status).toBe(201);
   const maya = await created.json();
-  expect(maya.handle).toBe("tokens-maya-e2e");
+  const h = maya.handle as string;
+  expect(h).toBe(`tk${run}-maya`);
 
   await page.goto(`${backend.url}/auth/login?token=${backend.token}&next=/image`);
   await pickMock(page);
   const input = page.getByTestId("prompt-input");
   await input.click();
-  await page.keyboard.type("A portrait of @tokens-ma");
+  await page.keyboard.type(`A portrait of @tk${run}-ma`);
   const suggestions = page.getByTestId("element-suggestions");
-  await expect(suggestions.locator('[data-handle="tokens-maya-e2e"]')).toBeVisible();
-  await expect(suggestions).toContainText("Tokens Maya E2E");
+  await expect(suggestions.locator(`[data-handle="${h}"]`)).toBeVisible();
+  await expect(suggestions).toContainText(`Tk${run} Maya`);
   await page.keyboard.press("Enter"); // picks the element, does not send
   const chip = input.getByTestId("prompt-token");
-  await expect(chip).toHaveText("@tokens-maya-e2e");
+  await expect(chip).toHaveText(`@${h}`);
   await expect(chip).not.toHaveAttribute("data-unknown");
   await page.keyboard.type("at dusk, tokens e2e");
-  await expect(input).toHaveText("A portrait of @tokens-maya-e2e at dusk, tokens e2e");
+  await expect(input).toHaveText(`A portrait of @${h} at dusk, tokens e2e`);
 
   // Backspace removes a chip whole.
   await page.keyboard.press("End");
@@ -51,7 +54,7 @@ test("M4.3: @ suggests elements, chips go into the prompt and come back on Recre
   await expect(input).toHaveText("A portrait of ");
 
   // A pasted prompt becomes chips; an unknown handle is marked and warned about.
-  await paste(page, "@tokens-maya-e2e meets @nobody-e2e at the pier, tokens e2e");
+  await paste(page, `@${h} meets @nobody-e2e at the pier, tokens e2e`);
   await expect(input.getByTestId("prompt-token")).toHaveCount(2);
   await expect(input.locator('[data-unknown="true"]')).toHaveText("@nobody-e2e");
   await expect(page.getByTestId("prompt-warnings")).toContainText("@nobody-e2e is not an element here");
@@ -62,12 +65,12 @@ test("M4.3: @ suggests elements, chips go into the prompt and come back on Recre
 
   const generations = await (await backend.api("/api/generations")).json();
   // Enter on the suggestion picked it; nothing was sent then.
-  expect(generations.filter((g: { prompt: string }) => g.prompt.startsWith("A portrait of"))).toHaveLength(1);
+  expect(generations.filter((g: { prompt: string }) => g.prompt.startsWith(`A portrait of @${h}`))).toHaveLength(1);
   const made = generations.find((g: { prompt: string }) => g.prompt.endsWith("at the pier, tokens e2e"));
-  expect(made.prompt).toBe("A portrait of @tokens-maya-e2e meets @nobody-e2e at the pier, tokens e2e");
+  expect(made.prompt).toBe(`A portrait of @${h} meets @nobody-e2e at the pier, tokens e2e`);
   expect(made.prompt_tokens).toEqual([
     { type: "text", text: "A portrait of " },
-    { type: "element", handle: "tokens-maya-e2e", element_id: maya.id },
+    { type: "element", handle: h, element_id: maya.id },
     { type: "text", text: " meets " },
     { type: "element", handle: "nobody-e2e", element_id: null },
     { type: "text", text: " at the pier, tokens e2e" },
@@ -79,23 +82,23 @@ test("M4.3: @ suggests elements, chips go into the prompt and come back on Recre
   await input.click();
   await page.keyboard.press("Control+A");
   await page.keyboard.press("Backspace");
-  await page.keyboard.type("Fast @tokens-maya");
+  await page.keyboard.type(`Fast @tk${run}-maya`);
   await page.keyboard.press("Enter");
-  await expect(input.getByTestId("prompt-token")).toHaveText("@tokens-maya-e2e");
-  await expect(input).toHaveText("Fast @tokens-maya-e2e ");
+  await expect(input.getByTestId("prompt-token")).toHaveText(`@${h}`);
+  await expect(input).toHaveText(`Fast @${h} `);
 
   // Handles typed by hand become chips when the box loses focus.
   await input.click();
   await page.keyboard.press("Control+A");
   await page.keyboard.press("Backspace");
-  await page.keyboard.type("@tokens-maya-e2e by hand ");
+  await page.keyboard.type(`@${h} by hand `);
   await page.keyboard.press("Escape");
   await page.getByRole("heading").first().click({ force: true });
-  await expect(input.getByTestId("prompt-token")).toHaveText("@tokens-maya-e2e");
+  await expect(input.getByTestId("prompt-token")).toHaveText(`@${h}`);
 
   // Recreate brings the chips back from the stored tokens.
   await card.getByTestId("open-viewer").click();
   await page.getByTestId("handoff-recreate").click();
   await expect(input.getByTestId("prompt-token")).toHaveCount(2);
-  await expect(input).toHaveText("A portrait of @tokens-maya-e2e meets @nobody-e2e at the pier, tokens e2e");
+  await expect(input).toHaveText(`A portrait of @${h} meets @nobody-e2e at the pier, tokens e2e`);
 });

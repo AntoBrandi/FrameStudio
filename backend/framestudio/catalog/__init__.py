@@ -19,8 +19,8 @@ import yaml
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
 
 CATALOG_DIR = Path(__file__).resolve().parent / "models"
-#: What provider_inputs may map besides parameters.
-INPUT_KEYS = frozenset({"prompt", "start_frame", "end_frame", "references", "seed"})
+#: FrameStudio inputs a provider_inputs map can name ("reference": one input image).
+INPUT_KEYS = frozenset({"prompt", "start_frame", "end_frame", "references", "reference", "seed"})
 
 Mode = Literal["image", "video"]
 Capability = Literal[

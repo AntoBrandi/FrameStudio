@@ -50,6 +50,10 @@ FIELDS: dict[str, tuple[str, ...]] = {
     "references": ("image_urls", "reference_image_urls", "reference_images", "input_image_urls"),
     "seed": ("seed",),
 }
+#: A single input image of an image model (image-to-image endpoints).
+SINGLE_IMAGE = ("image_url", "input_image_url", "image")
+#: Video-only inputs: image models never start from a frame.
+_VIDEO_ONLY = {"start_frame", "end_frame"}
 #: Endpoint fields that become FrameStudio's usual parameter names.
 PARAMS: dict[str, tuple[str, ...]] = {
     "aspect": ("aspect_ratio",),
@@ -180,9 +184,15 @@ def spec_from_fal(model: dict[str, Any], price: dict[str, Any] | None) -> ModelS
     }
     inputs: dict[str, str] = {}
     for ours, names in FIELDS.items():
+        if mode == "image" and ours in _VIDEO_ONLY:
+            continue
         found = next((n for n in names if n in props), None)
         if found:
             inputs[ours] = found
+    if mode == "image" and "references" not in inputs:
+        single = next((n for n in SINGLE_IMAGE if n in props), None)
+        if single:
+            inputs["reference"] = single
     if "prompt" not in inputs:
         raise FalImportError(f"{endpoint}: it takes no prompt")
     if mode == "video" and category == "image-to-video" and "start_frame" not in inputs:
@@ -219,6 +229,8 @@ def spec_from_fal(model: dict[str, Any], price: dict[str, Any] | None) -> ModelS
     max_refs = (
         int(props.get(inputs.get("references", ""), {}).get("maxItems", 4))
         if "references" in inputs
+        else 1
+        if "reference" in inputs
         else 0
     )
     unit = str((price or {}).get("unit", "")).lower()

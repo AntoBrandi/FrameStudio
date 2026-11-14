@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { Minus, Plus, SlidersHorizontal, Sparkles } from "lucide-react";
 import { type FormEvent, useCallback, useDeferredValue, useMemo, useRef, useState } from "react";
@@ -15,6 +15,7 @@ import { ModelPicker } from "./ModelPicker";
 import { ParamControls, SeedField } from "./ParamControls";
 import { type Mode, type ModelOut, normalize, type Params, paramsFor } from "./params";
 import { PromptEditor } from "./PromptEditor";
+import { RequestPreview } from "./RequestPreview";
 import { type Reference, ReferenceTray } from "./ReferenceTray";
 import { AUTO, NO_ATTACHMENTS, paramsKey, useComposerStore } from "./store";
 import { mayHoldTokens, parsePrompt, renderTokens, sameTokens, type Token, trimTokens } from "./tokens";
@@ -90,15 +91,6 @@ export function Composer({ mode, projectId }: { mode: Mode; projectId?: string }
   const beforeEnhance = useRef<Token[]>(NO_TOKENS);
   const setDraft = store.setDraft;
 
-  // Unknown handles warn (M4.3): the backend checks the prompt's tokens.
-  const checked = useDeferredValue(draft);
-  const { data: check } = useQuery({
-    queryKey: ["prompt-check", projectId ?? null, checked],
-    queryFn: () => parsePrompt({ tokens: checked }, projectId),
-    enabled: hasTokens(checked),
-    staleTime: 10_000,
-  });
-  const warnings = hasTokens(draft) ? (check?.warnings ?? []) : [];
   // On blur, handles typed by hand become chips.
   const tidy = useCallback(() => {
     const current = useComposerStore.getState().drafts[mode] ?? NO_TOKENS;
@@ -187,6 +179,17 @@ export function Composer({ mode, projectId }: { mode: Mode; projectId?: string }
     { enabled: estimateBody !== null, placeholderData: (previous) => previous },
   );
 
+  // What the model will be given (M4.4), and warnings about it: unknown
+  // handles, pictures over the model's limit, descriptions cut to fit.
+  const previewBody = useDeferredValue(body);
+  const { data: preview } = $api.useQuery(
+    "post",
+    "/api/generations/preview",
+    { body: previewBody! },
+    { enabled: previewBody !== null, placeholderData: (previous) => previous, staleTime: 5_000 },
+  );
+  const warnings = preview?.warnings ?? [];
+
   const submit = useCallback(
     (event?: FormEvent) => {
       event?.preventDefault();
@@ -213,7 +216,12 @@ export function Composer({ mode, projectId }: { mode: Mode; projectId?: string }
   );
 
   const advanced = model ? paramsFor(model, mode).filter(([, p]) => p.advanced) : [];
-  const blocked = auto && routed && !routed.model ? [routed.reason] : estimate && !estimate.ok ? estimate.problems : [];
+  const blocked =
+    auto && routed && !routed.model
+      ? [routed.reason]
+      : estimate && !estimate.ok
+        ? estimate.problems
+        : (preview?.problems ?? []);
   return (
     <form
       onSubmit={submit}
@@ -266,6 +274,7 @@ export function Composer({ mode, projectId }: { mode: Mode; projectId?: string }
           auto={auto}
           onChange={(id) => store.setModel(mode, id)}
         />
+        <RequestPreview resolved={preview} modelName={model?.name} />
         <EnhanceButton
           prompt={prompt}
           mode={mode}

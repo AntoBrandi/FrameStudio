@@ -143,6 +143,8 @@ class FalProvider:
             body[inputs["end_frame"]] = _data_uri(request.end_frame)
         if request.references and "references" in inputs:
             body[inputs["references"]] = [_data_uri(path) for path in request.references]
+        elif request.references and "reference" in inputs:  # one input image
+            body[inputs["reference"]] = _data_uri(request.references[0])
         if "seed" in inputs:
             body[inputs["seed"]] = request.seed
         for name, value in request.params.items():

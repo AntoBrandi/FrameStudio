@@ -2290,6 +2290,16 @@
             "title": "References",
             "type": "array"
           },
+          "resolved": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Resolved"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "seed": {
             "anyOf": [
               {
@@ -2346,6 +2356,7 @@
           "provider",
           "prompt",
           "prompt_tokens",
+          "resolved",
           "params",
           "seed",
           "status",
@@ -4060,6 +4071,153 @@
           "cap_usd"
         ],
         "title": "ProviderUsage",
+        "type": "object"
+      },
+      "Resolved": {
+        "properties": {
+          "elements": {
+            "items": {
+              "$ref": "#/components/schemas/ResolvedElement"
+            },
+            "title": "Elements",
+            "type": "array"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "problems": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Problems",
+            "type": "array"
+          },
+          "prompt": {
+            "title": "Prompt",
+            "type": "string"
+          },
+          "references": {
+            "items": {
+              "$ref": "#/components/schemas/ResolvedReference"
+            },
+            "title": "References",
+            "type": "array"
+          },
+          "strategy": {
+            "enum": [
+              "multi_reference",
+              "single_image",
+              "description"
+            ],
+            "title": "Strategy",
+            "type": "string"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "model",
+          "strategy",
+          "prompt",
+          "references",
+          "elements",
+          "warnings"
+        ],
+        "title": "Resolved",
+        "type": "object"
+      },
+      "ResolvedElement": {
+        "properties": {
+          "described": {
+            "title": "Described",
+            "type": "boolean"
+          },
+          "handle": {
+            "title": "Handle",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "images": {
+            "title": "Images",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "handle",
+          "name",
+          "version",
+          "images",
+          "described"
+        ],
+        "title": "ResolvedElement",
+        "type": "object"
+      },
+      "ResolvedReference": {
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "handle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Handle"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "attached",
+              "element"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "thumb_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Thumb Url"
+          }
+        },
+        "required": [
+          "asset_id",
+          "label",
+          "source"
+        ],
+        "title": "ResolvedReference",
         "type": "object"
       },
       "RouteOption": {
@@ -7365,6 +7523,48 @@
           }
         },
         "summary": "Estimate Generation",
+        "tags": [
+          "generations"
+        ]
+      }
+    },
+    "/api/generations/preview": {
+      "post": {
+        "description": "What the model would be given for this request: the prompt it sees,\nthe pictures (attached and from elements) with their labels, and what was\nleft out (M4.4).",
+        "operationId": "preview_generation_request",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerationCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Resolved"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Preview Generation Request",
         "tags": [
           "generations"
         ]

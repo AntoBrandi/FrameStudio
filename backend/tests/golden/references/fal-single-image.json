@@ -1,0 +1,46 @@
+{
+  "model": "fal-demo-edit",
+  "strategy": "single_image",
+  "prompt_sent": "Maya Ortiz (the reference image) walks along Old Pier holding Brass Lantern at dusk, @ghost watching from the dunes\n\nMaya Ortiz: Woman in her thirties, short dark hair, yellow raincoat.\nOld Pier: Weathered wooden pier, fog, sodium lamps.",
+  "references": [
+    {
+      "label": "the reference image",
+      "source": "element",
+      "handle": "maya",
+      "picture": "maya-front"
+    }
+  ],
+  "elements": [
+    {
+      "handle": "maya",
+      "name": "Maya Ortiz",
+      "version": 1,
+      "images": 1,
+      "described": true
+    },
+    {
+      "handle": "pier",
+      "name": "Old Pier",
+      "version": 1,
+      "images": 0,
+      "described": true
+    },
+    {
+      "handle": "lantern",
+      "name": "Brass Lantern",
+      "version": 1,
+      "images": 0,
+      "described": false
+    }
+  ],
+  "warnings": [
+    "@ghost is not an element here; it is sent as plain text.",
+    "Demo Edit (fal) takes one reference image; @pier is described in words instead.",
+    "Demo Edit (fal) takes one reference image; @lantern is described in words instead."
+  ],
+  "request": {
+    "prompt": "Maya Ortiz (the reference image) walks along Old Pier holding Brass Lantern at dusk, @ghost watching from the dunes\n\nMaya Ortiz: Woman in her thirties, short dark hair, yellow raincoat.\nOld Pier: Weathered wooden pier, fog, sodium lamps.",
+    "image_url": "<maya-front>",
+    "seed": 7
+  }
+}

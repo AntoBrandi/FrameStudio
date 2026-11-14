@@ -38,6 +38,7 @@ from framestudio.providers.base import (
     RemoteProvider,
     with_retries,
 )
+from framestudio.references import Resolved, resolve
 from framestudio.router import AUTO, RouteRequest, route
 from framestudio.services import Services
 
@@ -90,6 +91,8 @@ class GenerationOut(BaseModel):
     provider: str
     prompt: str
     prompt_tokens: list[Token]
+    #: What the model was given (M4.4); None for older generations.
+    resolved: Resolved | None
     params: dict[str, Any]
     seed: int | None
     status: GenerationStatus
@@ -131,6 +134,7 @@ def generation_out(session: Session, generation: Generation) -> GenerationOut:
         provider=generation.provider,
         prompt=generation.prompt,
         prompt_tokens=stored_tokens(generation),
+        resolved=Resolved.model_validate(generation.resolved) if generation.resolved else None,
         params=generation.params or {},
         references=list(generation.reference_ids or []),
         start_frame=generation.start_frame_id,
@@ -468,8 +472,14 @@ def _load_request(services: Services, generation_id: str) -> tuple[GenerationReq
         if generation is None:
             raise JobError("not_found", "The generation was deleted.")
         spec = services.catalog.get(generation.model_id)
+        resolved = generation.resolved or {}
+        reference_ids = (
+            [r["asset_id"] for r in resolved["references"]]
+            if "references" in resolved
+            else list(generation.reference_ids or [])
+        )
         references = []
-        for asset_id in generation.reference_ids or []:
+        for asset_id in reference_ids:
             asset = session.get(Asset, asset_id)
             path = services.media.resolve(asset.path) if asset else None
             if path is None or not path.is_file():
@@ -493,7 +503,7 @@ def _load_request(services: Services, generation_id: str) -> tuple[GenerationReq
 
         request = GenerationRequest(
             mode=generation.mode,  # type: ignore[arg-type]
-            prompt=generation.prompt,
+            prompt=resolved.get("prompt", generation.prompt),
             seed=generation.seed if generation.seed is not None else 0,
             params=dict(generation.params or {}),
             model=generation.model_id,
@@ -690,6 +700,31 @@ def tokens_for(
     return tokens, prompts.render(tokens)
 
 
+def resolve_for(
+    services: Services, spec: Any, request: GenerationCreate, tokens: list[Token]
+) -> Resolved:
+    """What ``spec`` is given for this request (M4.4)."""
+    frames = request.start_frame is not None or request.end_frame is not None
+    with services.db.session() as session:
+        return resolve(session, spec, tokens, list(request.references), frames=frames)
+
+
+async def preview_generation(services: Services, request: GenerationCreate) -> Resolved:
+    """What the model would be given, without starting anything."""
+    request = resolve_auto(services, request)  # UnknownModelError when nothing fits
+    spec = services.catalog.get(request.model)
+    if spec is None:
+        raise UnknownModelError(f"Unknown model '{request.model}'.")
+
+    def place() -> Placement:
+        with services.db.session() as session:
+            return resolve_placement(session, request.project_id, request.folder_id)
+
+    placement = await asyncio.to_thread(place)
+    tokens, _ = await asyncio.to_thread(tokens_for, services, request, placement.project_id)
+    return await asyncio.to_thread(resolve_for, services, spec, request, tokens)
+
+
 def job_kind_for(provider: GenerationProvider) -> str:
     if not provider.remote:
         return GenerateJob.kind
@@ -733,6 +768,10 @@ async def create_generations(
     if len(prompt_text) > 4000:
         raise ParamError(["The prompt is longer than 4000 characters"])
     request = request.model_copy(update={"prompt": prompt_text})
+    resolved = await asyncio.to_thread(resolve_for, services, spec, request, tokens)
+    if resolved.problems:
+        raise ParamError(resolved.problems)
+    resolved_json = resolved.model_dump(mode="json")
     stored = [t.model_dump(mode="json") for t in tokens]
     used = prompts.element_ids(tokens)
     base_seed = request.seed if request.seed is not None else secrets.randbelow(MAX_SEED)
@@ -756,6 +795,7 @@ async def create_generations(
                 provider=spec.provider,
                 prompt=request.prompt,
                 prompt_tokens=stored,
+                resolved=resolved_json,
                 params=params,
                 reference_ids=list(request.references),
                 start_frame_id=request.start_frame,

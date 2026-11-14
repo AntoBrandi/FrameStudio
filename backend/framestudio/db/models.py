@@ -65,6 +65,9 @@ class Generation(Base):
     prompt: Mapped[str] = mapped_column(Text, default="")
     #: The prompt as tokens (M4.3); ``prompt`` is its plain-text rendering.
     prompt_tokens: Mapped[list[dict[str, Any]] | None] = mapped_column(JSON, nullable=True)
+    #: What the model was given (M4.4): the prompt it saw, the pictures with
+    #: their labels and the element versions (``references.Resolved``).
+    resolved: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
     params: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
     #: Library assets given to the model as references (M2.5), in order.
     reference_ids: Mapped[list[str]] = mapped_column(JSON, default=list)

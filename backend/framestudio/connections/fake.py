@@ -70,6 +70,18 @@ FAL_DEMO: list[dict[str, Any]] = [
             "guidance_scale": {"type": "number", "minimum": 1, "maximum": 20, "default": 3.5},
         },
     },
+    {
+        # One input image, as most image-to-image endpoints take (M4.4).
+        "endpoint_id": "fal-ai/demo-edit",
+        "category": "image-to-image",
+        "name": "Demo Edit",
+        "price": {"unit_price": 0.04, "unit": "image"},
+        "input": {
+            "prompt": {"type": "string"},
+            "image_url": {"type": "string"},
+            "seed": {"type": "integer"},
+        },
+    },
 ]
 
 
