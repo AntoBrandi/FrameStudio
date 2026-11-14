@@ -310,3 +310,21 @@ class ElementUse(Base):
         ForeignKey("generations.id", ondelete="CASCADE"), primary_key=True, index=True
     )
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
+
+
+class Preset(Base):
+    """A saved palette (M5.4) or lighting rig (M5.5); built-in choices live
+    in ``cinema/vocab.yaml``."""
+
+    __tablename__ = "presets"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=new_id)
+    #: palette | lighting
+    kind: Mapped[str] = mapped_column(String(16), index=True)
+    name: Mapped[str] = mapped_column(String(80))
+    data: Mapped[dict[str, Any]] = mapped_column(JSON)
+    #: The picture it was made from, if any.
+    preview_asset_id: Mapped[str | None] = mapped_column(
+        ForeignKey("assets.id", ondelete="SET NULL"), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)

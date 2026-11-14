@@ -456,6 +456,86 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/cinema/grade/{asset_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Grade Asset
+     * @description Grade a picture or clip toward a palette (a 3D LUT at ``strength``); the
+     *     result is a new asset beside it.
+     */
+    post: operations["grade_asset"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/cinema/palettes/extract": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Extract Palette
+     * @description A palette from a library picture (or a clip's poster): swatches dark to
+     *     light, the share of the picture each covers, and words for a prompt.
+     */
+    post: operations["extract_palette"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/cinema/presets": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List Presets
+     * @description Saved palettes and lighting rigs.
+     */
+    get: operations["list_presets"];
+    put?: never;
+    /** Create Preset */
+    post: operations["create_preset"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/cinema/presets/{preset_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    /** Delete Preset */
+    delete: operations["delete_preset"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/cinema/previews/{family}/{name}": {
     parameters: {
       query?: never;
@@ -1914,6 +1994,15 @@ export interface components {
       /** Prompt */
       prompt: string;
     };
+    /** ExtractedPalette */
+    ExtractedPalette: {
+      /** Shares */
+      shares: number[];
+      /** Swatches */
+      swatches: string[];
+      /** Words */
+      words: string;
+    };
     /** FakeJobCreate */
     FakeJobCreate: {
       /**
@@ -2208,6 +2297,20 @@ export interface components {
       /** Start Frame */
       start_frame?: string | null;
     };
+    /** GradeQueued */
+    GradeQueued: {
+      /** Job Id */
+      job_id: string;
+    };
+    /** GradeRequest */
+    GradeRequest: {
+      palette: components["schemas"]["PaletteSpec"];
+      /**
+       * Strength
+       * @default 0.6
+       */
+      strength?: number;
+    };
     /** HTTPValidationError */
     HTTPValidationError: {
       /** Detail */
@@ -2279,7 +2382,7 @@ export interface components {
        * Lane
        * @enum {string}
        */
-      lane: "gpu" | "network";
+      lane: "gpu" | "network" | "cpu";
       /** Message */
       message: string | null;
       /** Progress */
@@ -2537,6 +2640,16 @@ export interface components {
       /** Names */
       names: string[];
     };
+    /** PaletteExtract */
+    PaletteExtract: {
+      /** Asset Id */
+      asset_id: string;
+      /**
+       * Count
+       * @default 6
+       */
+      count?: number;
+    };
     /**
      * PaletteSpec
      * @description A preset palette by id, or a custom one (M5.4: extracted from a still).
@@ -2600,6 +2713,37 @@ export interface components {
       unit?: string | null;
       /** Values */
       values?: (string | number)[] | null;
+    };
+    /** PresetCreate */
+    PresetCreate: {
+      /** Data */
+      data: {
+        [key: string]: unknown;
+      };
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: "palette" | "lighting";
+      /** Name */
+      name: string;
+      /** Preview Asset Id */
+      preview_asset_id?: string | null;
+    };
+    /** PresetOut */
+    PresetOut: {
+      /** Data */
+      data: {
+        [key: string]: unknown;
+      };
+      /** Id */
+      id: string;
+      /** Kind */
+      kind: string;
+      /** Name */
+      name: string;
+      /** Preview Url */
+      preview_url: string | null;
     };
     /** Preview */
     Preview: {
@@ -4168,6 +4312,195 @@ export interface operations {
         content: {
           "application/json": components["schemas"]["RunState"];
         };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  grade_asset: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        asset_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["GradeRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      202: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GradeQueued"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  extract_palette: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PaletteExtract"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ExtractedPalette"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  list_presets: {
+    parameters: {
+      query?: {
+        kind?: ("palette" | "lighting") | null;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PresetOut"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  create_preset: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PresetCreate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PresetOut"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  delete_preset: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        preset_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Not found */
       404: {

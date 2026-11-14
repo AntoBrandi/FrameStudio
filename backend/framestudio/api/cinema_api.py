@@ -9,13 +9,14 @@ import re
 import uuid
 from typing import Literal
 
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, HTTPException, Request, Response, status
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from framestudio.api.deps import ServicesDep
 from framestudio.cinema import Vocab, vocab
 from framestudio.cinema import adherence as adh
+from framestudio.cinema import presets as ps
 from framestudio.cinema import previews as pv
 from framestudio.cinema.compiler import PROFILES, Profile
 
@@ -143,3 +144,69 @@ def get_adherence_run(run_id: str, request: Request) -> RunState:
     if run is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Run not found")
     return run
+
+
+# ---------------------------------------------------------------- palettes (M5.4)
+
+
+@router.post("/palettes/extract", responses={404: {"description": "Not found"}})
+async def extract_palette(body: ps.PaletteExtract, services: ServicesDep) -> ps.ExtractedPalette:
+    """A palette from a library picture (or a clip's poster): swatches dark to
+    light, the share of the picture each covers, and words for a prompt."""
+    try:
+        return await asyncio.to_thread(ps.extract_from_asset, services, body)
+    except LookupError:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Asset not found") from None
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc)) from None
+
+
+@router.get("/presets")
+def list_presets(
+    services: ServicesDep, kind: Literal["palette", "lighting"] | None = None
+) -> list[ps.PresetOut]:
+    """Saved palettes and lighting rigs."""
+    return ps.list_presets(services, kind)
+
+
+@router.post(
+    "/presets", status_code=status.HTTP_201_CREATED, responses={404: {"description": "Not found"}}
+)
+def create_preset(body: ps.PresetCreate, services: ServicesDep) -> ps.PresetOut:
+    try:
+        return ps.create_preset(services, body)
+    except LookupError:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Asset not found") from None
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc)) from None
+
+
+@router.delete(
+    "/presets/{preset_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={404: {"description": "Not found"}},
+)
+def delete_preset(preset_id: str, services: ServicesDep) -> Response:
+    if not ps.delete_preset(services, preset_id):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Preset not found")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+class GradeQueued(BaseModel):
+    job_id: str
+
+
+@router.post(
+    "/grade/{asset_id}",
+    status_code=status.HTTP_202_ACCEPTED,
+    responses={404: {"description": "Not found"}},
+)
+async def grade_asset(asset_id: str, body: ps.GradeRequest, services: ServicesDep) -> GradeQueued:
+    """Grade a picture or clip toward a palette (a 3D LUT at ``strength``); the
+    result is a new asset beside it."""
+    try:
+        return GradeQueued(job_id=await ps.queue_grade(services, asset_id, body))
+    except LookupError:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Asset not found") from None
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc)) from None

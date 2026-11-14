@@ -45,6 +45,7 @@ from framestudio.cinema import (
     ShotSpec,
     vocab,
 )
+from framestudio.cinema.colour import hex_to_lab, to_lab
 
 if TYPE_CHECKING:
     from framestudio.services import Services
@@ -210,37 +211,15 @@ def table_out(services: Services) -> list[AdherenceRow]:
 # ---------------------------------------------------------------- metrics
 
 
-def _lab(rgb: tuple[int, int, int]) -> tuple[float, float, float]:
-    def linear(c: float) -> float:
-        c /= 255
-        return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
-
-    r, g, b = (linear(v) for v in rgb)
-    x = (0.4124 * r + 0.3576 * g + 0.1805 * b) / 0.95047
-    y = 0.2126 * r + 0.7152 * g + 0.0722 * b
-    z = (0.0193 * r + 0.1192 * g + 0.9505 * b) / 1.08883
-
-    def f(t: float) -> float:
-        return t ** (1 / 3) if t > 0.008856 else 7.787 * t + 16 / 116
-
-    fx, fy, fz = f(x), f(y), f(z)
-    return 116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz)
-
-
 def _pixels(path: Path) -> list[tuple[float, float, float]]:
     with Image.open(path) as image:
         small = image.convert("RGB").resize((48, 48))
-        return [_lab(p) for p in small.get_flattened_data()]  # type: ignore[arg-type]
-
-
-def _hex_lab(value: str) -> tuple[float, float, float]:
-    value = value.lstrip("#")
-    return _lab((int(value[0:2], 16), int(value[2:4], 16), int(value[4:6], 16)))
+        return [to_lab(p) for p in small.get_flattened_data()]  # type: ignore[arg-type]
 
 
 def palette_distance(path: Path, swatches: list[str]) -> float:
     """Mean CIELAB distance from each pixel to its nearest swatch."""
-    targets = [_hex_lab(s) for s in swatches]
+    targets = [hex_to_lab(s) for s in swatches]
     total = 0.0
     pixels = _pixels(path)
     for lab in pixels:

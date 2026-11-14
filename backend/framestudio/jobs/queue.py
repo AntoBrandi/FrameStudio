@@ -41,7 +41,7 @@ from framestudio.services import Services
 
 log = logging.getLogger(__name__)
 
-DEFAULT_LANE_LIMITS: dict[str, int] = {"gpu": 1, "network": 8}
+DEFAULT_LANE_LIMITS: dict[str, int] = {"gpu": 1, "network": 8, "cpu": 2}
 PROGRESS_EVENT_INTERVAL = 0.1
 
 

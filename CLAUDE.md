@@ -131,6 +131,13 @@ Test media: `backend/tests/fixtures/media` (regenerate with `make_corpus.py`).
   chip; token edits in `features/cinema/moves.ts`. `cinema/motion.py` measures a clip's zoom
   divergence (dolly in > 0, static ≈ 0) for smoke checks. Do not run `npx prettier --write src`
   from `ui/`: it reformats the generated `openapi.json` (the ignore file lives at the root).
+- Palettes (M5.4): `cinema/colour.py` (sRGB↔CIELAB), `cinema/palette.py` (seeded k-means extraction
+  dark to light with picture shares, words from named colours, `.cube` LUT pulling colours toward
+  the palette, `grade()` via ffmpeg `lut3d`), `cinema/presets.py` (saved presets in the `presets`
+  table, kinds palette and lighting; `GradeJob` on the new `cpu` lane writes a graded copy).
+  Routes under `/api/cinema/` (`palettes/extract`, `presets`, `grade/{asset_id}`). UI:
+  `PalettePicker`, `GradeDialog` (viewer's Colour grade). i18n: `palette.*` is the command
+  palette; colour palettes use `colourPalette.*` (never overwrite an existing i18n section).
 - LLM contract fixtures: `backend/tests/contracts/fixtures/llm/<provider>/<case>.json`, synthetic
   until recorded (`uv run python -m tests.contracts.llm_wire` rewrites synthetic ones). Live runs:
   `LIVE_API=1 FRAMESTUDIO_LIVE_<PROVIDER>_KEY=… uv run pytest tests/contracts` (paid);

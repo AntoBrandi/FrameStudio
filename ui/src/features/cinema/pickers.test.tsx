@@ -27,8 +27,9 @@ const VOCAB = {
 
 function Harness({ video = false, initial = null }: { video?: boolean; initial?: ShotSpec | null }) {
   const [shot, setShot] = useState<ShotSpec | null>(initial);
+  const [client] = useState(makeQueryClient);
   return (
-    <QueryClientProvider client={makeQueryClient()}>
+    <QueryClientProvider client={client}>
       <ShotChips shot={shot} onChange={setShot} video={video} />
       <output data-testid="shot">{JSON.stringify(shot)}</output>
     </QueryClientProvider>

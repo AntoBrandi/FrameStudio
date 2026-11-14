@@ -1821,6 +1821,35 @@
         "title": "EnhanceResult",
         "type": "object"
       },
+      "ExtractedPalette": {
+        "properties": {
+          "shares": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Shares",
+            "type": "array"
+          },
+          "swatches": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Swatches",
+            "type": "array"
+          },
+          "words": {
+            "title": "Words",
+            "type": "string"
+          }
+        },
+        "required": [
+          "swatches",
+          "shares",
+          "words"
+        ],
+        "title": "ExtractedPalette",
+        "type": "object"
+      },
       "FakeJobCreate": {
         "properties": {
           "fail": {
@@ -2817,6 +2846,38 @@
         "title": "GenerationSummary",
         "type": "object"
       },
+      "GradeQueued": {
+        "properties": {
+          "job_id": {
+            "title": "Job Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "job_id"
+        ],
+        "title": "GradeQueued",
+        "type": "object"
+      },
+      "GradeRequest": {
+        "properties": {
+          "palette": {
+            "$ref": "#/components/schemas/PaletteSpec"
+          },
+          "strength": {
+            "default": 0.6,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Strength",
+            "type": "number"
+          }
+        },
+        "required": [
+          "palette"
+        ],
+        "title": "GradeRequest",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -2998,7 +3059,8 @@
           "lane": {
             "enum": [
               "gpu",
-              "network"
+              "network",
+              "cpu"
             ],
             "title": "Lane",
             "type": "string"
@@ -3802,6 +3864,26 @@
         "title": "NameSuggestions",
         "type": "object"
       },
+      "PaletteExtract": {
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "count": {
+            "default": 6,
+            "maximum": 8.0,
+            "minimum": 2.0,
+            "title": "Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "asset_id"
+        ],
+        "title": "PaletteExtract",
+        "type": "object"
+      },
       "PaletteSpec": {
         "additionalProperties": false,
         "description": "A preset palette by id, or a custom one (M5.4: extracted from a still).",
@@ -4065,6 +4147,88 @@
           "label"
         ],
         "title": "ParamSpec",
+        "type": "object"
+      },
+      "PresetCreate": {
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "title": "Data",
+            "type": "object"
+          },
+          "kind": {
+            "enum": [
+              "palette",
+              "lighting"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "preview_asset_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preview Asset Id"
+          }
+        },
+        "required": [
+          "kind",
+          "name",
+          "data"
+        ],
+        "title": "PresetCreate",
+        "type": "object"
+      },
+      "PresetOut": {
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "title": "Data",
+            "type": "object"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "preview_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preview Url"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "name",
+          "data",
+          "preview_url"
+        ],
+        "title": "PresetOut",
         "type": "object"
       },
       "Preview": {
@@ -7395,6 +7559,245 @@
           }
         },
         "summary": "Get Adherence Run",
+        "tags": [
+          "cinema"
+        ]
+      }
+    },
+    "/api/cinema/grade/{asset_id}": {
+      "post": {
+        "description": "Grade a picture or clip toward a palette (a 3D LUT at ``strength``); the\nresult is a new asset beside it.",
+        "operationId": "grade_asset",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "asset_id",
+            "required": true,
+            "schema": {
+              "title": "Asset Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GradeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GradeQueued"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Grade Asset",
+        "tags": [
+          "cinema"
+        ]
+      }
+    },
+    "/api/cinema/palettes/extract": {
+      "post": {
+        "description": "A palette from a library picture (or a clip's poster): swatches dark to\nlight, the share of the picture each covers, and words for a prompt.",
+        "operationId": "extract_palette",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaletteExtract"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtractedPalette"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Extract Palette",
+        "tags": [
+          "cinema"
+        ]
+      }
+    },
+    "/api/cinema/presets": {
+      "get": {
+        "description": "Saved palettes and lighting rigs.",
+        "operationId": "list_presets",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "palette",
+                    "lighting"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Kind"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PresetOut"
+                  },
+                  "title": "Response List Presets",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Presets",
+        "tags": [
+          "cinema"
+        ]
+      },
+      "post": {
+        "operationId": "create_preset",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PresetCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresetOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Preset",
+        "tags": [
+          "cinema"
+        ]
+      }
+    },
+    "/api/cinema/presets/{preset_id}": {
+      "delete": {
+        "operationId": "delete_preset",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "preset_id",
+            "required": true,
+            "schema": {
+              "title": "Preset Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Preset",
         "tags": [
           "cinema"
         ]

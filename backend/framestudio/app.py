@@ -29,6 +29,7 @@ from framestudio.api import (
     system,
 )
 from framestudio.catalog import Catalog, load_catalog
+from framestudio.cinema.presets import GradeJob
 from framestudio.config import LOOPBACK_HOST, Config
 from framestudio.connections.fake import fake_provider_transport
 from framestudio.connections.registry import host_allowlist
@@ -178,6 +179,7 @@ def create_app(
         GenerateRemoteJob(services.providers),
         GenerateHostedJob(services.providers),
         DescribeJob(),
+        GradeJob(),
         *extra_kinds,
     ]
     services.jobs = JobQueue(services, kinds, lane_limits)

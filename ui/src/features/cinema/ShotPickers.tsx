@@ -7,9 +7,11 @@ import { cn } from "@/lib/utils";
 import { Carousel, type CarouselOption } from "./Carousel";
 import { Drum } from "./Drum";
 import { type MovesEditor, MovesPicker } from "./MovesPicker";
+import { PalettePicker, Swatches, usePaletteLook } from "./PalettePicker";
 import { PreviewArt } from "./PreviewArt";
 import {
   cameraSummary,
+  cleanShot,
   filmSummary,
   type ShotSpec,
   type Term,
@@ -212,7 +214,8 @@ export function ShotChips({
 }) {
   const { t } = useTranslation();
   const { data: vocab } = useVocab();
-  const [open, setOpen] = useState<"film" | "camera" | "moves" | null>(null);
+  const [open, setOpen] = useState<"film" | "camera" | "moves" | "palette" | null>(null);
+  const look = usePaletteLook(shot?.palette);
   const moveLabel = (id: string) => vocab?.moves.find((m) => m.id === id)?.label ?? id;
   const chips = [
     {
@@ -226,6 +229,13 @@ export function ShotChips({
       label: t("shot.camera"),
       values: cameraSummary(shot, vocab),
       clear: () => onChange(withCamera(shot, { body: null, lens: null, focal_length: null, aperture: null })),
+    },
+    {
+      key: "palette" as const,
+      label: t("colourPalette.chip"),
+      values: look ? [look.label] : [],
+      swatches: look?.colours,
+      clear: () => onChange(cleanShot({ ...shot, palette: null })),
     },
     ...(video && moves
       ? [
@@ -258,6 +268,9 @@ export function ShotChips({
               data-testid={`chip-${chip.key}`}
             >
               <span className={cn(set && "text-muted")}>{chip.label}</span>
+              {"swatches" in chip && chip.swatches?.length ? (
+                <Swatches colours={chip.swatches.slice(0, 6)} className="h-3 w-10" />
+              ) : null}
               {set ? <span className="font-medium">{chip.values.join(" · ")}</span> : <span aria-hidden>+</span>}
             </button>
             {set ? (
@@ -280,6 +293,12 @@ export function ShotChips({
         shot={shot}
         onChange={onChange}
         video={video}
+      />
+      <PalettePicker
+        open={open === "palette"}
+        onOpenChange={(next) => !next && setOpen(null)}
+        shot={shot}
+        onChange={(palette) => onChange(cleanShot({ ...shot, palette }))}
       />
       {moves ? (
         <MovesPicker open={open === "moves"} onOpenChange={(next) => !next && setOpen(null)} moves={moves} />

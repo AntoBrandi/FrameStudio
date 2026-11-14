@@ -12,6 +12,7 @@ import {
   Link2,
   Maximize,
   Minus,
+  Palette,
   Plus,
   Repeat,
   RotateCcw,
@@ -31,6 +32,7 @@ import { Tooltip } from "@/components/ui/misc";
 import { shellBridge } from "@/lib/shell";
 import { cn, formatBytes } from "@/lib/utils";
 import { addAsReference, pageOf, recreate, turnToVideo } from "@/features/generate/handoffs";
+import { GradeDialog } from "@/features/cinema/PalettePicker";
 import { useComposerStore } from "@/features/generate/store";
 import { DescribeActions } from "./Describe";
 import { assetName, type MoveTarget, useLibraryActions } from "./api";
@@ -262,6 +264,7 @@ export function AssetViewer({ asset, items, projectId, onNavigate, onClose, onSe
   const navigate = useNavigate();
   const { data: models = [] } = $api.useQuery("get", "/api/models");
   const imageModel = useComposerStore((state) => state.models.image);
+  const [grading, setGrading] = useState(false);
 
   // Hand-offs (M2.9): fill a composer and go to its page.
   function handOff(kind: "recreate" | "reference" | "video") {
@@ -407,6 +410,9 @@ export function AssetViewer({ asset, items, projectId, onNavigate, onClose, onSe
                 {action(t("viewer.turnToVideo"), <Clapperboard />, () => handOff("video"), "handoff-video")}
               </>
             ) : null}
+            {!trashed && (asset.kind === "image" || asset.kind === "video")
+              ? action(t("grade.action"), <Palette />, () => setGrading(true), "viewer-grade")
+              : null}
             {action(t("viewer.copyPrompt"), <Copy />, () => void copyPrompt())}
             {asset.kind === "image"
               ? action(
@@ -604,6 +610,7 @@ export function AssetViewer({ asset, items, projectId, onNavigate, onClose, onSe
               </button>
             ))}
           </div>
+          {grading ? <GradeDialog assetId={asset.id} open onOpenChange={setGrading} /> : null}
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
     </DialogPrimitive.Root>

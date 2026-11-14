@@ -106,6 +106,8 @@ scripts/   dev, start and setup commands (plain Node, any OS)
   Camera moves (about thirty, from dolly in to bullet time) go into the prompt as ordered chips,
   from the Moves picker or by typing `#`, and are worded per model (Seedance gets its own camera
   verbs).
+  Palettes: presets, saved palettes, or a new one made from any picture (its main colours, worded
+  for the prompt); a palette can also grade a picture or clip, as a copy, at a chosen strength.
 - **Test doubles ship with the product** (D8): the mock engine, a hosted "Mock cloud" model,
   fake local and remote jobs, a scripted fake LLM, and offline key checks
   (`FRAMESTUDIO_FAKE_PROVIDERS=1`, where keys starting `fs-test-ok` pass).

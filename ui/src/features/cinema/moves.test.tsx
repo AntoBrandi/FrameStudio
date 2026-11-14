@@ -61,6 +61,7 @@ describe("move tokens", () => {
 
 function Harness({ initial }: { initial: Token[] }) {
   const [tokens, setTokens] = useState<Token[]>(initial);
+  const [client] = useState(makeQueryClient);
   const editor = {
     list: movesIn(tokens),
     add: (id: string) => setTokens((t) => addMove(t, id)),
@@ -69,7 +70,7 @@ function Harness({ initial }: { initial: Token[] }) {
     clear: () => setTokens((t) => clearMoves(t)),
   };
   return (
-    <QueryClientProvider client={makeQueryClient()}>
+    <QueryClientProvider client={client}>
       <ShotChips shot={null} onChange={() => undefined} video moves={editor} />
       <PromptEditor
         value={tokens}

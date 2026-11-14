@@ -744,5 +744,31 @@
     "removeMove": "Remove {{name}}",
     "searchMoves": "Search moves",
     "addMove": "Add {{name}}"
+  },
+  "grade": {
+    "action": "Colour grade",
+    "title": "Colour grade",
+    "hint": "Pull the colours toward a palette. The graded copy is added beside the original.",
+    "strength": "Strength",
+    "start": "Grade",
+    "started": "Grading with {{name}}; the copy appears in the library when done."
+  },
+  "colourPalette": {
+    "chip": "Palette",
+    "title": "Colour palette",
+    "hint": "The colours the shot should keep to. Its words go into the prompt; a saved palette can also grade a picture or clip.",
+    "fromPicture": "New palette from a picture",
+    "pickTitle": "Pick a picture",
+    "pickHint": "Its main colours become a palette (a clip uses its poster frame).",
+    "fromName": "From {{name}}",
+    "name": "Palette name",
+    "words": "Words for the prompt",
+    "useOnly": "Use without saving",
+    "saveUse": "Save and use",
+    "saved": "Saved {{name}}.",
+    "deleted": "Deleted {{name}}.",
+    "delete": "Delete {{name}}",
+    "saved_heading": "Saved",
+    "presets": "Presets"
   }
 }
