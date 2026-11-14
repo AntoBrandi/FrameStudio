@@ -1,7 +1,7 @@
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { Minus, Plus, SlidersHorizontal, Sparkles } from "lucide-react";
-import { type FormEvent, useCallback, useDeferredValue, useMemo, useState } from "react";
+import { type FormEvent, useCallback, useDeferredValue, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { $api, errorMessage, type GenerationOut, type Schemas } from "@/api/client";
@@ -17,6 +17,7 @@ import { type Mode, type ModelOut, normalize, type Params, paramsFor } from "./p
 import { PromptEditor } from "./PromptEditor";
 import { type Reference, ReferenceTray } from "./ReferenceTray";
 import { AUTO, NO_ATTACHMENTS, paramsKey, useComposerStore } from "./store";
+import { mayHoldTokens, parsePrompt, renderTokens, sameTokens, type Token, trimTokens } from "./tokens";
 
 export type { Mode } from "./params";
 
@@ -71,14 +72,42 @@ function Estimate({ estimate, pending }: { estimate: Schemas["GenerationEstimate
  * (plan step M2.5). Every control comes from the chosen model's parameter
  * schema; combinations the model refuses cannot be picked, and Generate
  * shows what it will cost and how long it should take. */
-export function Composer({ mode }: { mode: Mode }) {
+const NO_TOKENS: Token[] = [];
+
+/** Whether a prompt names anything the backend should check. */
+const hasTokens = (tokens: Token[]) => tokens.some((token) => token.type !== "text" || mayHoldTokens(token.text));
+
+export function Composer({ mode, projectId }: { mode: Mode; projectId?: string }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { data: models = [] } = $api.useQuery("get", "/api/models");
   const create = $api.useMutation("post", "/api/generations");
   const store = useComposerStore();
-  const prompt = store.drafts[mode] ?? "";
+  const draft = store.drafts[mode] ?? NO_TOKENS;
+  const prompt = useMemo(() => renderTokens(draft), [draft]);
   const [enhancement, setEnhancement] = useState<Enhancement | null>(null);
+  // The tokens before Enhance rewrote them, for Undo.
+  const beforeEnhance = useRef<Token[]>(NO_TOKENS);
+  const setDraft = store.setDraft;
+
+  // Unknown handles warn (M4.3): the backend checks the prompt's tokens.
+  const checked = useDeferredValue(draft);
+  const { data: check } = useQuery({
+    queryKey: ["prompt-check", projectId ?? null, checked],
+    queryFn: () => parsePrompt({ tokens: checked }, projectId),
+    enabled: hasTokens(checked),
+    staleTime: 10_000,
+  });
+  const warnings = hasTokens(draft) ? (check?.warnings ?? []) : [];
+  // On blur, handles typed by hand become chips.
+  const tidy = useCallback(() => {
+    const current = useComposerStore.getState().drafts[mode] ?? NO_TOKENS;
+    if (!hasTokens(current)) return;
+    void parsePrompt({ tokens: current }, projectId).then(({ tokens }) => {
+      const latest = useComposerStore.getState().drafts[mode] ?? NO_TOKENS;
+      if (sameTokens(latest, current) && !sameTokens(tokens, current)) setDraft(mode, tokens);
+    });
+  }, [mode, projectId, setDraft]);
   const attachments = store.attachments[mode] ?? NO_ATTACHMENTS;
   const references = attachments.references;
   const frames: Frames = { start: attachments.start, end: attachments.end };
@@ -137,6 +166,8 @@ export function Composer({ mode }: { mode: Mode }) {
             mode,
             model: model.id,
             prompt: prompt.trim(),
+            prompt_tokens: trimTokens(draft),
+            ...(projectId ? { project_id: projectId } : {}),
             batch,
             params,
             references: usedRefs.map((r) => r.id),
@@ -145,10 +176,10 @@ export function Composer({ mode }: { mode: Mode }) {
             ...(store.seed != null ? { seed: store.seed } : {}),
           }
         : null,
-    [model, mode, prompt, batch, params, usedRefs, start, end, store.seed],
+    [model, mode, prompt, draft, projectId, batch, params, usedRefs, start, end, store.seed],
   );
   // The estimate follows the settings, not every keystroke of the prompt.
-  const estimateBody = useDeferredValue(body ? { ...body, prompt: "" } : null);
+  const estimateBody = useDeferredValue(body ? { ...body, prompt: "", prompt_tokens: NO_TOKENS } : null);
   const { data: estimate, isFetching } = $api.useQuery(
     "post",
     "/api/generations/estimate",
@@ -210,16 +241,18 @@ export function Composer({ mode }: { mode: Mode }) {
         <EnhancePanel
           enhancement={enhancement}
           onUndo={() => {
-            store.setDraft(mode, enhancement.before);
+            store.setDraft(mode, beforeEnhance.current);
             setEnhancement(null);
           }}
           onClose={() => setEnhancement(null)}
         />
       ) : null}
       <PromptEditor
-        value={prompt}
-        onChange={(text) => store.setDraft(mode, text)}
+        value={draft}
+        onChange={(tokens) => store.setDraft(mode, tokens)}
         onSubmit={submit}
+        onBlur={tidy}
+        projectId={projectId}
         label={t("composer.label")}
         placeholder={mode === "image" ? t("composer.placeholderImage") : t("composer.placeholderVideo")}
         maxLength={model?.limits.max_prompt_chars ?? 4000}
@@ -238,8 +271,10 @@ export function Composer({ mode }: { mode: Mode }) {
           mode={mode}
           model={model?.id}
           onEnhanced={(result) => {
-            store.setDraft(mode, result.after);
+            beforeEnhance.current = draft;
             setEnhancement(result);
+            // The rewrite keeps handles as text; the parser makes them chips again.
+            void parsePrompt({ text: result.after }, projectId).then(({ tokens }) => setDraft(mode, tokens));
           }}
         />
         {model ? (
@@ -302,6 +337,11 @@ export function Composer({ mode }: { mode: Mode }) {
           <Estimate estimate={estimate} pending={isFetching} />
         </Button>
       </div>
+      {warnings.length ? (
+        <p role="status" className="px-1 text-xs text-tungsten" data-testid="prompt-warnings">
+          {warnings.join(" ")}
+        </p>
+      ) : null}
       {blocked.length ? (
         <p role="status" className="px-1 text-xs text-danger" data-testid="composer-problems">
           {blocked.join(" ")}

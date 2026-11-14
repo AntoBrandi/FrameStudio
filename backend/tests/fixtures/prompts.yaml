@@ -1,0 +1,92 @@
+# Prompts as people paste them and as the AI Director (M6) writes them, with
+# the tokens the parser must make of them (plan step M4.3).
+#
+# Tokens: a plain string is text; {"@": handle} an element in scope,
+# {"@?": handle} an unknown element, {"#": move}, {"/": skill}.
+
+vocabulary:
+  elements: {maya: e-maya, maya-ortiz: e-maya-ortiz, lighthouse: e-lighthouse, red_kite: e-kite}
+  moves: [dolly-in, crash-zoom, orbit]
+  skills: [storyboard, shot-list]
+
+cases:
+  - source: pasted
+    text: "@maya walks along the pier toward @lighthouse at dusk"
+    tokens: [{"@": maya}, " walks along the pier toward ", {"@": lighthouse}, " at dusk"]
+
+  - source: pasted
+    note: punctuation ends a handle; possessives and commas stay text
+    text: "Close-up of @maya's face, @lighthouse. Then @red_kite!"
+    tokens: ["Close-up of ", {"@": maya}, "'s face, ", {"@": lighthouse}, ". Then ", {"@": red_kite}, "!"]
+
+  - source: pasted
+    note: the longest handle is taken
+    text: "@maya-ortiz and @maya"
+    tokens: [{"@": maya-ortiz}, " and ", {"@": maya}]
+
+  - source: pasted
+    note: e-mail addresses, prices, hex colours, fractions and paths stay text
+    text: "Sign reading ana@example.com, $5, #ff0000 neon, 1/2 frame, black/white, /tmp/x"
+    tokens: ["Sign reading ana@example.com, $5, #ff0000 neon, 1/2 frame, black/white, /tmp/x"]
+
+  - source: pasted
+    note: unknown handles stay elements so the composer can warn
+    text: "@maya meets @stranger"
+    tokens: [{"@": maya}, " meets ", {"@?": stranger}]
+
+  - source: pasted
+    note: handles are matched without regard to case
+    text: "@Maya on the beach"
+    tokens: [{"@": maya}, " on the beach"]
+    rendered: "@maya on the beach"
+
+  - source: pasted
+    note: a lone sigil is text
+    text: "@ the harbour # 3 / done"
+    tokens: ["@ the harbour # 3 / done"]
+
+  - source: pasted
+    note: line breaks are kept
+    text: "Shot 1: @maya\nShot 2: @lighthouse"
+    tokens: ["Shot 1: ", {"@": maya}, "\nShot 2: ", {"@": lighthouse}]
+
+  - source: pasted
+    note: known moves only
+    text: "#dolly-in on @maya, #slow pan"
+    tokens: [{"#": dolly-in}, " on ", {"@": maya}, ", #slow pan"]
+
+  - source: director
+    text: "/storyboard Four shots of @maya crossing the market at night; #orbit around her on shot 3."
+    tokens: [{"/": storyboard}, " Four shots of ", {"@": maya}, " crossing the market at night; ", {"#": orbit}, " around her on shot 3."]
+
+  - source: director
+    note: a skill must start the prompt or follow whitespace
+    text: "Plan it with /shot-list, not and/shot-list"
+    tokens: ["Plan it with ", {"/": shot-list}, ", not and/shot-list"]
+
+  - source: director
+    text: "Wide establishing shot of @lighthouse in a storm. #crash-zoom to the lamp room.\n@maya climbs the stairs (@maya-ortiz's coat, wet)."
+    tokens:
+      - "Wide establishing shot of "
+      - {"@": lighthouse}
+      - " in a storm. "
+      - {"#": crash-zoom}
+      - " to the lamp room.\n"
+      - {"@": maya}
+      - " climbs the stairs ("
+      - {"@": maya-ortiz}
+      - "'s coat, wet)."
+
+  - source: director
+    note: handles inside quotes and brackets
+    text: '"@maya" [@lighthouse] (@red_kite)'
+    tokens: ['"', {"@": maya}, '" [', {"@": lighthouse}, "] (", {"@": red_kite}, ")"]
+
+  - source: director
+    note: an over-long name is text
+    text: "@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    tokens: ["@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"]
+
+  - source: pasted
+    text: ""
+    tokens: []

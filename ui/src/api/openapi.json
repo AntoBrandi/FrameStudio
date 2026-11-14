@@ -1497,6 +1497,36 @@
         "title": "ElementPatch",
         "type": "object"
       },
+      "ElementToken": {
+        "properties": {
+          "element_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Element Id"
+          },
+          "handle": {
+            "title": "Handle",
+            "type": "string"
+          },
+          "type": {
+            "const": "element",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "handle"
+        ],
+        "title": "ElementToken",
+        "type": "object"
+      },
       "EmptyTrashResult": {
         "properties": {
           "assets_deleted": {
@@ -1939,6 +1969,43 @@
             "title": "Prompt",
             "type": "string"
           },
+          "prompt_tokens": {
+            "anyOf": [
+              {
+                "items": {
+                  "discriminator": {
+                    "mapping": {
+                      "element": "#/components/schemas/ElementToken",
+                      "move": "#/components/schemas/MoveToken",
+                      "skill": "#/components/schemas/SkillToken",
+                      "text": "#/components/schemas/TextToken"
+                    },
+                    "propertyName": "type"
+                  },
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/TextToken"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ElementToken"
+                    },
+                    {
+                      "$ref": "#/components/schemas/MoveToken"
+                    },
+                    {
+                      "$ref": "#/components/schemas/SkillToken"
+                    }
+                  ]
+                },
+                "maxItems": 2000,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prompt Tokens"
+          },
           "references": {
             "items": {
               "type": "string"
@@ -2183,6 +2250,35 @@
             "title": "Prompt",
             "type": "string"
           },
+          "prompt_tokens": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "element": "#/components/schemas/ElementToken",
+                  "move": "#/components/schemas/MoveToken",
+                  "skill": "#/components/schemas/SkillToken",
+                  "text": "#/components/schemas/TextToken"
+                },
+                "propertyName": "type"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/TextToken"
+                },
+                {
+                  "$ref": "#/components/schemas/ElementToken"
+                },
+                {
+                  "$ref": "#/components/schemas/MoveToken"
+                },
+                {
+                  "$ref": "#/components/schemas/SkillToken"
+                }
+              ]
+            },
+            "title": "Prompt Tokens",
+            "type": "array"
+          },
           "provider": {
             "title": "Provider",
             "type": "string"
@@ -2249,6 +2345,7 @@
           "model_id",
           "provider",
           "prompt",
+          "prompt_tokens",
           "params",
           "seed",
           "status",
@@ -2313,6 +2410,42 @@
           "prompt": {
             "title": "Prompt",
             "type": "string"
+          },
+          "prompt_tokens": {
+            "anyOf": [
+              {
+                "items": {
+                  "discriminator": {
+                    "mapping": {
+                      "element": "#/components/schemas/ElementToken",
+                      "move": "#/components/schemas/MoveToken",
+                      "skill": "#/components/schemas/SkillToken",
+                      "text": "#/components/schemas/TextToken"
+                    },
+                    "propertyName": "type"
+                  },
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/TextToken"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ElementToken"
+                    },
+                    {
+                      "$ref": "#/components/schemas/MoveToken"
+                    },
+                    {
+                      "$ref": "#/components/schemas/SkillToken"
+                    }
+                  ]
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prompt Tokens"
           },
           "references": {
             "default": [],
@@ -3209,6 +3342,25 @@
         "title": "MoveAssets",
         "type": "object"
       },
+      "MoveToken": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "type": {
+            "const": "move",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "name"
+        ],
+        "title": "MoveToken",
+        "type": "object"
+      },
       "NameSuggestions": {
         "properties": {
           "names": {
@@ -3737,6 +3889,124 @@
         "title": "ProjectPatch",
         "type": "object"
       },
+      "PromptParse": {
+        "description": "Text to parse, or a token list to put in canonical form.",
+        "properties": {
+          "project_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Id"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "maxLength": 20000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "tokens": {
+            "anyOf": [
+              {
+                "items": {
+                  "discriminator": {
+                    "mapping": {
+                      "element": "#/components/schemas/ElementToken",
+                      "move": "#/components/schemas/MoveToken",
+                      "skill": "#/components/schemas/SkillToken",
+                      "text": "#/components/schemas/TextToken"
+                    },
+                    "propertyName": "type"
+                  },
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/TextToken"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ElementToken"
+                    },
+                    {
+                      "$ref": "#/components/schemas/MoveToken"
+                    },
+                    {
+                      "$ref": "#/components/schemas/SkillToken"
+                    }
+                  ]
+                },
+                "maxItems": 4000,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tokens"
+          }
+        },
+        "title": "PromptParse",
+        "type": "object"
+      },
+      "PromptParsed": {
+        "properties": {
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "tokens": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "element": "#/components/schemas/ElementToken",
+                  "move": "#/components/schemas/MoveToken",
+                  "skill": "#/components/schemas/SkillToken",
+                  "text": "#/components/schemas/TextToken"
+                },
+                "propertyName": "type"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/TextToken"
+                },
+                {
+                  "$ref": "#/components/schemas/ElementToken"
+                },
+                {
+                  "$ref": "#/components/schemas/MoveToken"
+                },
+                {
+                  "$ref": "#/components/schemas/SkillToken"
+                }
+              ]
+            },
+            "title": "Tokens",
+            "type": "array"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tokens",
+          "text",
+          "warnings"
+        ],
+        "title": "PromptParsed",
+        "type": "object"
+      },
       "ProviderUsage": {
         "properties": {
           "cap_usd": {
@@ -3930,6 +4200,25 @@
         "title": "SessionCreate",
         "type": "object"
       },
+      "SkillToken": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "type": {
+            "const": "skill",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "name"
+        ],
+        "title": "SkillToken",
+        "type": "object"
+      },
       "StorageReport": {
         "properties": {
           "by_kind": {
@@ -4118,6 +4407,25 @@
           "started_at"
         ],
         "title": "SystemInfo",
+        "type": "object"
+      },
+      "TextToken": {
+        "properties": {
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "type": {
+            "const": "text",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "text"
+        ],
+        "title": "TextToken",
         "type": "object"
       },
       "ToolStatus": {
@@ -7888,6 +8196,48 @@
         "summary": "Trash Project",
         "tags": [
           "projects"
+        ]
+      }
+    },
+    "/api/prompts/parse": {
+      "post": {
+        "description": "Text \u2192 tokens, or a token list \u2192 its canonical form, with the elements\nof ``project_id`` and the global ones; unknown handles come back as\nwarnings.",
+        "operationId": "parse_prompt",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PromptParse"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromptParsed"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Parse Prompt",
+        "tags": [
+          "prompts"
         ]
       }
     },

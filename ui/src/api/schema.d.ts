@@ -1013,6 +1013,28 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/prompts/parse": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Parse Prompt
+     * @description Text → tokens, or a token list → its canonical form, with the elements
+     *     of ``project_id`` and the global ones; unknown handles come back as
+     *     warnings.
+     */
+    post: operations["parse_prompt"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/route": {
     parameters: {
       query?: never;
@@ -1573,6 +1595,18 @@ export interface components {
       /** Status */
       status?: ("draft" | "ready") | null;
     };
+    /** ElementToken */
+    ElementToken: {
+      /** Element Id */
+      element_id?: string | null;
+      /** Handle */
+      handle: string;
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: "element";
+    };
     /** EmptyTrashResult */
     EmptyTrashResult: {
       /** Assets Deleted */
@@ -1733,6 +1767,15 @@ export interface components {
        * @default
        */
       prompt?: string;
+      /** Prompt Tokens */
+      prompt_tokens?:
+        | (
+            | components["schemas"]["TextToken"]
+            | components["schemas"]["ElementToken"]
+            | components["schemas"]["MoveToken"]
+            | components["schemas"]["SkillToken"]
+          )[]
+        | null;
       /** References */
       references?: string[];
       /** Seed */
@@ -1801,6 +1844,13 @@ export interface components {
       project_id: string | null;
       /** Prompt */
       prompt: string;
+      /** Prompt Tokens */
+      prompt_tokens: (
+        | components["schemas"]["TextToken"]
+        | components["schemas"]["ElementToken"]
+        | components["schemas"]["MoveToken"]
+        | components["schemas"]["SkillToken"]
+      )[];
       /** Provider */
       provider: string;
       /** References */
@@ -1835,6 +1885,15 @@ export interface components {
       parent_asset_id?: string | null;
       /** Prompt */
       prompt: string;
+      /** Prompt Tokens */
+      prompt_tokens?:
+        | (
+            | components["schemas"]["TextToken"]
+            | components["schemas"]["ElementToken"]
+            | components["schemas"]["MoveToken"]
+            | components["schemas"]["SkillToken"]
+          )[]
+        | null;
       /**
        * References
        * @default []
@@ -2136,6 +2195,16 @@ export interface components {
       /** Project Id */
       project_id?: string | null;
     };
+    /** MoveToken */
+    MoveToken: {
+      /** Name */
+      name: string;
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: "move";
+    };
     /** NameSuggestions */
     NameSuggestions: {
       /** Names */
@@ -2290,6 +2359,39 @@ export interface components {
       /** Slug */
       slug?: string | null;
     };
+    /**
+     * PromptParse
+     * @description Text to parse, or a token list to put in canonical form.
+     */
+    PromptParse: {
+      /** Project Id */
+      project_id?: string | null;
+      /** Text */
+      text?: string | null;
+      /** Tokens */
+      tokens?:
+        | (
+            | components["schemas"]["TextToken"]
+            | components["schemas"]["ElementToken"]
+            | components["schemas"]["MoveToken"]
+            | components["schemas"]["SkillToken"]
+          )[]
+        | null;
+    };
+    /** PromptParsed */
+    PromptParsed: {
+      /** Text */
+      text: string;
+      /** Tokens */
+      tokens: (
+        | components["schemas"]["TextToken"]
+        | components["schemas"]["ElementToken"]
+        | components["schemas"]["MoveToken"]
+        | components["schemas"]["SkillToken"]
+      )[];
+      /** Warnings */
+      warnings: string[];
+    };
     /** ProviderUsage */
     ProviderUsage: {
       /** Cap Usd */
@@ -2356,6 +2458,16 @@ export interface components {
     SessionCreate: {
       /** Token */
       token: string;
+    };
+    /** SkillToken */
+    SkillToken: {
+      /** Name */
+      name: string;
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: "skill";
     };
     /** StorageReport */
     StorageReport: {
@@ -2428,6 +2540,16 @@ export interface components {
       tools: components["schemas"]["ToolStatus"];
       /** Version */
       version: string;
+    };
+    /** TextToken */
+    TextToken: {
+      /** Text */
+      text: string;
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: "text";
     };
     /** ToolStatus */
     ToolStatus: {
@@ -4876,6 +4998,39 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  parse_prompt: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PromptParse"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PromptParsed"];
+        };
       };
       /** @description Validation Error */
       422: {

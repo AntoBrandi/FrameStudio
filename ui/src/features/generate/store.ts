@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type { Mode, Params } from "./params";
 import type { Reference } from "./ReferenceTray";
+import type { Token } from "./tokens";
 
 /** What a generation is given besides the prompt (not remembered across restarts). */
 export interface Attachments {
@@ -23,14 +24,14 @@ interface ComposerState {
   batch: number;
   /** A fixed seed, or null for a new random one each time. */
   seed: number | null;
-  /** The prompt being written, per mode (not remembered across restarts). */
-  drafts: Partial<Record<Mode, string>>;
+  /** The prompt being written, as tokens, per mode (not remembered across restarts). */
+  drafts: Partial<Record<Mode, Token[]>>;
   attachments: Partial<Record<Mode, Attachments>>;
   setModel: (mode: Mode, model: string) => void;
   setParams: (model: string, mode: Mode, params: Params) => void;
   setBatch: (batch: number) => void;
   setSeed: (seed: number | null) => void;
-  setDraft: (mode: Mode, text: string) => void;
+  setDraft: (mode: Mode, tokens: Token[]) => void;
   setAttachments: (mode: Mode, patch: Partial<Attachments>) => void;
 }
 
@@ -50,7 +51,7 @@ export const useComposerStore = create<ComposerState>()(
       setParams: (model, mode, params) => set((s) => ({ params: { ...s.params, [paramsKey(model, mode)]: params } })),
       setBatch: (batch) => set({ batch }),
       setSeed: (seed) => set({ seed }),
-      setDraft: (mode, text) => set((s) => ({ drafts: { ...s.drafts, [mode]: text } })),
+      setDraft: (mode, tokens) => set((s) => ({ drafts: { ...s.drafts, [mode]: tokens } })),
       setAttachments: (mode, patch) =>
         set((s) => ({
           attachments: { ...s.attachments, [mode]: { ...NO_ATTACHMENTS, ...s.attachments[mode], ...patch } },

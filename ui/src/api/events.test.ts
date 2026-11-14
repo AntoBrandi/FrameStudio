@@ -31,6 +31,7 @@ const generation = (overrides: Partial<GenerationOut> = {}): GenerationOut => ({
   model_id: "mock",
   provider: "mock",
   prompt: "p",
+  prompt_tokens: [{ type: "text", text: "p" }],
   params: {},
   references: [],
   start_frame: null,

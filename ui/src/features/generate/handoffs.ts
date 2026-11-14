@@ -2,6 +2,11 @@ import type { AssetOut } from "@/api/client";
 import type { Mode, Params } from "./params";
 import { type Reference, toReference } from "./ReferenceTray";
 import { AUTO, NO_ATTACHMENTS, paramsKey, useComposerStore } from "./store";
+import { type Token, tokensFromText } from "./tokens";
+
+type Spec = NonNullable<AssetOut["generation"]>;
+const promptOf = (spec: Spec): Token[] =>
+  (spec.prompt_tokens as Token[] | null | undefined) ?? tokensFromText(spec.prompt);
 
 /** Viewer hand-offs (plan step M2.9): each fills the composer of a page and
  * returns where to go. */
@@ -22,7 +27,7 @@ export function recreate(asset: AssetOut): Mode | null {
   store.setModel(mode, spec.model_id);
   store.setParams(spec.model_id, mode, spec.params as Params);
   store.setSeed(spec.seed ?? null);
-  store.setDraft(mode, spec.prompt);
+  store.setDraft(mode, promptOf(spec));
   store.setAttachments(mode, {
     references: (spec.references ?? []).map(thumbOf),
     start: spec.start_frame ? thumbOf(spec.start_frame) : null,
@@ -47,7 +52,7 @@ export function turnToVideo(asset: AssetOut): void {
   const store = useComposerStore.getState();
   store.setAttachments("video", { ...NO_ATTACHMENTS, start: toReference(asset) });
   store.setModel("video", AUTO);
-  if (!store.drafts.video && asset.generation?.prompt) store.setDraft("video", asset.generation.prompt);
+  if (!store.drafts.video?.length && asset.generation?.prompt) store.setDraft("video", promptOf(asset.generation));
 }
 
 export { paramsKey };

@@ -63,6 +63,8 @@ class Generation(Base):
     variant: Mapped[str | None] = mapped_column(String(64), nullable=True)
     provider: Mapped[str] = mapped_column(String(64))
     prompt: Mapped[str] = mapped_column(Text, default="")
+    #: The prompt as tokens (M4.3); ``prompt`` is its plain-text rendering.
+    prompt_tokens: Mapped[list[dict[str, Any]] | None] = mapped_column(JSON, nullable=True)
     params: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
     #: Library assets given to the model as references (M2.5), in order.
     reference_ids: Mapped[list[str]] = mapped_column(JSON, default=list)

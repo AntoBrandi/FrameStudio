@@ -27,6 +27,7 @@ from framestudio.library.media import (
     remove_derived,
 )
 from framestudio.media.store import sha256_file
+from framestudio.prompts import Token
 from framestudio.services import Services
 
 Kind = Literal["image", "video", "audio"]
@@ -38,6 +39,8 @@ class GenerationSummary(BaseModel):
     mode: str
     model_id: str
     prompt: str
+    #: The prompt as tokens (M4.3); None for generations made before them.
+    prompt_tokens: list[Token] | None = None
     seed: int | None
     params: dict[str, Any]
     #: Lineage: the assets given as references, and the one it was made from.
@@ -180,6 +183,7 @@ def asset_out(asset: Asset, generation: Generation | None = None) -> AssetOut:
             mode=generation.mode,
             model_id=generation.model_id,
             prompt=generation.prompt,
+            prompt_tokens=generation.prompt_tokens,  # type: ignore[arg-type]
             seed=generation.seed,
             references=list(generation.reference_ids or []),
             start_frame=generation.start_frame_id,

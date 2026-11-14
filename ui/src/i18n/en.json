@@ -598,5 +598,10 @@
     "empty": "No elements yet. Make characters, locations and props once, then use them in any prompt by their handle.",
     "noMatch": "No elements match these filters.",
     "clearFilters": "Clear filters"
+  },
+  "tokens": {
+    "suggestions": "Elements",
+    "noElements": "No element matches “{{query}}”. Make one on the Elements page.",
+    "global": "Global"
   }
 }

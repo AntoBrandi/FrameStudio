@@ -9,13 +9,14 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, ClassVar, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 from sqlalchemy import and_, exists, not_, select
 from sqlalchemy.orm import Session
 
+from framestudio import prompts
 from framestudio.catalog import ParamError, estimate_cost, validate_params
 from framestudio.db.base import utcnow
-from framestudio.db.models import Asset, Generation, Job
+from framestudio.db.models import Asset, ElementUse, Generation, Job
 from framestudio.jobs.base import JobContext, JobError, JobKind, JobSnapshot, PollResult
 from framestudio.library.assets import (
     AssetOut,
@@ -26,6 +27,7 @@ from framestudio.library.assets import (
 )
 from framestudio.library.describe import describe_if_wanted
 from framestudio.library.media import MediaError
+from framestudio.prompts import Token
 from framestudio.providers.base import (
     GenerationOutput,
     GenerationProvider,
@@ -52,12 +54,18 @@ _STATUS_FROM_JOB: dict[str, GenerationStatus] = {
 }
 
 
+TOKENS: TypeAdapter[list[Token]] = TypeAdapter(list[Token])
+
+
 class GenerationCreate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     mode: Literal["image", "video"] = "image"
     model: str = "mock"
     prompt: str = Field(default="", max_length=4000)
+    #: The prompt as tokens (M4.3). When given, ``prompt`` is ignored and made
+    #: from them; when not, ``prompt`` is parsed into tokens.
+    prompt_tokens: list[Token] | None = Field(default=None, max_length=2000)
     seed: int | None = Field(default=None, ge=0, le=MAX_SEED)
     batch: int = Field(default=1, ge=1, le=4)
     params: dict[str, Any] = Field(default_factory=dict)
@@ -81,6 +89,7 @@ class GenerationOut(BaseModel):
     model_id: str
     provider: str
     prompt: str
+    prompt_tokens: list[Token]
     params: dict[str, Any]
     seed: int | None
     status: GenerationStatus
@@ -99,6 +108,13 @@ class GenerationOut(BaseModel):
     finished_at: datetime | None
 
 
+def stored_tokens(generation: Generation) -> list[Token]:
+    """The generation's prompt tokens (older generations: one text token)."""
+    if generation.prompt_tokens is None:
+        return [prompts.text(generation.prompt)] if generation.prompt else []
+    return TOKENS.validate_python(generation.prompt_tokens)
+
+
 def generation_out(session: Session, generation: Generation) -> GenerationOut:
     asset = session.scalars(
         select(Asset)
@@ -114,6 +130,7 @@ def generation_out(session: Session, generation: Generation) -> GenerationOut:
         model_id=generation.model_id,
         provider=generation.provider,
         prompt=generation.prompt,
+        prompt_tokens=stored_tokens(generation),
         params=generation.params or {},
         references=list(generation.reference_ids or []),
         start_frame=generation.start_frame_id,
@@ -660,6 +677,19 @@ def check_frames(services: Services, spec: Any, request: GenerationCreate) -> li
     return list(dict.fromkeys(problems))
 
 
+def tokens_for(
+    services: Services, request: GenerationCreate, project_id: str | None
+) -> tuple[list[Token], str]:
+    """The request's prompt as canonical tokens for ``project_id``, and its text."""
+    with services.db.session() as session:
+        vocabulary = prompts.load_vocabulary(session, project_id)
+    if request.prompt_tokens is not None:
+        tokens = prompts.normalize(request.prompt_tokens, vocabulary)
+    else:
+        tokens = prompts.parse(request.prompt, vocabulary)
+    return tokens, prompts.render(tokens)
+
+
 def job_kind_for(provider: GenerationProvider) -> str:
     if not provider.remote:
         return GenerateJob.kind
@@ -697,6 +727,14 @@ async def create_generations(
             return resolve_placement(session, request.project_id, request.folder_id)
 
     placement = await asyncio.to_thread(place)  # LookupError when the target is gone
+    tokens, prompt_text = await asyncio.to_thread(
+        tokens_for, services, request, placement.project_id
+    )
+    if len(prompt_text) > 4000:
+        raise ParamError(["The prompt is longer than 4000 characters"])
+    request = request.model_copy(update={"prompt": prompt_text})
+    stored = [t.model_dump(mode="json") for t in tokens]
+    used = prompts.element_ids(tokens)
     base_seed = request.seed if request.seed is not None else secrets.randbelow(MAX_SEED)
     batch_id = uuid.uuid4().hex
     created: list[str] = []
@@ -717,6 +755,7 @@ async def create_generations(
                 model_id=spec.id,
                 provider=spec.provider,
                 prompt=request.prompt,
+                prompt_tokens=stored,
                 params=params,
                 reference_ids=list(request.references),
                 start_frame_id=request.start_frame,
@@ -731,6 +770,8 @@ async def create_generations(
             )
             session.add(generation)
             session.flush()
+            for element_id in used:
+                session.add(ElementUse(element_id=element_id, generation_id=generation.id))
             job.payload = {"generation_id": generation.id, "title": job.title}
             created.append(generation.id)
 

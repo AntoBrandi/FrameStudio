@@ -24,6 +24,7 @@ from framestudio.api import (
     library,
     llm_api,
     media,
+    prompts_api,
     system,
 )
 from framestudio.catalog import Catalog, load_catalog
@@ -215,6 +216,7 @@ def create_app(
         connections_api.router,
         llm_api.router,
         elements_api.router,
+        prompts_api.router,
     ):
         app.include_router(router)
     mount_ui(app, config.resolved_ui_dist())

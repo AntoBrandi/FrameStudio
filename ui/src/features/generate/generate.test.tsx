@@ -25,6 +25,7 @@ const base: GenerationOut = {
   model_id: "mock",
   provider: "mock",
   prompt: "a red door",
+  prompt_tokens: [{ type: "text", text: "a red door" }],
   params: { aspect: "16:9" },
   references: [],
   start_frame: null,
@@ -175,7 +176,7 @@ describe("composer", () => {
     await user.click(await screen.findByRole("button", { name: "16:9" }));
     await user.click(screen.getByRole("button", { name: "Batch size +" }));
     // jsdom does not feed typed text to Lexical; the browser E2E tests type for real.
-    act(() => useComposerStore.getState().setDraft("image", "a red door"));
+    act(() => useComposerStore.getState().setDraft("image", [{ type: "text", text: "a red door" }]));
     await waitFor(() => expect(screen.getByTestId("prompt-input")).toHaveTextContent("a red door"));
     await user.click(screen.getByTestId("prompt-input"));
     await user.keyboard("{Enter}");
@@ -187,10 +188,36 @@ describe("composer", () => {
           mode: "image",
           model: "mock",
           prompt: "a red door",
+          prompt_tokens: [{ type: "text", text: "a red door" }],
           batch: 2,
           params: { aspect: "16:9" },
           references: [],
         },
+      }),
+    );
+  });
+
+  it("sends element chips as tokens and warns about unknown handles", async () => {
+    setup();
+    const ghost = { type: "element" as const, handle: "ghost", element_id: null };
+    const maya = { type: "element" as const, handle: "maya", element_id: "e1" };
+    mockApi({
+      "POST /api/prompts/parse": {
+        tokens: [maya, { type: "text", text: " meets " }, ghost],
+        text: "@maya meets @ghost",
+        warnings: ["@ghost is not an element here; it is sent as plain text."],
+      },
+    });
+    const user = userEvent.setup();
+    render(withRouter(<Composer mode="image" />));
+    act(() => useComposerStore.getState().setDraft("image", [maya, { type: "text", text: " meets " }, ghost]));
+    expect(await screen.findByTestId("prompt-warnings")).toHaveTextContent("@ghost is not an element here");
+    await user.click(screen.getByTestId("prompt-input"));
+    await user.keyboard("{Enter}");
+    await waitFor(() =>
+      expect(requests.find((r) => r.method === "POST" && r.path === "/api/generations")?.body).toMatchObject({
+        prompt: "@maya meets @ghost",
+        prompt_tokens: [maya, { type: "text", text: " meets " }, ghost],
       }),
     );
   });

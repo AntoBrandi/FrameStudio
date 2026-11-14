@@ -85,8 +85,10 @@ scripts/   dev, start and setup commands (plain Node, any OS)
 - **Elements** (M4, under way): characters, locations and props with a handle (`@maya-ortiz`),
   a description, custom properties and pictures or clips from the library (the first is the
   primary), global or per project, in folders, with Draft and Ready status. Export them as CSV or
-  as a zip with their media, and import that into another library or project. Using them in
-  prompts comes next (M4.3–M4.4).
+  as a zip with their media, and import that into another library or project. In the prompt box,
+  typing `@` suggests elements with their pictures and puts them in as chips; pasted prompts get
+  chips too, and handles that name no element are flagged. Sending the element's pictures and
+  description to each model comes next (M4.4).
 - **Test doubles ship with the product** (D8): the mock engine, a hosted "Mock cloud" model,
   fake local and remote jobs, a scripted fake LLM, and offline key checks
   (`FRAMESTUDIO_FAKE_PROVIDERS=1`, where keys starting `fs-test-ok` pass).

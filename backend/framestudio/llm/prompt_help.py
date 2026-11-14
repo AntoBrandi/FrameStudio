@@ -41,6 +41,11 @@ watermarks or text in the image unless asked. Do not add people, brands or \
 styles of living artists that the person did not mention. Stay within the \
 length limit given.
 
+Words starting with @, # or / (such as @maya, #dolly-in, /storyboard) name \
+characters, places, props, camera moves or tools the app fills in: copy each \
+one exactly as written, wherever it fits in the new prompt, and do not describe \
+what it looks like.
+
 Reply with the improved prompt and a short list of what you changed."""
 
 

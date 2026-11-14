@@ -76,8 +76,14 @@ Test media: `backend/tests/fixtures/media` (regenerate with `make_corpus.py`).
   is primary, trashed ones drop out; editing the description or media bumps `version`; export as
   CSV, media named by sha256, or a zip with `elements.json` and the files; CSV import finds media by
   content, zip import ingests them), `api/elements_api.py`. UI: `features/elements/` (`ElementsPage`,
-  `ElementEditor`; its `slugify` mirrors the backend's). `element_uses` ("Used in") is filled when
-  prompts reference elements (M4.4).
+  `ElementEditor`; its `slugify` mirrors the backend's).
+- Prompt tokens (M4.3): a prompt is a token list (`text`, `element` @handle, `move` #name,
+  `skill` /name); `prompt` text is its rendering. `framestudio/prompts.py` is the only parser
+  (`POST /api/prompts/parse`, also used when a generation arrives as text); `@` is always a token
+  (unknown handles warn), `#`/`/` only for known moves and skills. Generations store
+  `prompt_tokens` and record `element_uses` ("Used in"). UI: `features/generate/tokens.ts`, the
+  `TokenNode` chips and `@` menu in `PromptEditor.tsx`; the composer store keeps drafts as tokens.
+  Enter priorities there: @ menu (CRITICAL) > pick guard (HIGH) > send (NORMAL).
 - LLM contract fixtures: `backend/tests/contracts/fixtures/llm/<provider>/<case>.json`, synthetic
   until recorded (`uv run python -m tests.contracts.llm_wire` rewrites synthetic ones). Live runs:
   `LIVE_API=1 FRAMESTUDIO_LIVE_<PROVIDER>_KEY=… uv run pytest tests/contracts` (paid);
@@ -95,7 +101,7 @@ Test media: `backend/tests/fixtures/media` (regenerate with `make_corpus.py`).
   `params.ts` mirrors `validate_params` in `backend/framestudio/catalog` (rules, defaults, value
   checks): change both together. Estimates and problems come from `POST /api/generations/estimate`.
   The prompt box is Lexical (`PromptEditor.tsx`); jsdom cannot type into it, so unit tests set the
-  draft through the store and E2E types for real.
+  draft through the store (or drive the editor through `__lexicalEditor`) and E2E types for real.
 - `ui/src/`: `app/` (shell, router, palette, theme), `features/` (auth, jobs, generate, status,
   `library/`: pure layout and selection, Gallery, AssetCard, AssetViewer, LibraryView, Sidebar),
   `pages/`, `api/` (generated types, client, SSE bridge), `components/ui/` (shadcn-style).

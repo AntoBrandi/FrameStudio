@@ -4,6 +4,13 @@ import { afterEach, vi } from "vitest";
 import { resetApi, routeRequest } from "./api-mock";
 import "@/i18n";
 
+// jsdom has no layout: Lexical measures the caret (to keep it in view and to
+// place the @ menu) with these.
+const emptyRect = () => new DOMRect(0, 0, 0, 0);
+Range.prototype.getBoundingClientRect ??= emptyRect;
+Range.prototype.getClientRects ??= () =>
+  ({ length: 0, item: () => null, [Symbol.iterator]: [][Symbol.iterator] }) as unknown as DOMRectList;
+
 // openapi-fetch captures globalThis.fetch when the client module loads, so
 // install a delegating fetch first and let each test choose the responses.
 globalThis.fetch = vi.fn((input: RequestInfo | URL, init?: RequestInit) =>
