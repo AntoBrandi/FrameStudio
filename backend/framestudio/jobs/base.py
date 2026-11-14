@@ -10,7 +10,8 @@ from typing import TYPE_CHECKING, Any, ClassVar, Literal
 if TYPE_CHECKING:
     from framestudio.services import Services
 
-Lane = Literal["gpu", "network"]
+#: gpu: one at a time; network: hosted calls in parallel; cpu: local tools (ffmpeg).
+Lane = Literal["gpu", "network", "cpu"]
 JobState = Literal[
     "queued", "submitting", "running", "succeeded", "failed", "cancelled", "interrupted"
 ]

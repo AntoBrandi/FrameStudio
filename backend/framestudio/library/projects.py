@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import re
 import unicodedata
+import zipfile
 from datetime import datetime
+from pathlib import Path, PurePosixPath
 from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
@@ -45,6 +47,8 @@ class ProjectOut(BaseModel):
     #: The chosen cover, or the newest asset's thumbnail.
     cover_url: str | None
     asset_count: int
+    #: New images here are described by the captions model (M2.6).
+    describe_images: bool
     created_at: datetime
     updated_at: datetime
     deleted_at: datetime | None
@@ -73,6 +77,7 @@ class ProjectPatch(BaseModel):
     description: str | None = Field(default=None, max_length=140)
     cover_asset_id: str | None = None
     brief: str | None = Field(default=None, max_length=200_000)
+    describe_images: bool | None = None
 
     @field_validator("slug")
     @classmethod
@@ -112,6 +117,7 @@ def _project_out(session: Session, project: Project, detail: bool = False) -> Pr
         "cover_asset_id": project.cover_asset_id,
         "cover_url": f"/api/assets/{cover_id}/thumb" if cover_id else None,
         "asset_count": count,
+        "describe_images": bool(project.describe_images),
         "created_at": project.created_at,
         "updated_at": project.updated_at,
         "deleted_at": project.deleted_at,
@@ -188,6 +194,8 @@ def patch_project(services: Services, project_id: str, patch: ProjectPatch) -> P
             project.cover_asset_id = cover
         if changes.get("brief") is not None:
             project.brief = changes["brief"]
+        if changes.get("describe_images") is not None:
+            project.describe_images = changes["describe_images"]
         project.updated_at = utcnow()
         try:
             session.flush()
@@ -363,3 +371,74 @@ def delete_folder(services: Services, folder_id: str) -> bool:
         session.delete(folder)
     services.events.publish("library.changed", {"scope": "folders"})
     return True
+
+
+# ------------------------------------------------------------------ export
+
+
+def download_name(asset: Asset) -> str:
+    """The file name an asset is saved under: its original name when it was
+    uploaded, else ``framestudio-<id>``, with the stored file's extension."""
+    ext = PurePosixPath(asset.path).suffix
+    if asset.original_name:
+        return f"{PurePosixPath(asset.original_name).stem}{ext}"
+    return f"framestudio-{asset.id[:8]}{ext}"
+
+
+def _unique(name: str, taken: set[str]) -> str:
+    stem, ext = PurePosixPath(name).stem, PurePosixPath(name).suffix
+    candidate, n = name, 2
+    while candidate.lower() in taken:
+        candidate, n = f"{stem}-{n}{ext}", n + 1
+    taken.add(candidate.lower())
+    return candidate
+
+
+def export_project(
+    services: Services, project_id: str, folder_id: str | None = None
+) -> tuple[Path, str] | None:
+    """A zip of a project's media (M5.6): ``<slug>/`` holds the unfiled
+    assets and the brief, ``<slug>/<folder>/`` each folder's, by folder name.
+    Trashed assets stay out. Written to a temporary file (projects can hold
+    gigabytes of video), stored without compression (the media already is).
+    Returns the file and the download name, or None for an unknown project
+    or folder."""
+    with services.db.session() as session:
+        project = session.get(Project, project_id)
+        if project is None or project.deleted_at is not None:
+            return None
+        in_project = select(Folder).where(Folder.project_id == project_id)
+        folders = {f.id: f for f in session.scalars(in_project)}
+        if folder_id is not None and folder_id not in folders:
+            return None
+        query = select(Asset).where(Asset.project_id == project_id, Asset.deleted_at.is_(None))
+        if folder_id is not None:
+            query = query.where(Asset.folder_id == folder_id)
+        assets = [
+            (a.path, download_name(a), a.folder_id)
+            for a in session.scalars(query.order_by(Asset.created_at, Asset.id))
+        ]
+        slug, brief = project.slug, project.brief
+        folder_dirs: dict[str, str] = {}
+        taken_dirs: set[str] = set()
+        for folder in sorted(folders.values(), key=lambda f: (f.sort_order, f.name)):
+            folder_dirs[folder.id] = _unique(slugify(folder.name, 60) or "folder", taken_dirs)
+    target = services.media.temp_path(".zip")
+    names: dict[str, set[str]] = {}
+    with zipfile.ZipFile(target, "w", zipfile.ZIP_STORED) as archive:
+        if folder_id is None and brief.strip() and brief.strip() != BRIEF_TEMPLATE.strip():
+            archive.writestr(f"{slug}/brief.md", brief)
+            names.setdefault("", set()).add("brief.md")
+        for rel, name, in_folder in assets:
+            directory = folder_dirs.get(in_folder or "", "")
+            try:
+                path = services.media.resolve(rel)
+            except ValueError:
+                continue
+            if not path.is_file():
+                continue
+            unique = _unique(name, names.setdefault(directory, set()))
+            inside = f"{slug}/{directory}/{unique}" if directory else f"{slug}/{unique}"
+            archive.write(path, inside)
+    suffix = f"-{folder_dirs[folder_id]}" if folder_id else ""
+    return target, f"{slug}{suffix}.zip"

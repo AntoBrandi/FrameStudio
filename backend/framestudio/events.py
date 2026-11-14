@@ -89,29 +89,59 @@ class EventBus:
             return None
         return [event for event_seq, event in self._history if event_seq > seq]
 
-    async def subscribe(
-        self, last_event_id: str | None = None, heartbeat: float = 15.0
-    ) -> AsyncIterator[Event | None]:
-        """Yield events; yields ``None`` as a keep-alive tick after ``heartbeat``
-        seconds of silence. Ends when the subscriber falls too far behind."""
+    def open(self, last_event_id: str | None = None) -> Subscription:
+        """Register a subscriber now, with the events it missed queued first.
+
+        Registration and the replay snapshot happen in one synchronous step on
+        the event loop, so no event can fall between them. Call this before the
+        HTTP response starts: once the client sees the stream open, every later
+        event reaches it.
+        """
         queue: asyncio.Queue[Event | None] = asyncio.Queue(maxsize=SUBSCRIBER_BUFFER)
         missed = self._replay(last_event_id)
         if missed is None:
             self._seq += 1
-            yield Event(
-                id=f"{self.boot}:{self._seq}",
-                type="resync",
-                data={},
-                at=datetime.now(UTC).isoformat(),
-            )
-        else:
-            for event in missed:
-                yield event
+            missed = [
+                Event(
+                    id=f"{self.boot}:{self._seq}",
+                    type="resync",
+                    data={},
+                    at=datetime.now(UTC).isoformat(),
+                )
+            ]
+        for event in missed:
+            queue.put_nowait(event)
         self._subscribers.add(queue)
+        return Subscription(self, queue)
+
+    async def subscribe(
+        self, last_event_id: str | None = None, heartbeat: float = 15.0
+    ) -> AsyncIterator[Event | None]:
+        """Open a subscription and iterate it (see :meth:`Subscription.events`)."""
+        subscription = self.open(last_event_id)
+        try:
+            async for event in subscription.events(heartbeat):
+                yield event
+        finally:
+            subscription.close()
+
+    @property
+    def subscriber_count(self) -> int:
+        return len(self._subscribers)
+
+
+class Subscription:
+    def __init__(self, bus: EventBus, queue: asyncio.Queue[Event | None]) -> None:
+        self._bus = bus
+        self._queue = queue
+
+    async def events(self, heartbeat: float = 15.0) -> AsyncIterator[Event | None]:
+        """Yield events; ``None`` is a keep-alive tick after ``heartbeat``
+        seconds of silence. Ends when the subscriber fell too far behind."""
         try:
             while True:
                 try:
-                    item = await asyncio.wait_for(queue.get(), timeout=heartbeat)
+                    item = await asyncio.wait_for(self._queue.get(), timeout=heartbeat)
                 except TimeoutError:
                     yield None
                     continue
@@ -119,8 +149,7 @@ class EventBus:
                     return
                 yield item
         finally:
-            self._subscribers.discard(queue)
+            self.close()
 
-    @property
-    def subscriber_count(self) -> int:
-        return len(self._subscribers)
+    def close(self) -> None:
+        self._bus._subscribers.discard(self._queue)

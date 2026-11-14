@@ -19,6 +19,16 @@ class DataPaths:
         return self.root / "auth_token"
 
     @property
+    def key_file(self) -> Path:
+        """Encrypted API keys when the OS keyring is not used (framestudio.vault)."""
+        return self.root / "secrets.enc"
+
+    @property
+    def user_catalog(self) -> Path:
+        """Catalog entries the user added, e.g. imported from fal.ai (M2.10)."""
+        return self.root / "catalog"
+
+    @property
     def media(self) -> Path:
         return self.root / "media"
 

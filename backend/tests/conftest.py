@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import socket
 import threading
 import time
@@ -14,6 +15,11 @@ from fastapi.testclient import TestClient
 
 from framestudio.app import create_app
 from framestudio.config import Config
+
+# Tests never touch the OS keyring (or the network): keys go to a key file in
+# each test's data folder.
+os.environ["FRAMESTUDIO_SECRETS"] = "file"
+os.environ.pop("FRAMESTUDIO_FAKE_PROVIDERS", None)
 
 TOKEN = "t" * 43
 BASE_URL = "http://127.0.0.1:8790"

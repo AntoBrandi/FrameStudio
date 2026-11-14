@@ -85,3 +85,17 @@ async def test_resync_after_restart_or_overflow() -> None:
     assert await _first(bus, "otherboot:3", 1) == ["resync"]
     assert await _first(bus, f"{bus.boot}:1", 1) == ["resync"]
     assert await _first(bus, f"{bus.boot}:2", 2) == ["c", "d"]
+
+
+@pytest.mark.anyio
+async def test_events_published_right_after_open_are_not_lost() -> None:
+    """The stream registers before anything is sent, so an event published
+    before the consumer starts iterating still arrives (the M1 startup race)."""
+    bus = EventBus()
+    subscription = bus.open()
+    bus.publish("asset.created", {"id": "a1"})  # before the first iteration
+    iterator = subscription.events(heartbeat=0.05)
+    first = await anext(iterator)
+    assert first is not None and first.type == "asset.created"
+    subscription.close()
+    assert bus.subscriber_count == 0

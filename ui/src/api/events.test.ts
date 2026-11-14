@@ -1,8 +1,8 @@
-import { QueryClient } from "@tanstack/react-query";
+import { QueryClient, QueryObserver } from "@tanstack/react-query";
 import { describe, expect, it, vi } from "vitest";
 import { FakeEventSource } from "@/test/setup";
 import type { GenerationOut, JobOut } from "./client";
-import { applyProgress, connectEvents, GENERATIONS_KEY, JOBS_KEY, upsertById } from "./events";
+import { applyProgress, connectEvents, GENERATIONS_KEY, JOBS_KEY, refresh, upsertById } from "./events";
 
 const job = (overrides: Partial<JobOut> = {}): JobOut => ({
   id: "j1",
@@ -31,7 +31,12 @@ const generation = (overrides: Partial<GenerationOut> = {}): GenerationOut => ({
   model_id: "mock",
   provider: "mock",
   prompt: "p",
+  prompt_tokens: [{ type: "text", text: "p" }],
+  resolved: null,
   params: {},
+  references: [],
+  start_frame: null,
+  end_frame: null,
   seed: 1,
   status: "queued",
   error_code: null,
@@ -90,5 +95,55 @@ describe("event stream", () => {
 
     disconnect();
     expect(source.closed).toBe(true);
+  });
+});
+
+describe("generation updates during a fetch", () => {
+  it("restart a feed fetch that read the database before the change", async () => {
+    const client = new QueryClient();
+    let status: GenerationOut["status"] = "running";
+    const key = [...GENERATIONS_KEY, { params: { query: { mode: "image" } } }];
+    const queryFn = async () => {
+      const seen = generation({ status }); // reads the "database" when it starts
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      return [seen];
+    };
+    client.setQueryData(key, [generation({ status: "running" })]); // the feed on screen
+    const observer = new QueryObserver(client, { queryKey: key, queryFn });
+    const unsubscribe = observer.subscribe(() => undefined); // refetches: the asset event
+    expect(client.getQueryState(key)?.fetchStatus).toBe("fetching");
+    const disconnect = connectEvents(client);
+    const source = FakeEventSource.instances.at(-1)!;
+    // The generation finishes before that fetch returns.
+    status = "succeeded";
+    source.emit("generation.updated", generation({ status: "succeeded" }));
+    expect(client.getQueryData<GenerationOut[]>(key)?.[0]?.status).toBe("succeeded");
+    await vi.waitFor(() => expect(client.getQueryState(key)?.fetchStatus).toBe("idle"));
+    await new Promise((resolve) => setTimeout(resolve, 30));
+    expect(client.getQueryData<GenerationOut[]>(key)?.[0]?.status).toBe("succeeded");
+    disconnect();
+    unsubscribe();
+  });
+});
+
+describe("refresh", () => {
+  it("restarts a first fetch that is still in flight instead of joining it", async () => {
+    const client = new QueryClient();
+    let version = 0;
+    let calls = 0;
+    const key = ["get", "/api/assets/summary"];
+    const queryFn = async () => {
+      calls += 1;
+      const seen = version; // reads the "database" when it starts
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      return seen;
+    };
+    const observer = new QueryObserver(client, { queryKey: key, queryFn });
+    const unsubscribe = observer.subscribe(() => undefined);
+    version = 1; // a change lands while the first fetch is in flight
+    await refresh(client);
+    expect(client.getQueryData(key)).toBe(1);
+    expect(calls).toBe(2);
+    unsubscribe();
   });
 });

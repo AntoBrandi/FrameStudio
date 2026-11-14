@@ -25,6 +25,27 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/assets/describe": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Describe Assets
+     * @description Caption and tag these assets with the model chosen for captions (sends
+     *     a downscaled copy of each picture to it). Runs as background jobs.
+     */
+    post: operations["describe_assets"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/assets/facets": {
     parameters: {
       query?: never;
@@ -191,6 +212,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/assets/{asset_id}/frame": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Clip Frame
+     * @description A clip's first or last frame as a new picture beside it (to extend a clip).
+     */
+    post: operations["clip_frame"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/assets/{asset_id}/location": {
     parameters: {
       query?: never;
@@ -205,6 +246,26 @@ export interface paths {
     get: operations["asset_location"];
     put?: never;
     post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/assets/{asset_id}/name-suggestions": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Name Suggestions
+     * @description Three short names for an asset, from its caption and prompt.
+     */
+    post: operations["name_suggestions"];
     delete?: never;
     options?: never;
     head?: never;
@@ -292,6 +353,554 @@ export interface paths {
     post: operations["create_session"];
     /** Delete Session */
     delete: operations["delete_session"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/catalog/fal/import": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Import Fal Models
+     * @description Add fal models to the catalog: parameters and price read from fal.
+     */
+    post: operations["import_fal_models"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/catalog/fal/search": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Search Fal Models
+     * @description Models on fal.ai matching ``q`` (needs the fal connection).
+     */
+    get: operations["search_fal_models"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/cinema/adherence": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get Adherence
+     * @description Which controls each model follows: measured, or untested.
+     */
+    get: operations["get_adherence"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/cinema/adherence/estimate": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Estimate Adherence
+     * @description What measuring would cost: two generations per control.
+     */
+    post: operations["estimate_adherence"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/cinema/adherence/runs": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Start Adherence Run
+     * @description Measure controls on a model with real generations (paid on hosted
+     *     models; refused when the estimate is over ``budget_usd``).
+     */
+    post: operations["start_adherence_run"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/cinema/adherence/runs/{run_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Adherence Run */
+    get: operations["get_adherence_run"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/cinema/grade/{asset_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Grade Asset
+     * @description Grade a picture or clip toward a palette (a 3D LUT at ``strength``); the
+     *     result is a new asset beside it.
+     */
+    post: operations["grade_asset"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/cinema/lighting/describe": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Describe Lighting
+     * @description The words a lighting rig becomes in a prompt.
+     */
+    post: operations["describe_lighting"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/cinema/palettes/extract": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Extract Palette
+     * @description A palette from a library picture (or a clip's poster): swatches dark to
+     *     light, the share of the picture each covers, and words for a prompt.
+     */
+    post: operations["extract_palette"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/cinema/presets": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List Presets
+     * @description Saved palettes and lighting rigs.
+     */
+    get: operations["list_presets"];
+    put?: never;
+    /** Create Preset */
+    post: operations["create_preset"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/cinema/presets/{preset_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    /** Delete Preset */
+    delete: operations["delete_preset"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/cinema/previews/{family}/{name}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get Preview
+     * @description A picker preview (local file shipped with the app).
+     */
+    get: operations["get_preview"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/cinema/profiles": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get Profiles
+     * @description How the compiler writes for each model family.
+     */
+    get: operations["get_profiles"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/cinema/vocab": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get Vocab
+     * @description Every choice the film, camera, move, palette and lighting pickers offer,
+     *     with the preview artwork that exists for them.
+     */
+    get: operations["get_vocab"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/connections": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Connections */
+    get: operations["list_connections"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/connections/{provider}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Connection */
+    get: operations["get_connection"];
+    /**
+     * Update Connection
+     * @description Add or replace the key (checked with the provider first), turn the
+     *     connection on or off, or set its monthly cap.
+     */
+    put: operations["update_connection"];
+    post?: never;
+    /**
+     * Remove Connection
+     * @description Forget the key (from the keyring or key file) and the connection.
+     *     Usage history stays.
+     */
+    delete: operations["remove_connection"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/connections/{provider}/check": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Check Connection */
+    post: operations["check_connection"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/elements": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List Elements
+     * @description A project's elements and the global ones (or only the global ones
+     *     without ``project_id``).
+     */
+    get: operations["list_elements"];
+    put?: never;
+    /** Create Element */
+    post: operations["create_element"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/elements/export": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Export Elements
+     * @description Export a project's elements (or the global ones). The zip carries the
+     *     media; the CSV names them by content hash.
+     */
+    get: operations["export_elements"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/elements/folders": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Element Folders */
+    get: operations["list_element_folders"];
+    put?: never;
+    /** Create Element Folder */
+    post: operations["create_element_folder"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/elements/folders/{folder_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    /** Delete Element Folder */
+    delete: operations["delete_element_folder"];
+    options?: never;
+    head?: never;
+    /** Patch Element Folder */
+    patch: operations["patch_element_folder"];
+    trace?: never;
+  };
+  "/api/elements/import": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Import Elements
+     * @description Import elements exported from FrameStudio. Handles already taken here
+     *     get a suffix; CSV media are matched by content to assets in this library.
+     */
+    post: operations["import_elements"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/elements/recipes": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List Element Recipes
+     * @description Element generators (M4.6): character sheets, location sets, prop
+     *     turnarounds and turntable clips, with the model each would use now.
+     */
+    get: operations["list_element_recipes"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/elements/{element_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Element */
+    get: operations["get_element"];
+    put?: never;
+    post?: never;
+    /**
+     * Delete Element
+     * @description Delete the element; its pictures and clips stay in the library.
+     */
+    delete: operations["delete_element"];
+    options?: never;
+    head?: never;
+    /** Patch Element */
+    patch: operations["patch_element"];
+    trace?: never;
+  };
+  "/api/elements/{element_id}/generate": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Generate For Element
+     * @description Queue a recipe's views; each result is added to the element as it
+     *     finishes (M4.6).
+     */
+    post: operations["generate_for_element"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/elements/{element_id}/generate/estimate": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Estimate Element Generation
+     * @description What a recipe would cost and how long it would take, before running it.
+     */
+    post: operations["estimate_element_generation"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/elements/{element_id}/media": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /**
+     * Order Element Media
+     * @description Set the media: reorder (the first becomes primary), attach or detach.
+     */
+    put: operations["order_element_media"];
+    /**
+     * Add Element Media
+     * @description Attach library assets (at the end; the first ever becomes primary).
+     */
+    post: operations["add_element_media"];
+    delete?: never;
     options?: never;
     head?: never;
     patch?: never;
@@ -386,6 +995,49 @@ export interface paths {
      * @description Queue one generation per batch item; each lands as an asset.
      */
     post: operations["create_generation"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/generations/estimate": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Estimate Generation
+     * @description Cost and time for these settings, and what stands in the way, without
+     *     starting anything. The composer calls it as settings change.
+     */
+    post: operations["estimate_generation"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/generations/preview": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Preview Generation Request
+     * @description What the model would be given for this request: the prompt it sees,
+     *     the pictures (attached and from elements) with their labels, and what was
+     *     left out (M4.4).
+     */
+    post: operations["preview_generation_request"];
     delete?: never;
     options?: never;
     head?: never;
@@ -555,6 +1207,85 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/llm": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get Llm Overview
+     * @description Models read from each connected provider's API (cached for ten minutes;
+     *     ``refresh`` reads them again), and the model each task will use.
+     */
+    get: operations["get_llm_overview"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/llm/enhance": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Enhance
+     * @description Rewrite a prompt with the model chosen for prompt help; the reply
+     *     lists what changed so the composer can show a diff and undo it.
+     */
+    post: operations["enhance"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/models": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List Models
+     * @description Every catalog model, with whether it can run on this install right now.
+     */
+    get: operations["list_models"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/models/{model_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Model */
+    get: operations["get_model"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/projects": {
     parameters: {
       query?: never;
@@ -591,6 +1322,27 @@ export interface paths {
     patch: operations["patch_project"];
     trace?: never;
   };
+  "/api/projects/{project_id}/export": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Export Project
+     * @description The project's media as a zip (M5.6): one directory named by the
+     *     project's slug, a subdirectory per folder, and the brief.
+     */
+    get: operations["export_project"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/projects/{project_id}/restore": {
     parameters: {
       query?: never;
@@ -625,6 +1377,48 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/prompts/parse": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Parse Prompt
+     * @description Text → tokens, or a token list → its canonical form, with the elements
+     *     of ``project_id`` and the global ones; unknown handles come back as
+     *     warnings.
+     */
+    post: operations["parse_prompt"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/route": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Route Model
+     * @description What Auto would pick for these inputs, why, and every model considered.
+     */
+    get: operations["route_model"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/settings": {
     parameters: {
       query?: never;
@@ -641,6 +1435,127 @@ export interface paths {
     head?: never;
     /** Patch Settings */
     patch: operations["patch_settings"];
+    trace?: never;
+  };
+  "/api/shots": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Shots */
+    get: operations["list_shots"];
+    put?: never;
+    /**
+     * Create Shot
+     * @description Plan a shot and start its keyframes: stills from the same prompt and
+     *     cinema controls, at the clip's aspect ratio.
+     */
+    post: operations["create_shot"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/shots/estimate": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Estimate Shot
+     * @description Cost and time of the keyframes plus one clip, without starting anything.
+     */
+    post: operations["estimate_shot"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/shots/{shot_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Shot */
+    get: operations["get_shot"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** Patch Shot */
+    patch: operations["patch_shot"];
+    trace?: never;
+  };
+  "/api/shots/{shot_id}/animate": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Animate Shot
+     * @description Approve a keyframe (and an end frame, where the model takes one) and
+     *     animate the clip from it with the shot's prompt and controls.
+     */
+    post: operations["animate_shot"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/shots/{shot_id}/extend": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Extend Shot
+     * @description Continue a finished clip: a new shot starts from its last frame.
+     */
+    post: operations["extend_shot"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/shots/{shot_id}/keyframes": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * More Keyframes
+     * @description More keyframes to choose from, with the same settings.
+     */
+    post: operations["more_keyframes"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
     trace?: never;
   };
   "/api/storage": {
@@ -697,20 +1612,88 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/usage": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Usage */
+    get: operations["get_usage"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    /** AdherenceRow */
+    AdherenceRow: {
+      /** Controls */
+      controls: {
+        [key: string]: components["schemas"]["Measurement"];
+      };
+      /** Model */
+      model: string;
+      /** Name */
+      name: string;
+    };
+    /** Animate */
+    Animate: {
+      /** End Frame Id */
+      end_frame_id?: string | null;
+      /** Keyframe Id */
+      keyframe_id: string;
+      /** Seed */
+      seed?: number | null;
+      /** Video Model */
+      video_model?: string | null;
+      /** Video Params */
+      video_params?: {
+        [key: string]: unknown;
+      } | null;
+    };
     /**
      * AppSettings
      * @description Every user-changeable setting with its default.
      */
     AppSettings: {
       /**
+       * Describe Library
+       * @default false
+       */
+      describe_library: boolean;
+      /**
        * Language
        * @default en
        */
       language: string;
+      /**
+       * Llm Captions
+       * @default
+       */
+      llm_captions: string;
+      /**
+       * Llm Default
+       * @default
+       */
+      llm_default: string;
+      /**
+       * Llm Director
+       * @default
+       */
+      llm_director: string;
+      /**
+       * Llm Prompt Help
+       * @default
+       */
+      llm_prompt_help: string;
       /**
        * Mock Failure Rate
        * @default 0
@@ -743,8 +1726,18 @@ export interface components {
      * @description Partial update: omitted fields keep their current value.
      */
     AppSettingsPatch: {
+      /** Describe Library */
+      describe_library?: boolean | null;
       /** Language */
       language?: string | null;
+      /** Llm Captions */
+      llm_captions?: string | null;
+      /** Llm Default */
+      llm_default?: string | null;
+      /** Llm Director */
+      llm_director?: string | null;
+      /** Llm Prompt Help */
+      llm_prompt_help?: string | null;
       /** Mock Failure Rate */
       mock_failure_rate?: number | null;
       /** Mock Latency Seconds */
@@ -839,6 +1832,8 @@ export interface components {
       size_bytes: number;
       /** Source Generation Id */
       source_generation_id: string | null;
+      /** Tags */
+      tags: string[];
       /** Thumb Url */
       thumb_url: string | null;
       /** Url */
@@ -868,6 +1863,16 @@ export interface components {
       /** Original Name */
       original_name?: string | null;
     };
+    /** Body_import_elements */
+    Body_import_elements: {
+      /**
+       * File
+       * @description An elements CSV or export zip
+       */
+      file: string;
+      /** Project Id */
+      project_id?: string | null;
+    };
     /** Body_upload_assets */
     Body_upload_assets: {
       /**
@@ -885,6 +1890,285 @@ export interface components {
       /** Updated */
       updated: number;
     };
+    /** CameraSpec */
+    CameraSpec: {
+      /** Aperture */
+      aperture?: string | null;
+      /** Body */
+      body?: string | null;
+      /** Focal Length */
+      focal_length?: number | null;
+      /** Lens */
+      lens?: string | null;
+    };
+    /** ConnectionOut */
+    ConnectionOut: {
+      /** Connected */
+      connected: boolean;
+      /** Description */
+      description: string;
+      /** Enabled */
+      enabled: boolean;
+      /** Hosts */
+      hosts: string[];
+      /** Key Hint */
+      key_hint: string | null;
+      /** Key Store */
+      key_store: ("keyring" | "file" | "memory") | null;
+      /** Key Url */
+      key_url: string | null;
+      /** Monthly Cap Usd */
+      monthly_cap_usd: number | null;
+      /** Name */
+      name: string;
+      /** Provider */
+      provider: string;
+      /** Requires Key */
+      requires_key: boolean;
+      /** Spent This Month Usd */
+      spent_this_month_usd: number;
+      /** Status */
+      status: ("ok" | "refused" | "unreachable" | "unchecked" | "missing") | null;
+      /** Status Message */
+      status_message: string | null;
+      /** Test */
+      test: boolean;
+      /** Validated At */
+      validated_at: string | null;
+    };
+    /** ConnectionUpdate */
+    ConnectionUpdate: {
+      /** Api Key */
+      api_key?: string | null;
+      /** Enabled */
+      enabled?: boolean | null;
+      /** Monthly Cap Usd */
+      monthly_cap_usd?: number | null;
+    };
+    /** Continuity */
+    Continuity: {
+      /** End */
+      end: number | null;
+      /** Matches */
+      matches: boolean;
+      /** Start */
+      start: number | null;
+    };
+    /** DescribeQueued */
+    DescribeQueued: {
+      /** Job Ids */
+      job_ids: string[];
+    };
+    /** DescribeRequest */
+    DescribeRequest: {
+      /** Asset Ids */
+      asset_ids: string[];
+    };
+    /** ElementCreate */
+    ElementCreate: {
+      /** Asset Ids */
+      asset_ids?: string[];
+      /**
+       * Category
+       * @default auto
+       * @enum {string}
+       */
+      category?: "character" | "location" | "prop" | "auto";
+      /**
+       * Description
+       * @default
+       */
+      description?: string;
+      /** Folder Id */
+      folder_id?: string | null;
+      /** Handle */
+      handle?: string | null;
+      /** Name */
+      name: string;
+      /** Project Id */
+      project_id?: string | null;
+      /** Properties */
+      properties?: {
+        [key: string]: string;
+      };
+      /**
+       * Status
+       * @default draft
+       * @enum {string}
+       */
+      status?: "draft" | "ready";
+    };
+    /** ElementFolderCreate */
+    ElementFolderCreate: {
+      /**
+       * Color
+       * @default tungsten
+       */
+      color?: string;
+      /** Name */
+      name: string;
+      /** Project Id */
+      project_id?: string | null;
+    };
+    /** ElementFolderOut */
+    ElementFolderOut: {
+      /** Color */
+      color: string;
+      /** Element Count */
+      element_count: number;
+      /** Id */
+      id: string;
+      /** Name */
+      name: string;
+      /** Project Id */
+      project_id: string | null;
+    };
+    /** ElementFolderPatch */
+    ElementFolderPatch: {
+      /** Color */
+      color?: string | null;
+      /** Name */
+      name?: string | null;
+    };
+    /** ElementGenerate */
+    ElementGenerate: {
+      /** Model */
+      model?: string | null;
+      /**
+       * Recipe
+       * @enum {string}
+       */
+      recipe: "character_sheet" | "location_set" | "prop_turnaround" | "turntable";
+      /** Seed */
+      seed?: number | null;
+      /** Views */
+      views?: string[] | null;
+    };
+    /** ElementGenerateEstimate */
+    ElementGenerateEstimate: {
+      /** Cost Usd */
+      cost_usd: number | null;
+      /** Model */
+      model: string | null;
+      /** Model Name */
+      model_name: string | null;
+      /** Ok */
+      ok: boolean;
+      /** Problems */
+      problems: string[];
+      /** Seconds */
+      seconds: number | null;
+      /** Views */
+      views: number;
+    };
+    /** ElementMediaChange */
+    ElementMediaChange: {
+      /** Asset Ids */
+      asset_ids: string[];
+      /**
+       * Role
+       * @default angle
+       */
+      role?: string;
+    };
+    /** ElementMediaOut */
+    ElementMediaOut: {
+      /** Asset Id */
+      asset_id: string;
+      /** Kind */
+      kind: string;
+      /** Position */
+      position: number;
+      /** Role */
+      role: string;
+      /** Thumb Url */
+      thumb_url: string | null;
+      /** Url */
+      url: string;
+    };
+    /** ElementOut */
+    ElementOut: {
+      /**
+       * Category
+       * @enum {string}
+       */
+      category: "character" | "location" | "prop" | "auto";
+      /** Cover Url */
+      cover_url: string | null;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Description */
+      description: string;
+      /** Folder Id */
+      folder_id: string | null;
+      /** Handle */
+      handle: string;
+      /** Id */
+      id: string;
+      /** Media */
+      media: components["schemas"]["ElementMediaOut"][];
+      /** Name */
+      name: string;
+      /** Project Id */
+      project_id: string | null;
+      /** Properties */
+      properties: {
+        [key: string]: string;
+      };
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "draft" | "ready";
+      /**
+       * Updated At
+       * Format: date-time
+       */
+      updated_at: string;
+      /** Used In */
+      used_in: number;
+      /** Version */
+      version: number;
+    };
+    /** ElementPatch */
+    ElementPatch: {
+      /** Category */
+      category?: ("character" | "location" | "prop" | "auto") | null;
+      /** Description */
+      description?: string | null;
+      /** Folder Id */
+      folder_id?: string | null;
+      /** Handle */
+      handle?: string | null;
+      /** Name */
+      name?: string | null;
+      /** Properties */
+      properties?: {
+        [key: string]: string;
+      } | null;
+      /**
+       * Regenerate Handle
+       * @default false
+       */
+      regenerate_handle?: boolean;
+      /** Status */
+      status?: ("draft" | "ready") | null;
+    };
+    /** ElementToken */
+    ElementToken: {
+      /** Element Id */
+      element_id?: string | null;
+      /** Handle */
+      handle: string;
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: "element";
+    };
     /** EmptyTrashResult */
     EmptyTrashResult: {
       /** Assets Deleted */
@@ -893,6 +2177,51 @@ export interface components {
       bytes_freed: number;
       /** Projects Deleted */
       projects_deleted: number;
+    };
+    /** EnhanceRequest */
+    EnhanceRequest: {
+      /**
+       * Mode
+       * @default image
+       * @enum {string}
+       */
+      mode?: "image" | "video";
+      /** Model */
+      model?: string | null;
+      /** Prompt */
+      prompt: string;
+    };
+    /** EnhanceResult */
+    EnhanceResult: {
+      /** Changes */
+      changes: string[];
+      /** Llm */
+      llm: string;
+      /** Prompt */
+      prompt: string;
+    };
+    /** Extend */
+    Extend: {
+      /** Generation Id */
+      generation_id: string;
+      /** Prompt Tokens */
+      prompt_tokens?:
+        | (
+            | components["schemas"]["TextToken"]
+            | components["schemas"]["ElementToken"]
+            | components["schemas"]["MoveToken"]
+            | components["schemas"]["SkillToken"]
+          )[]
+        | null;
+    };
+    /** ExtractedPalette */
+    ExtractedPalette: {
+      /** Shares */
+      shares: number[];
+      /** Swatches */
+      swatches: string[];
+      /** Words */
+      words: string;
     };
     /** FakeJobCreate */
     FakeJobCreate: {
@@ -913,12 +2242,39 @@ export interface components {
        */
       seconds?: number;
     };
+    /** FalImport */
+    FalImport: {
+      /** Endpoint Ids */
+      endpoint_ids: string[];
+    };
+    /** FalModelSummary */
+    FalModelSummary: {
+      /** Category */
+      category: string | null;
+      /** Description */
+      description: string;
+      /** Endpoint Id */
+      endpoint_id: string;
+      /** Name */
+      name: string;
+      /** Supported */
+      supported: boolean;
+    };
     /** FavoriteAssets */
     FavoriteAssets: {
       /** Asset Ids */
       asset_ids: string[];
       /** Favorite */
       favorite: boolean;
+    };
+    /** FilmSpec */
+    FilmSpec: {
+      /** Era */
+      era?: string | null;
+      /** Genre */
+      genre?: string | null;
+      /** Tempo */
+      tempo?: string | null;
     };
     /** FolderCreate */
     FolderCreate: {
@@ -970,13 +2326,37 @@ export interface components {
       /** Sort Order */
       sort_order?: number | null;
     };
+    /** FrameRequest */
+    FrameRequest: {
+      /**
+       * Which
+       * @default last
+       * @enum {string}
+       */
+      which?: "first" | "last";
+    };
     /** GenerationCreate */
     GenerationCreate: {
+      /** Attach Element Id */
+      attach_element_id?: string | null;
+      /**
+       * Attach Role
+       * @default sheet
+       * @enum {string}
+       */
+      attach_role?: "sheet" | "angle" | "turntable";
       /**
        * Batch
        * @default 1
        */
       batch?: number;
+      /**
+       * Element Pictures
+       * @default true
+       */
+      element_pictures?: boolean;
+      /** End Frame */
+      end_frame?: string | null;
       /** Folder Id */
       folder_id?: string | null;
       /**
@@ -1003,12 +2383,50 @@ export interface components {
        * @default
        */
       prompt?: string;
+      /** Prompt Tokens */
+      prompt_tokens?:
+        | (
+            | components["schemas"]["TextToken"]
+            | components["schemas"]["ElementToken"]
+            | components["schemas"]["MoveToken"]
+            | components["schemas"]["SkillToken"]
+          )[]
+        | null;
+      /** References */
+      references?: string[];
       /** Seed */
       seed?: number | null;
+      shot?: components["schemas"]["ShotSpec"] | null;
+      /** Shot Id */
+      shot_id?: string | null;
+      /** Shot Role */
+      shot_role?: ("keyframe" | "clip") | null;
+      /** Start Frame */
+      start_frame?: string | null;
+    };
+    /**
+     * GenerationEstimate
+     * @description What Generate would do with these settings, before pressing it.
+     */
+    GenerationEstimate: {
+      /** Cost Usd */
+      cost_usd: number | null;
+      /** Model */
+      model?: string | null;
+      /** Notes */
+      notes: string | null;
+      /** Ok */
+      ok: boolean;
+      /** Problems */
+      problems: string[];
+      /** Seconds */
+      seconds: number | null;
     };
     /** GenerationOut */
     GenerationOut: {
       asset: components["schemas"]["AssetOut"] | null;
+      /** Attach Element Id */
+      attach_element_id?: string | null;
       /** Batch Id */
       batch_id: string;
       /** Batch Index */
@@ -1018,6 +2436,8 @@ export interface components {
        * Format: date-time
        */
       created_at: string;
+      /** End Frame */
+      end_frame: string | null;
       /** Error Code */
       error_code: string | null;
       /** Error Message */
@@ -1047,10 +2467,27 @@ export interface components {
       project_id: string | null;
       /** Prompt */
       prompt: string;
+      /** Prompt Tokens */
+      prompt_tokens: (
+        | components["schemas"]["TextToken"]
+        | components["schemas"]["ElementToken"]
+        | components["schemas"]["MoveToken"]
+        | components["schemas"]["SkillToken"]
+      )[];
       /** Provider */
       provider: string;
+      /** References */
+      references: string[];
+      resolved: components["schemas"]["Resolved"] | null;
       /** Seed */
       seed: number | null;
+      shot?: components["schemas"]["ShotSpec"] | null;
+      /** Shot Id */
+      shot_id?: string | null;
+      /** Shot Role */
+      shot_role?: ("keyframe" | "clip") | null;
+      /** Start Frame */
+      start_frame: string | null;
       /** Started At */
       started_at: string | null;
       /**
@@ -1061,6 +2498,8 @@ export interface components {
     };
     /** GenerationSummary */
     GenerationSummary: {
+      /** End Frame */
+      end_frame?: string | null;
       /** Id */
       id: string;
       /** Mode */
@@ -1071,10 +2510,43 @@ export interface components {
       params: {
         [key: string]: unknown;
       };
+      /** Parent Asset Id */
+      parent_asset_id?: string | null;
       /** Prompt */
       prompt: string;
+      /** Prompt Tokens */
+      prompt_tokens?:
+        | (
+            | components["schemas"]["TextToken"]
+            | components["schemas"]["ElementToken"]
+            | components["schemas"]["MoveToken"]
+            | components["schemas"]["SkillToken"]
+          )[]
+        | null;
+      /**
+       * References
+       * @default []
+       */
+      references?: string[];
       /** Seed */
       seed: number | null;
+      shot?: components["schemas"]["ShotSpec"] | null;
+      /** Start Frame */
+      start_frame?: string | null;
+    };
+    /** GradeQueued */
+    GradeQueued: {
+      /** Job Id */
+      job_id: string;
+    };
+    /** GradeRequest */
+    GradeRequest: {
+      palette: components["schemas"]["PaletteSpec"];
+      /**
+       * Strength
+       * @default 0.6
+       */
+      strength?: number;
     };
     /** HTTPValidationError */
     HTTPValidationError: {
@@ -1097,6 +2569,17 @@ export interface components {
       status: "ok";
       /** Version */
       version: string;
+    };
+    /** ImportResult */
+    ImportResult: {
+      /** Created */
+      created: string[];
+      /** Problems */
+      problems: string[];
+      /** Renamed */
+      renamed: {
+        [key: string]: string;
+      };
     };
     /** IngestItem */
     IngestItem: {
@@ -1136,7 +2619,7 @@ export interface components {
        * Lane
        * @enum {string}
        */
-      lane: "gpu" | "network";
+      lane: "gpu" | "network" | "cpu";
       /** Message */
       message: string | null;
       /** Progress */
@@ -1157,6 +2640,63 @@ export interface components {
       /** Title */
       title: string;
     };
+    /** LLMModelOut */
+    LLMModelOut: {
+      /** Context Tokens */
+      context_tokens: number | null;
+      /** Effort */
+      effort: boolean;
+      /** Id */
+      id: string;
+      /** Max Output Tokens */
+      max_output_tokens: number | null;
+      /** Name */
+      name: string;
+      /** Provider */
+      provider: string;
+      /** Ref */
+      ref: string;
+      /** Structured Output */
+      structured_output: boolean;
+      /** Tools */
+      tools: boolean;
+      /** Usd Per Mtok In */
+      usd_per_mtok_in: number | null;
+      /** Usd Per Mtok Out */
+      usd_per_mtok_out: number | null;
+      /** Vision */
+      vision: boolean;
+    };
+    /** LLMOverview */
+    LLMOverview: {
+      /** Providers */
+      providers: components["schemas"]["LLMProviderOut"][];
+      /** Tasks */
+      tasks: components["schemas"]["LLMTaskOut"][];
+    };
+    /** LLMProviderOut */
+    LLMProviderOut: {
+      /** Error */
+      error: string | null;
+      /** Models */
+      models: components["schemas"]["LLMModelOut"][];
+      /** Name */
+      name: string;
+      /** Provider */
+      provider: string;
+    };
+    /** LLMTaskOut */
+    LLMTaskOut: {
+      /** Choice */
+      choice: string;
+      /** Effective */
+      effective: string | null;
+      /**
+       * Task
+       * @enum {string}
+       */
+      task: "default" | "prompt_help" | "captions" | "director";
+    };
     /** LibrarySummary */
     LibrarySummary: {
       /** Favorites */
@@ -1176,12 +2716,179 @@ export interface components {
       /** Trashed */
       trashed: number;
     };
+    /**
+     * LicenseRecord
+     * @description Who made the model and on what terms, shown before use.
+     */
+    LicenseRecord: {
+      /**
+       * Commercial Use
+       * @enum {string}
+       */
+      commercial_use: "yes" | "no" | "restricted" | "unknown";
+      /** Credit */
+      credit: string;
+      /** Evidence Url */
+      evidence_url?: string | null;
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: "open_weights" | "hosted_service" | "test_double";
+      /** Name */
+      name: string;
+      /**
+       * Notes
+       * @default
+       */
+      notes?: string;
+      /** Source Url */
+      source_url: string;
+    };
+    /**
+     * Light
+     * @description One light of a rig (M5.5), placed on a sphere around the subject as
+     *     seen from the camera: azimuth 0° is the camera's side, 90° screen right,
+     *     180° behind the subject, 270° screen left; elevation 90° is straight
+     *     above, −90° straight below.
+     */
+    Light: {
+      /** Azimuth */
+      azimuth: number;
+      /**
+       * Colour
+       * @default #FFFFFF
+       */
+      colour?: string;
+      /** Elevation */
+      elevation: number;
+      /**
+       * Intensity
+       * @default 1
+       */
+      intensity?: number;
+      /**
+       * Softness
+       * @default 0.5
+       */
+      softness?: number;
+    };
+    /** LightingSpec */
+    LightingSpec: {
+      /** Description */
+      description?: string | null;
+      /** Label */
+      label?: string | null;
+      /** Preset */
+      preset?: string | null;
+      rig?: components["schemas"]["Rig"] | null;
+    };
+    /** Limits */
+    Limits: {
+      /**
+       * Max Batch
+       * @default 4
+       */
+      max_batch?: number;
+      /** Max Prompt Chars */
+      max_prompt_chars?: number | null;
+      /**
+       * Max References
+       * @default 0
+       */
+      max_references?: number;
+      /** Reference Kinds */
+      reference_kinds?: ("image" | "video" | "audio")[];
+    };
+    /** Measurement */
+    Measurement: {
+      /** Checked At */
+      checked_at?: string | null;
+      /** Method */
+      method?: ("metric" | "judge") | null;
+      /** Note */
+      note?: string | null;
+      /** Score */
+      score?: number | null;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "followed" | "weak" | "ignored" | "untested";
+    };
+    /** MediaOrder */
+    MediaOrder: {
+      /** Asset Ids */
+      asset_ids: string[];
+    };
+    /** ModelOut */
+    ModelOut: {
+      /** Available */
+      available: boolean;
+      /** Capabilities */
+      capabilities: (
+        | "text_to_image"
+        | "image_edit"
+        | "multi_reference"
+        | "text_to_video"
+        | "image_to_video"
+        | "start_end_frames"
+        | "extend"
+        | "native_audio"
+      )[];
+      /** Description */
+      description: string;
+      /** Id */
+      id: string;
+      license: components["schemas"]["LicenseRecord"];
+      limits: components["schemas"]["Limits"];
+      /** Modes */
+      modes: ("image" | "video")[];
+      /** Name */
+      name: string;
+      /** Parameter Schema */
+      parameter_schema: {
+        [key: string]: {
+          [key: string]: unknown;
+        };
+      };
+      /** Params */
+      params: {
+        [key: string]: components["schemas"]["ParamSpec"];
+      };
+      pricing: components["schemas"]["Pricing"] | null;
+      /** Provider */
+      provider: string;
+      /** Rules */
+      rules: components["schemas"]["Rule"][];
+      /**
+       * Runtime
+       * @enum {string}
+       */
+      runtime: "local" | "api";
+      /** Tags */
+      tags: string[];
+      /** Unavailable Reason */
+      unavailable_reason: string | null;
+      /** Variants */
+      variants: components["schemas"]["Variant"][];
+    };
     /** MonthCount */
     MonthCount: {
       /** Count */
       count: number;
       /** Month */
       month: string;
+    };
+    /** MoreKeyframes */
+    MoreKeyframes: {
+      /**
+       * Count
+       * @default 4
+       */
+      count?: number;
+      /** Seed */
+      seed?: number | null;
     };
     /**
      * MoveAssets
@@ -1195,6 +2902,189 @@ export interface components {
       folder_id?: string | null;
       /** Project Id */
       project_id?: string | null;
+    };
+    /** MoveToken */
+    MoveToken: {
+      /** Name */
+      name: string;
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: "move";
+    };
+    /** NameSuggestions */
+    NameSuggestions: {
+      /** Names */
+      names: string[];
+    };
+    /** PaletteExtract */
+    PaletteExtract: {
+      /** Asset Id */
+      asset_id: string;
+      /**
+       * Count
+       * @default 6
+       */
+      count?: number;
+    };
+    /**
+     * PaletteSpec
+     * @description A preset palette by id, or a custom one (M5.4: extracted from a still).
+     */
+    PaletteSpec: {
+      /** Id */
+      id?: string | null;
+      /** Label */
+      label?: string | null;
+      /** Swatches */
+      swatches?: string[];
+      /** Words */
+      words?: string | null;
+    };
+    /** PaletteTerm */
+    PaletteTerm: {
+      /** Id */
+      id: string;
+      /** Label */
+      label: string;
+      /** Negative */
+      negative?: string | null;
+      /** Swatches */
+      swatches: string[];
+      /** Words */
+      words: string;
+    };
+    /** ParamSpec */
+    ParamSpec: {
+      /**
+       * Advanced
+       * @default false
+       */
+      advanced?: boolean;
+      /** Control */
+      control?: ("pills" | "select" | "slider" | "toggle" | "stepper" | "seed" | "text") | null;
+      /** Default */
+      default?: unknown;
+      /** Default By Mode */
+      default_by_mode?: {
+        [key: string]: unknown;
+      } | null;
+      /** Help */
+      help?: string | null;
+      /** Label */
+      label: string;
+      /** Max */
+      max?: number | null;
+      /** Min */
+      min?: number | null;
+      /** Modes */
+      modes?: ("image" | "video")[] | null;
+      /** Step */
+      step?: number | null;
+      /**
+       * Type
+       * @enum {string}
+       */
+      type: "enum" | "integer" | "number" | "boolean" | "seed" | "string";
+      /** Unit */
+      unit?: string | null;
+      /** Values */
+      values?: (string | number)[] | null;
+    };
+    /** PresetCreate */
+    PresetCreate: {
+      /** Data */
+      data: {
+        [key: string]: unknown;
+      };
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: "palette" | "lighting";
+      /** Name */
+      name: string;
+      /** Preview Asset Id */
+      preview_asset_id?: string | null;
+    };
+    /** PresetOut */
+    PresetOut: {
+      /** Data */
+      data: {
+        [key: string]: unknown;
+      };
+      /** Id */
+      id: string;
+      /** Kind */
+      kind: string;
+      /** Name */
+      name: string;
+      /** Preview Url */
+      preview_url: string | null;
+    };
+    /** Preview */
+    Preview: {
+      /** Image */
+      image?: string | null;
+      /** Video */
+      video?: string | null;
+    };
+    /**
+     * Pricing
+     * @description What a request costs, for the estimate shown before Generate.
+     */
+    Pricing: {
+      /** By */
+      by?: string | null;
+      /** Checked At */
+      checked_at: string;
+      /** Source Url */
+      source_url: string;
+      /** Table */
+      table?: {
+        [key: string]: number;
+      } | null;
+      /**
+       * Unit
+       * @enum {string}
+       */
+      unit: "image" | "video_second" | "request";
+      /** Usd */
+      usd: number;
+    };
+    /** Profile */
+    Profile: {
+      /** Drop Order */
+      drop_order: ("subject" | "moves" | "camera" | "film" | "lighting" | "palette" | "elements" | "negative")[];
+      /**
+       * Hex Codes
+       * @default false
+       */
+      hex_codes?: boolean;
+      /** Id */
+      id: string;
+      /** Max Moves */
+      max_moves?: number | null;
+      /**
+       * Native
+       * @default {}
+       */
+      native?: {
+        [key: string]: [string, unknown];
+      };
+      /**
+       * Negatives
+       * @enum {string}
+       */
+      negatives: "inline" | "param" | "drop";
+      /** Order */
+      order: ("subject" | "moves" | "camera" | "film" | "lighting" | "palette" | "elements" | "negative")[];
+      /**
+       * Style
+       * @enum {string}
+       */
+      style: "sentences" | "tags";
     };
     /** ProjectCreate */
     ProjectCreate: {
@@ -1223,6 +3113,8 @@ export interface components {
       created_at: string;
       /** Deleted At */
       deleted_at: string | null;
+      /** Describe Images */
+      describe_images: boolean;
       /** Description */
       description: string;
       /** Id */
@@ -1252,6 +3144,8 @@ export interface components {
       created_at: string;
       /** Deleted At */
       deleted_at: string | null;
+      /** Describe Images */
+      describe_images: boolean;
       /** Description */
       description: string;
       /** Id */
@@ -1272,6 +3166,8 @@ export interface components {
       brief?: string | null;
       /** Cover Asset Id */
       cover_asset_id?: string | null;
+      /** Describe Images */
+      describe_images?: boolean | null;
       /** Description */
       description?: string | null;
       /** Name */
@@ -1279,10 +3175,453 @@ export interface components {
       /** Slug */
       slug?: string | null;
     };
+    /**
+     * PromptParse
+     * @description Text to parse, or a token list to put in canonical form.
+     */
+    PromptParse: {
+      /** Project Id */
+      project_id?: string | null;
+      /** Text */
+      text?: string | null;
+      /** Tokens */
+      tokens?:
+        | (
+            | components["schemas"]["TextToken"]
+            | components["schemas"]["ElementToken"]
+            | components["schemas"]["MoveToken"]
+            | components["schemas"]["SkillToken"]
+          )[]
+        | null;
+    };
+    /** PromptParsed */
+    PromptParsed: {
+      /** Text */
+      text: string;
+      /** Tokens */
+      tokens: (
+        | components["schemas"]["TextToken"]
+        | components["schemas"]["ElementToken"]
+        | components["schemas"]["MoveToken"]
+        | components["schemas"]["SkillToken"]
+      )[];
+      /** Warnings */
+      warnings: string[];
+    };
+    /** ProviderUsage */
+    ProviderUsage: {
+      /** Cap Usd */
+      cap_usd: number | null;
+      /** Cost Usd */
+      cost_usd: number;
+      /** Images */
+      images: number;
+      /** Input Tokens */
+      input_tokens: number;
+      /** Output Tokens */
+      output_tokens: number;
+      /** Provider */
+      provider: string;
+      /** Requests */
+      requests: number;
+      /** Video Seconds */
+      video_seconds: number;
+    };
+    /** RecipeOut */
+    RecipeOut: {
+      /** Categories */
+      categories: string[];
+      /**
+       * Id
+       * @enum {string}
+       */
+      id: "character_sheet" | "location_set" | "prop_turnaround" | "turntable";
+      /** Label */
+      label: string;
+      /**
+       * Mode
+       * @enum {string}
+       */
+      mode: "image" | "video";
+      /** Model */
+      model: string | null;
+      /** Model Name */
+      model_name: string | null;
+      /** Views */
+      views: components["schemas"]["RecipeViewOut"][];
+    };
+    /** RecipeViewOut */
+    RecipeViewOut: {
+      /** Id */
+      id: string;
+      /** Label */
+      label: string;
+    };
+    /** Resolved */
+    Resolved: {
+      /** Elements */
+      elements: components["schemas"]["ResolvedElement"][];
+      /** Model */
+      model: string;
+      /**
+       * Native
+       * @default {}
+       */
+      native?: {
+        [key: string]: unknown;
+      };
+      /** Negative Prompt */
+      negative_prompt?: string | null;
+      /**
+       * Problems
+       * @default []
+       */
+      problems?: string[];
+      /** Prompt */
+      prompt: string;
+      /** References */
+      references: components["schemas"]["ResolvedReference"][];
+      /**
+       * Sections
+       * @default []
+       */
+      sections?: components["schemas"]["Section"][];
+      /**
+       * Strategy
+       * @enum {string}
+       */
+      strategy: "multi_reference" | "single_image" | "description";
+      /** Warnings */
+      warnings: string[];
+    };
+    /** ResolvedElement */
+    ResolvedElement: {
+      /** Described */
+      described: boolean;
+      /** Handle */
+      handle: string;
+      /** Id */
+      id: string;
+      /** Images */
+      images: number;
+      /** Name */
+      name: string;
+      /** Version */
+      version: number;
+    };
+    /** ResolvedReference */
+    ResolvedReference: {
+      /** Asset Id */
+      asset_id: string;
+      /** Handle */
+      handle?: string | null;
+      /** Label */
+      label: string;
+      /**
+       * Source
+       * @enum {string}
+       */
+      source: "attached" | "element";
+      /** Thumb Url */
+      thumb_url?: string | null;
+    };
+    /**
+     * Rig
+     * @description A lighting rig (M5.5): one to four lights and the ambient fill.
+     */
+    Rig: {
+      /**
+       * Ambient
+       * @default 0.1
+       */
+      ambient?: number;
+      /** Lights */
+      lights: components["schemas"]["Light"][];
+    };
+    /** RigWords */
+    RigWords: {
+      /** Words */
+      words: string;
+    };
+    /** RouteOption */
+    RouteOption: {
+      /** Available */
+      available: boolean;
+      /** Id */
+      id: string;
+      /** Misfit */
+      misfit: string | null;
+      /** Name */
+      name: string;
+      /** Rank */
+      rank: number | null;
+    };
+    /** RouteResult */
+    RouteResult: {
+      /** Model */
+      model: string | null;
+      /** Options */
+      options: components["schemas"]["RouteOption"][];
+      /** Reason */
+      reason: string;
+    };
+    /**
+     * Rule
+     * @description A combination the model refuses: when ``when`` matches, the parameters
+     *     in ``allow`` may only take the listed values (or range).
+     */
+    Rule: {
+      /** Allow */
+      allow: {
+        [key: string]:
+          | unknown[]
+          | {
+              [key: string]: number;
+            };
+      };
+      /** Reason */
+      reason: string;
+      /** When */
+      when: {
+        [key: string]: unknown;
+      };
+    };
+    /** RunEstimate */
+    RunEstimate: {
+      /** Controls */
+      controls: string[];
+      /** Cost Usd */
+      cost_usd: number;
+      /** Generations */
+      generations: number;
+      /** Model */
+      model: string;
+      /** Within Budget */
+      within_budget: boolean;
+    };
+    /** RunRequest */
+    RunRequest: {
+      /**
+       * Budget Usd
+       * @default 1
+       */
+      budget_usd?: number;
+      /** Controls */
+      controls?: string[] | null;
+      /** Model */
+      model: string;
+      /**
+       * Seed
+       * @default 7
+       */
+      seed?: number;
+    };
+    /** RunState */
+    RunState: {
+      /** Error */
+      error?: string | null;
+      /** Id */
+      id: string;
+      /** Model */
+      model: string;
+      /**
+       * Results
+       * @default {}
+       */
+      results?: {
+        [key: string]: components["schemas"]["Measurement"];
+      };
+      /**
+       * State
+       * @enum {string}
+       */
+      state: "running" | "done" | "failed";
+    };
+    /** Section */
+    Section: {
+      /**
+       * Controls
+       * @default []
+       */
+      controls?: string[];
+      /**
+       * Family
+       * @enum {string}
+       */
+      family: "subject" | "moves" | "camera" | "film" | "lighting" | "palette" | "elements" | "negative";
+      /**
+       * Included
+       * @default true
+       */
+      included?: boolean;
+      /** Note */
+      note?: string | null;
+      /** Text */
+      text: string;
+    };
     /** SessionCreate */
     SessionCreate: {
       /** Token */
       token: string;
+    };
+    /** ShotCreate */
+    ShotCreate: {
+      /**
+       * Count
+       * @default 4
+       */
+      count?: number;
+      /** Folder Id */
+      folder_id?: string | null;
+      /**
+       * Keyframe Model
+       * @default auto
+       */
+      keyframe_model?: string;
+      /** Keyframe Params */
+      keyframe_params?: {
+        [key: string]: unknown;
+      };
+      /** Project Id */
+      project_id?: string | null;
+      /**
+       * Prompt
+       * @default
+       */
+      prompt?: string;
+      /** Prompt Tokens */
+      prompt_tokens?:
+        | (
+            | components["schemas"]["TextToken"]
+            | components["schemas"]["ElementToken"]
+            | components["schemas"]["MoveToken"]
+            | components["schemas"]["SkillToken"]
+          )[]
+        | null;
+      /** Seed */
+      seed?: number | null;
+      spec?: components["schemas"]["ShotSpec"] | null;
+      /**
+       * Video Model
+       * @default auto
+       */
+      video_model?: string;
+      /** Video Params */
+      video_params?: {
+        [key: string]: unknown;
+      };
+    };
+    /** ShotEstimate */
+    ShotEstimate: {
+      clip: components["schemas"]["GenerationEstimate"] | null;
+      /** Cost Usd */
+      cost_usd: number | null;
+      /** Keyframe Model */
+      keyframe_model: string | null;
+      keyframes: components["schemas"]["GenerationEstimate"] | null;
+      /** Ok */
+      ok: boolean;
+      /** Problems */
+      problems: string[];
+      /** Seconds */
+      seconds: number | null;
+      /** Video Model */
+      video_model: string | null;
+    };
+    /** ShotOut */
+    ShotOut: {
+      /** Archived */
+      archived: boolean;
+      /** Checks */
+      checks: {
+        [key: string]: components["schemas"]["Continuity"];
+      };
+      /** Clips */
+      clips: components["schemas"]["GenerationOut"][];
+      /** Continues From */
+      continues_from: string | null;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** End Frame Id */
+      end_frame_id: string | null;
+      /** Folder Id */
+      folder_id: string | null;
+      /** Id */
+      id: string;
+      /** Keyframe Id */
+      keyframe_id: string | null;
+      /** Keyframe Model */
+      keyframe_model: string;
+      /** Keyframe Params */
+      keyframe_params: {
+        [key: string]: unknown;
+      };
+      /** Keyframes */
+      keyframes: components["schemas"]["GenerationOut"][];
+      /** Project Id */
+      project_id: string | null;
+      /** Prompt */
+      prompt: string;
+      /** Prompt Tokens */
+      prompt_tokens: (
+        | components["schemas"]["TextToken"]
+        | components["schemas"]["ElementToken"]
+        | components["schemas"]["MoveToken"]
+        | components["schemas"]["SkillToken"]
+      )[];
+      spec: components["schemas"]["ShotSpec"] | null;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "keyframes" | "choose" | "animating" | "done" | "failed";
+      /** Title */
+      title: string;
+      /**
+       * Updated At
+       * Format: date-time
+       */
+      updated_at: string;
+      /** Video Model */
+      video_model: string;
+      /** Video Params */
+      video_params: {
+        [key: string]: unknown;
+      };
+    };
+    /** ShotPatch */
+    ShotPatch: {
+      /** Archived */
+      archived?: boolean | null;
+      /** Title */
+      title?: string | null;
+    };
+    /**
+     * ShotSpec
+     * @description The cinema controls of one shot (M5.1). The prompt's tokens, its
+     *     elements and the model's own parameters (aspect, duration, audio) travel
+     *     beside it in the generation request.
+     */
+    ShotSpec: {
+      camera?: components["schemas"]["CameraSpec"];
+      film?: components["schemas"]["FilmSpec"];
+      lighting?: components["schemas"]["LightingSpec"] | null;
+      /** Moves */
+      moves?: string[];
+      palette?: components["schemas"]["PaletteSpec"] | null;
+    };
+    /** SkillToken */
+    SkillToken: {
+      /** Name */
+      name: string;
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: "skill";
     };
     /** StorageReport */
     StorageReport: {
@@ -1356,12 +3695,61 @@ export interface components {
       /** Version */
       version: string;
     };
+    /**
+     * Term
+     * @description One choice: what the picker shows and what it becomes in a prompt.
+     */
+    Term: {
+      /** Id */
+      id: string;
+      /** Label */
+      label: string;
+      /** Negative */
+      negative?: string | null;
+      /**
+       * Phrase
+       * @default
+       */
+      phrase?: string;
+      /**
+       * Profiles
+       * @default {}
+       */
+      profiles?: {
+        [key: string]: string;
+      };
+      rig?: components["schemas"]["Rig"] | null;
+      /**
+       * Tags
+       * @default
+       */
+      tags?: string;
+    };
+    /** TextToken */
+    TextToken: {
+      /** Text */
+      text: string;
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: "text";
+    };
     /** ToolStatus */
     ToolStatus: {
       /** Ffmpeg */
       ffmpeg: boolean;
       /** Ffprobe */
       ffprobe: boolean;
+    };
+    /** UsageSummary */
+    UsageSummary: {
+      /** Month */
+      month: string;
+      /** Providers */
+      providers: components["schemas"]["ProviderUsage"][];
+      /** Total Cost Usd */
+      total_cost_usd: number;
     };
     /** ValidationError */
     ValidationError: {
@@ -1375,6 +3763,64 @@ export interface components {
       msg: string;
       /** Error Type */
       type: string;
+    };
+    /**
+     * Variant
+     * @description A downloadable form of a local model (filled in by M3).
+     */
+    Variant: {
+      /** Accelerators */
+      accelerators: ("cuda" | "rocm" | "mps" | "vulkan" | "cpu")[];
+      /** Curated On */
+      curated_on?: string[];
+      /** Engines */
+      engines: ("comfyui" | "sdcpp" | "python")[];
+      /**
+       * Format
+       * @enum {string}
+       */
+      format: "fp32" | "bf16" | "fp16" | "fp8" | "gguf";
+      /** Id */
+      id: string;
+      /** Quant */
+      quant?: string | null;
+      /** Ram Min Gb */
+      ram_min_gb: number;
+      /** Size Gb */
+      size_gb: number;
+      /** Vram Min Gb */
+      vram_min_gb: number;
+      /** Vram Recommended Gb */
+      vram_recommended_gb?: number | null;
+    };
+    /** VocabOut */
+    VocabOut: {
+      /** Apertures */
+      apertures: string[];
+      /** Bodies */
+      bodies: components["schemas"]["Term"][];
+      /** Eras */
+      eras: components["schemas"]["Term"][];
+      /** Focal Lengths */
+      focal_lengths: number[];
+      /** Genres */
+      genres: components["schemas"]["Term"][];
+      /** Lenses */
+      lenses: components["schemas"]["Term"][];
+      /** Lighting */
+      lighting: components["schemas"]["Term"][];
+      /** Moves */
+      moves: components["schemas"]["Term"][];
+      /** Palettes */
+      palettes: components["schemas"]["PaletteTerm"][];
+      /** Previews */
+      previews?: {
+        [key: string]: {
+          [key: string]: components["schemas"]["Preview"];
+        };
+      };
+      /** Tempos */
+      tempos: components["schemas"]["Term"][];
     };
   };
   responses: never;
@@ -1420,6 +3866,46 @@ export interface operations {
         content: {
           "application/json": components["schemas"]["AssetPage"];
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  describe_assets: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["DescribeRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      202: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DescribeQueued"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Validation Error */
       422: {
@@ -1806,6 +4292,48 @@ export interface operations {
       };
     };
   };
+  clip_frame: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        asset_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["FrameRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AssetOut"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
   asset_location: {
     parameters: {
       query?: never;
@@ -1824,6 +4352,44 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["AssetLocation"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  name_suggestions: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        asset_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["NameSuggestions"];
         };
       };
       /** @description Not found */
@@ -2040,6 +4606,1275 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+    };
+  };
+  import_fal_models: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["FalImport"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ModelOut"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  search_fal_models: {
+    parameters: {
+      query?: {
+        q?: string;
+        category?: string | null;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["FalModelSummary"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  get_adherence: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AdherenceRow"][];
+        };
+      };
+    };
+  };
+  estimate_adherence: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["RunRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RunEstimate"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  start_adherence_run: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["RunRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      202: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RunState"];
+        };
+      };
+      /** @description Over the budget */
+      402: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  get_adherence_run: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        run_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RunState"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  grade_asset: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        asset_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["GradeRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      202: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GradeQueued"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  describe_lighting: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["Rig"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RigWords"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  extract_palette: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PaletteExtract"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ExtractedPalette"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  list_presets: {
+    parameters: {
+      query?: {
+        kind?: ("palette" | "lighting") | null;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PresetOut"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  create_preset: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PresetCreate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PresetOut"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  delete_preset: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        preset_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  get_preview: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        family: string;
+        name: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": unknown;
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  get_profiles: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Profile"][];
+        };
+      };
+    };
+  };
+  get_vocab: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["VocabOut"];
+        };
+      };
+    };
+  };
+  list_connections: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ConnectionOut"][];
+        };
+      };
+    };
+  };
+  get_connection: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        provider: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ConnectionOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  update_connection: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        provider: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ConnectionUpdate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ConnectionOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  remove_connection: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        provider: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  check_connection: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        provider: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ConnectionOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  list_elements: {
+    parameters: {
+      query?: {
+        project_id?: string | null;
+        include_global?: boolean;
+        category?: ("character" | "location" | "prop" | "auto") | null;
+        status?: ("draft" | "ready") | null;
+        folder_id?: string | null;
+        q?: string | null;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ElementOut"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  create_element: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ElementCreate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ElementOut"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Handle already taken */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  export_elements: {
+    parameters: {
+      query?: {
+        project_id?: string | null;
+        format?: "csv" | "zip";
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The elements as CSV, or a zip with their media */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/zip": unknown;
+          "text/csv": unknown;
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  list_element_folders: {
+    parameters: {
+      query?: {
+        project_id?: string | null;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ElementFolderOut"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  create_element_folder: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ElementFolderCreate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ElementFolderOut"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  delete_element_folder: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        folder_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  patch_element_folder: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        folder_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ElementFolderPatch"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  import_elements: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "multipart/form-data": components["schemas"]["Body_import_elements"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ImportResult"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Unreadable */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  list_element_recipes: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RecipeOut"][];
+        };
+      };
+    };
+  };
+  get_element: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        element_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ElementOut"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  delete_element: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        element_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  patch_element: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        element_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ElementPatch"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ElementOut"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Handle already taken */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  generate_for_element: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        element_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ElementGenerate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GenerationOut"][];
+        };
+      };
+      /** @description Over the monthly spending cap */
+      402: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  estimate_element_generation: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        element_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ElementGenerate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ElementGenerateEstimate"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  order_element_media: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        element_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["MediaOrder"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ElementOut"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  add_element_media: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        element_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ElementMediaChange"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ElementOut"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
       };
     };
   };
@@ -2326,6 +6161,72 @@ export interface operations {
       };
     };
   };
+  estimate_generation: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["GenerationCreate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GenerationEstimate"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  preview_generation_request: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["GenerationCreate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Resolved"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
   get_generation: {
     parameters: {
       query?: never;
@@ -2596,6 +6497,128 @@ export interface operations {
       };
     };
   };
+  get_llm_overview: {
+    parameters: {
+      query?: {
+        refresh?: boolean;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["LLMOverview"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  enhance: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["EnhanceRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["EnhanceResult"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  list_models: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ModelOut"][];
+        };
+      };
+    };
+  };
+  get_model: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        model_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ModelOut"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
   list_projects: {
     parameters: {
       query?: {
@@ -2742,6 +6765,47 @@ export interface operations {
       };
     };
   };
+  export_project: {
+    parameters: {
+      query?: {
+        /** @description Only this folder */
+        folder_id?: string | null;
+      };
+      header?: never;
+      path: {
+        project_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/zip": unknown;
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
   restore_project: {
     parameters: {
       query?: never;
@@ -2818,6 +6882,73 @@ export interface operations {
       };
     };
   };
+  parse_prompt: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PromptParse"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PromptParsed"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  route_model: {
+    parameters: {
+      query?: {
+        mode?: "image" | "video";
+        references?: number;
+        start_frame?: boolean;
+        end_frame?: boolean;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RouteResult"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
   get_settings: {
     parameters: {
       query?: never;
@@ -2859,6 +6990,319 @@ export interface operations {
         content: {
           "application/json": components["schemas"]["AppSettings"];
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  list_shots: {
+    parameters: {
+      query?: {
+        /** @description A project id, or 'none' */
+        project_id?: string | null;
+        archived?: boolean;
+        limit?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ShotOut"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  create_shot: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ShotCreate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ShotOut"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  estimate_shot: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ShotCreate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ShotEstimate"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  get_shot: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        shot_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ShotOut"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  patch_shot: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        shot_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ShotPatch"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ShotOut"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  animate_shot: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        shot_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["Animate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ShotOut"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  extend_shot: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        shot_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["Extend"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ShotOut"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  more_keyframes: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        shot_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["MoreKeyframes"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ShotOut"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Validation Error */
       422: {
@@ -2927,6 +7371,38 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["EmptyTrashResult"];
+        };
+      };
+    };
+  };
+  get_usage: {
+    parameters: {
+      query?: {
+        /** @description YYYY-MM (UTC); this month when omitted */
+        month?: string | null;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UsageSummary"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
         };
       };
     };

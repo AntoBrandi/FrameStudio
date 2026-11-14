@@ -1,0 +1,41 @@
+{
+ "synthetic": true,
+ "note": "Written from the provider's documented wire format; replace with a recording (LIVE_API=1 FRAMESTUDIO_RECORD=1).",
+ "model": "gpt-5",
+ "exchanges": [
+  {
+   "method": "GET",
+   "path": "/v1/models",
+   "status": 200,
+   "body": {
+    "object": "list",
+    "data": [
+     {
+      "id": "gpt-5",
+      "object": "model",
+      "created": 1754000000,
+      "owned_by": "system"
+     },
+     {
+      "id": "gpt-5-mini",
+      "object": "model",
+      "created": 1754000000,
+      "owned_by": "system"
+     },
+     {
+      "id": "text-embedding-3-small",
+      "object": "model",
+      "created": 1705000000,
+      "owned_by": "system"
+     },
+     {
+      "id": "gpt-realtime",
+      "object": "model",
+      "created": 1756000000,
+      "owned_by": "system"
+     }
+    ]
+   }
+  }
+ ]
+}

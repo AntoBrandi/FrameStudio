@@ -1,0 +1,50 @@
+# Google's Gemini 3 Pro Image ("Nano Banana Pro") through the Gemini API.
+# provider_model names the family; the newest model the account offers in it
+# is picked at run time (framestudio.providers.gemini_image).
+id: nano-banana-pro
+name: Nano Banana Pro
+description: Google's best image model. Strong text rendering and edits from instructions; up to 14 reference images.
+provider: google
+runtime: api
+provider_model: gemini-3-pro-image
+modes: [image]
+capabilities: [text_to_image, image_edit, multi_reference]
+params:
+  aspect:
+    type: enum
+    label: Aspect ratio
+    values: ["1:1", "16:9", "9:16", "4:3", "3:4", "3:2", "2:3", "5:4", "4:5", "21:9"]
+    default: "1:1"
+    control: pills
+  resolution:
+    type: enum
+    label: Resolution
+    values: ["1K", "2K", "4K"]
+    default: "1K"
+    control: pills
+limits:
+  max_references: 14
+  reference_kinds: [image]
+  max_batch: 4
+  max_prompt_chars: 8000
+pricing:
+  unit: image
+  usd: 0.134
+  by: resolution
+  table: { "1K": 0.134, "2K": 0.134, "4K": 0.24 }
+  source_url: https://ai.google.dev/gemini-api/docs/pricing
+  checked_at: "2026-11-14"
+license:
+  kind: hosted_service
+  name: Gemini API Additional Terms of Service
+  commercial_use: "yes"
+  credit: Google
+  source_url: https://ai.google.dev/gemini-api/terms
+  notes: Outputs carry a SynthID watermark. Check the terms for your use.
+tags: [google, nano-banana]
+# Auto prefers lower ranks (test doubles last, so Auto always works offline).
+auto_rank: 10
+prompt_profile: gemini
+fixtures:
+  - mode: image
+    params: { aspect: "16:9", resolution: "1K" }

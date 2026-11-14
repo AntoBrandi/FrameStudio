@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { defaultDataDir, isAppNavigation, isExternalLink, isFrameStudioHealth, resolveShellConfig } from "./config";
+import {
+  defaultDataDir,
+  isAppNavigation,
+  isExternalLink,
+  isFrameStudioHealth,
+  isLocalBackend,
+  isRevealable,
+  resolveShellConfig,
+} from "./config";
 
 describe("data directory (mirrors platformdirs in the backend)", () => {
   it("follows XDG on Linux", () => {
@@ -75,5 +83,25 @@ describe("navigation policy", () => {
     expect(isFrameStudioHealth({ status: "ok", app: "framestudio", version: "0.1.0", api_version: 1 })).toBe(true);
     expect(isFrameStudioHealth({ status: "ok", app: "other", api_version: 1 })).toBe(false);
     expect(isFrameStudioHealth(null)).toBe(false);
+  });
+});
+
+describe("reveal in folder", () => {
+  const base = { platform: "linux" as const, home: "/home/u", repoRoot: "/repo" };
+
+  it("only reveals files inside the media folder", () => {
+    expect(isRevealable("/data/media/ab/cd/x.png", "/data", "linux")).toBe(true);
+    expect(isRevealable("/data/media/../auth_token", "/data", "linux")).toBe(false);
+    expect(isRevealable("/data/auth_token", "/data", "linux")).toBe(false);
+    expect(isRevealable("/data/media", "/data", "linux")).toBe(false);
+    expect(isRevealable("relative/x.png", "/data", "linux")).toBe(false);
+    expect(isRevealable(42, "/data", "linux")).toBe(false);
+    expect(isRevealable("C:\\data\\media\\x.png", "C:\\data", "win32")).toBe(true);
+  });
+
+  it("knows when the backend is on this machine", () => {
+    expect(isLocalBackend(resolveShellConfig({}, base))).toBe(true);
+    expect(isLocalBackend(resolveShellConfig({ FRAMESTUDIO_BACKEND_URL: "http://127.0.0.1:9" }, base))).toBe(true);
+    expect(isLocalBackend(resolveShellConfig({ FRAMESTUDIO_BACKEND_URL: "http://gpu-box:8790" }, base))).toBe(false);
   });
 });

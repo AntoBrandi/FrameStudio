@@ -6,6 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { _electron, type ElectronApplication, type Page, test as base } from "@playwright/test";
 import { electronBinary, electronSandboxArgs } from "../scripts/lib.mjs";
+import { deflateSync } from "node:zlib";
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -42,6 +43,10 @@ export async function waitForHealth(url: string, timeoutMs = 60_000, alive = () 
   throw new Error(`backend at ${url} did not start`);
 }
 
+/** Test backends keep keys in their own data folder (never the OS keyring)
+ * and answer provider key checks with the built-in fake (no network). */
+const TEST_ENV = { FRAMESTUDIO_SECRETS: "file", FRAMESTUDIO_FAKE_PROVIDERS: "1" };
+
 export async function startBackend(
   extraEnv: Record<string, string> = {},
 ): Promise<Backend & { child: ChildProcess; stop: () => Promise<void> }> {
@@ -65,7 +70,10 @@ export async function startBackend(
       "--log-level",
       "warning",
     ],
-    { env: { ...process.env, FRAMESTUDIO_TOKEN: token, ...extraEnv }, stdio: ["pipe", "inherit", "inherit"] },
+    {
+      env: { ...process.env, ...TEST_ENV, FRAMESTUDIO_TOKEN: token, ...extraEnv },
+      stdio: ["pipe", "inherit", "inherit"],
+    },
   );
   await waitForHealth(url, 90_000, () => child.exitCode === null);
   const api = (route: string, init: RequestInit = {}) =>
@@ -90,7 +98,7 @@ export async function launchShell(env: Record<string, string>): Promise<Electron
   return _electron.launch({
     executablePath: binary,
     args: [...electronSandboxArgs(binary), path.join(ROOT, "desktop")],
-    env: { ...(process.env as Record<string, string>), FRAMESTUDIO_SHELL_HIDDEN: "1", ...env },
+    env: { ...(process.env as Record<string, string>), ...TEST_ENV, FRAMESTUDIO_SHELL_HIDDEN: "1", ...env },
   });
 }
 
@@ -126,3 +134,38 @@ export const test = base.extend<{ shell: ElectronApplication; window: Page }, { 
 });
 
 export { expect } from "@playwright/test";
+
+/** A tiny solid-colour PNG, built by hand so the test needs no image library. */
+export function png(r: number, g: number, b: number): Buffer {
+  const size = 32;
+  const row = Buffer.concat([Buffer.from([0]), Buffer.alloc(size * 3, Buffer.from([r, g, b]))]);
+  const raw = Buffer.concat(Array.from({ length: size }, () => row));
+  const crcTable = Array.from({ length: 256 }, (_, n) => {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    return c >>> 0;
+  });
+  const crc = (data: Buffer) => {
+    let c = 0xffffffff;
+    for (const byte of data) c = crcTable[(c ^ byte) & 0xff]! ^ (c >>> 8);
+    return (c ^ 0xffffffff) >>> 0;
+  };
+  const chunk = (type: string, data: Buffer) => {
+    const length = Buffer.alloc(4);
+    length.writeUInt32BE(data.length);
+    const body = Buffer.concat([Buffer.from(type), data]);
+    const sum = Buffer.alloc(4);
+    sum.writeUInt32BE(crc(body));
+    return Buffer.concat([length, body, sum]);
+  };
+  const header = Buffer.alloc(13);
+  header.writeUInt32BE(size, 0);
+  header.writeUInt32BE(size, 4);
+  header.set([8, 2, 0, 0, 0], 8);
+  return Buffer.concat([
+    Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
+    chunk("IHDR", header),
+    chunk("IDAT", deflateSync(raw)),
+    chunk("IEND", Buffer.alloc(0)),
+  ]);
+}

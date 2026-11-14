@@ -58,7 +58,7 @@ test("M0.5: generate, the card appears, open the viewer", async ({ window }) => 
     .filter({ has: window.getByRole("img", { name: "a lighthouse at dusk, e2e" }) });
   await expect(card).toHaveAttribute("data-status", "succeeded", { timeout: 15_000 });
   await card.getByTestId("open-viewer").click();
-  const viewer = window.getByTestId("viewer");
+  const viewer = window.getByTestId("asset-viewer");
   await expect(viewer).toBeVisible();
   await expect(viewer.getByRole("img")).toBeVisible();
   await expect(viewer.getByText("a lighthouse at dusk, e2e").first()).toBeVisible();

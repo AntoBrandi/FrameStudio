@@ -1,0 +1,33 @@
+{
+  "model": "mock",
+  "strategy": "description",
+  "prompt_sent": "Maya Ortiz walks along Old Pier holding Brass Lantern at dusk, @ghost watching from the dunes\n\nMaya Ortiz: Woman in her thirties, short dark hair, yellow raincoat.\nOld Pier: Weathered wooden pier, fog, sodium lamps.",
+  "references": [],
+  "elements": [
+    {
+      "handle": "maya",
+      "name": "Maya Ortiz",
+      "version": 1,
+      "images": 0,
+      "described": true
+    },
+    {
+      "handle": "pier",
+      "name": "Old Pier",
+      "version": 1,
+      "images": 0,
+      "described": true
+    },
+    {
+      "handle": "lantern",
+      "name": "Brass Lantern",
+      "version": 1,
+      "images": 0,
+      "described": false
+    }
+  ],
+  "warnings": [
+    "@ghost is not an element here; it is sent as plain text."
+  ],
+  "request": null
+}

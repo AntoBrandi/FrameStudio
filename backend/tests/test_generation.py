@@ -64,7 +64,7 @@ def test_image_generation_produces_an_asset_with_lineage(authed: TestClient) -> 
     assert thumb.headers["content-type"] == "image/webp"
     job = authed.get(f"/api/jobs/{done['job_id']}").json()
     assert job["state"] == "succeeded"
-    assert job["result"] == {"asset_id": asset["id"]}
+    assert job["result"] == {"asset_id": asset["id"], "asset_ids": [asset["id"]]}
 
 
 def test_same_seed_and_prompt_dedupes_the_file(authed: TestClient) -> None:

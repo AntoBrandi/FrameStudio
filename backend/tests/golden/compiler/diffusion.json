@@ -1,0 +1,203 @@
+{
+  "none": {
+    "prompt": "Maya Ortiz (image 1) pushes through the door of the diner, rain streaking the glass\n\nMaya Ortiz: Woman in her thirties, short dark hair, yellow raincoat.",
+    "negative_prompt": null,
+    "native": {},
+    "sections": [
+      {
+        "family": "subject",
+        "included": true
+      },
+      {
+        "family": "elements",
+        "included": true
+      }
+    ],
+    "warnings": []
+  },
+  "film": {
+    "prompt": "Maya Ortiz (image 1) pushes through the door of the diner, rain streaking the glass, film noir, low-key lighting, high contrast, deep shadows, 1970s film, film grain, muted earthy colours\n\nMaya Ortiz: Woman in her thirties, short dark hair, yellow raincoat.",
+    "negative_prompt": null,
+    "native": {},
+    "sections": [
+      {
+        "family": "subject",
+        "included": true
+      },
+      {
+        "family": "film",
+        "included": true
+      },
+      {
+        "family": "film",
+        "included": false,
+        "note": "Applies to video only."
+      },
+      {
+        "family": "elements",
+        "included": true
+      }
+    ],
+    "warnings": [
+      "Camera moves and pace apply to video; they are left out of a still."
+    ]
+  },
+  "camera": {
+    "prompt": "Maya Ortiz (image 1) pushes through the door of the diner, rain streaking the glass, 35mm film, anamorphic lens, oval bokeh, horizontal lens flare, 50mm, f/1.4, very shallow depth of field\n\nMaya Ortiz: Woman in her thirties, short dark hair, yellow raincoat.",
+    "negative_prompt": null,
+    "native": {},
+    "sections": [
+      {
+        "family": "subject",
+        "included": true
+      },
+      {
+        "family": "camera",
+        "included": true
+      },
+      {
+        "family": "elements",
+        "included": true
+      }
+    ],
+    "warnings": []
+  },
+  "moves": {
+    "prompt": "Maya Ortiz (image 1) pushes through the door of the diner, rain streaking the glass\n\nMaya Ortiz: Woman in her thirties, short dark hair, yellow raincoat.",
+    "negative_prompt": null,
+    "native": {},
+    "sections": [
+      {
+        "family": "subject",
+        "included": true
+      },
+      {
+        "family": "moves",
+        "included": false,
+        "note": "Applies to video only."
+      },
+      {
+        "family": "elements",
+        "included": true
+      }
+    ],
+    "warnings": [
+      "Camera moves and pace apply to video; they are left out of a still."
+    ]
+  },
+  "lighting": {
+    "prompt": "Maya Ortiz (image 1) pushes through the door of the diner, rain streaking the glass, contre-jour, rim light, lens flare\n\nMaya Ortiz: Woman in her thirties, short dark hair, yellow raincoat.",
+    "negative_prompt": null,
+    "native": {},
+    "sections": [
+      {
+        "family": "subject",
+        "included": true
+      },
+      {
+        "family": "lighting",
+        "included": true
+      },
+      {
+        "family": "elements",
+        "included": true
+      }
+    ],
+    "warnings": []
+  },
+  "palette": {
+    "prompt": "Maya Ortiz (image 1) pushes through the door of the diner, rain streaking the glass, deep teal and blue night tones with warm amber accents colour palette\n\nMaya Ortiz: Woman in her thirties, short dark hair, yellow raincoat.",
+    "negative_prompt": null,
+    "native": {},
+    "sections": [
+      {
+        "family": "subject",
+        "included": true
+      },
+      {
+        "family": "palette",
+        "included": true
+      },
+      {
+        "family": "elements",
+        "included": true
+      }
+    ],
+    "warnings": []
+  },
+  "negatives": {
+    "prompt": "Maya Ortiz (image 1) pushes through the door of the diner, rain streaking the glass, 1920s silent film, black and white, vignette, black and white, a full range of greys colour palette\n\nMaya Ortiz: Woman in her thirties, short dark hair, yellow raincoat.",
+    "negative_prompt": "colour",
+    "native": {},
+    "sections": [
+      {
+        "family": "subject",
+        "included": true
+      },
+      {
+        "family": "film",
+        "included": true
+      },
+      {
+        "family": "palette",
+        "included": true
+      },
+      {
+        "family": "elements",
+        "included": true
+      },
+      {
+        "family": "negative",
+        "included": false,
+        "note": "Sent as the negative prompt."
+      }
+    ],
+    "warnings": []
+  },
+  "demo": {
+    "prompt": "Maya Ortiz (image 1) pushes through the door of the diner, rain streaking the glass, 35mm film, anamorphic lens, oval bokeh, horizontal lens flare, f/1.4, very shallow depth of field, film noir, low-key lighting, high contrast, deep shadows, 1970s film, film grain, muted earthy colours, contre-jour, rim light, lens flare, deep teal and blue night tones with warm amber accents colour palette",
+    "negative_prompt": null,
+    "native": {},
+    "sections": [
+      {
+        "family": "subject",
+        "included": true
+      },
+      {
+        "family": "moves",
+        "included": false,
+        "note": "Applies to video only."
+      },
+      {
+        "family": "camera",
+        "included": true
+      },
+      {
+        "family": "film",
+        "included": true
+      },
+      {
+        "family": "film",
+        "included": false,
+        "note": "Applies to video only."
+      },
+      {
+        "family": "lighting",
+        "included": true
+      },
+      {
+        "family": "palette",
+        "included": true
+      },
+      {
+        "family": "elements",
+        "included": false,
+        "note": "Left out to fit Test diffusion's 400-character prompt."
+      }
+    ],
+    "warnings": [
+      "Camera moves and pace apply to video; they are left out of a still.",
+      "The description of @maya was left out to fit Test diffusion's 400-character prompt."
+    ]
+  }
+}

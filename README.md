@@ -5,9 +5,28 @@ A local-first studio for AI images and video: projects, a media library, element
 engines; hosted models (OpenAI, Claude, Gemini, Nano Banana, Seedance) run with your own keys.
 Nothing leaves the machine unless you connect a provider or start a download.
 
-**Status:** milestone M0 (skeleton) of the [build plan](https://claude.ai/artifact/1KprF7PcfuMVMvEaSicamN).
-The app runs end to end with a mock engine: type a prompt and a placeholder image or clip lands in
-the feed. Real models arrive with M2 (hosted) and M3 (local).
+**Status:** milestones M0 (skeleton) and M1 (library) of the
+[build plan](https://claude.ai/artifact/1KprF7PcfuMVMvEaSicamN) are done. Generation runs on a mock
+engine; real models arrive with M2 (hosted) and M3 (local). What works today:
+
+- **Library:** import by button, drag and drop or paste; files are recognised by content (images,
+  video, audio), deduplicated, and get WebP thumbnails, video posters, hover previews and audio
+  waveforms. Damaged and unsupported files are refused with a reason.
+- **Projects and folders:** projects with a cover, a brief and their own folders; coloured global
+  folders; move assets in bulk or by dragging them onto a folder; trash with restore.
+- **Studio** (M5.6): the Studio home has a large composer (Generate there starts a project named
+  after the prompt, or adds to the one you pick) above your projects. A project opens as a
+  workspace: its pages (assets, brief, settings, elements), tools (Storyboard, Canvas, Director),
+  folders and trash on the left; the asset grid with takes in progress and a floating composer
+  (Image and Video in one, with the cinema chips) in the middle; the Director's panel on the right.
+  Export downloads the project as a zip: a folder named by its slug, a subfolder per folder, and
+  the brief.
+- **Gallery:** masonry or square grid, card size, split by date, filters (type, model, dates, liked,
+  downloaded), range selection; virtualized, so 10,000 assets scroll smoothly.
+- **Search:** full text over prompts, file names, captions and notes (accent-insensitive, works for
+  Chinese, Japanese and Korean), with tokens such as `type:video`, `is:liked`, `after:2026-11-01`.
+- **Viewer:** zoom and pan, frame stepping, filmstrip, notes, like, download, copy, move, reveal in
+  folder (desktop), deep links.
 
 ## Quick start
 
@@ -54,7 +73,58 @@ scripts/   dev, start and setup commands (plain Node, any OS)
   instead of being submitted twice; local jobs that were cut off become "interrupted".
 - **Events** stream to the UI over Server-Sent Events, with replay after reconnects.
 - **Media** is content-addressed (`media/ab/cd/<sha256>.<ext>`) and served with range requests.
-- **Test doubles ship with the product** (D8): the mock engine, fake local and remote jobs.
+- **Hosted providers** (OpenAI, Anthropic, Google, BytePlus) are connected in Settings ›
+  Connections with your own keys. A key is checked with the provider before it is saved, then
+  kept by the backend only: in the OS keyring, or in `secrets.enc` (encrypted, tied to this
+  machine) where there is none. `FRAMESTUDIO_SECRETS=file` forces the file. Each provider can
+  reach only its own hosts, only while its connection is on, and a monthly cap per provider stops
+  hosted requests once the estimated spend reaches it.
+- **Language models** (Claude, OpenAI, Gemini) help with prompts: Enhance rewrites a rough
+  prompt and shows the diff, with one-click undo. Describe image adds captions and tags so the
+  library can be searched by what pictures show; it sends a downscaled copy of each picture to the
+  model, so it is off until you turn it on per project (or for the library in Settings).
+- **Hosted image and video**: Nano Banana (Google) for stills and edits with reference images,
+  Seedance (BytePlus) for clips with sound from text, a start frame, start and end frames, or
+  reference images. Paid tasks show their estimated cost before Generate and count against the
+  monthly cap. fal.ai adds a second route: search its catalog in Settings › Connections and add a
+  model; its settings and price are read from fal. Auto picks the best available model for what
+  you give it, and the viewer hands results on (Recreate, Use as reference, Turn to video).
+- **Elements** (M4, under way): characters, locations and props with a handle (`@maya-ortiz`),
+  a description, custom properties and pictures or clips from the library (the first is the
+  primary), global or per project, in folders, with Draft and Ready status. Export them as CSV or
+  as a zip with their media, and import that into another library or project. In the prompt box,
+  typing `@` suggests elements with their pictures and puts them in as chips; pasted prompts get
+  chips too, and handles that name no element are flagged. Each model gets elements in the form it
+  can use: their pictures as reference images (Nano Banana, Seedance), one input picture
+  (image-to-image models), or their names and descriptions in words; Preview in the composer shows
+  exactly what will be sent. One picker adds references from recent work, uploads, generations,
+  liked pictures or elements (or a new element made on the spot), counting against the model's
+  real limit.
+  From one photo, an element can generate its own character sheet, location set, prop turnaround or
+  turntable clip; the results are added to it as they finish.
+- **Cinema controls** (M5, under way): a shot description (film genre, era and pace; camera body,
+  lens, focal length and aperture; ordered camera moves, also typed as `#dolly-in`; palette;
+  lighting) is compiled into each model family's own prompt: plain sentences for Nano Banana,
+  camera movement first for Seedance, tags and a negative prompt for diffusion models. Preview
+  shows the result by section, and Settings shows which controls each model actually follows,
+  measured with fixed-seed A/B pairs (hosted models are measured with your keys, within a budget).
+  Film and Camera chips above the prompt open the pickers: carousels for genre, era and pace,
+  dials for camera body, lens, focal length and aperture, all usable from the keyboard.
+  Camera moves (about thirty, from dolly in to bullet time) go into the prompt as ordered chips,
+  from the Moves picker or by typing `#`, and are worded per model (Seedance gets its own camera
+  verbs).
+  Palettes: presets, saved palettes, or a new one made from any picture (its main colours, worded
+  for the prompt); a palette can also grade a picture or clip, as a copy, at a chosen strength.
+  Lighting: presets (silhouette, practicals, window, …) or your own rig of up to four lights placed
+  on a 3D sphere around a lit head (direction, height, colour, brightness, softness, plus ambient
+  fill). The rig is turned into lighting words for the prompt and can be saved as a preset.
+  Keyframe first: in Video mode, Generate can make keyframe stills from the prompt and its cinema
+  settings (at the clip's aspect ratio); choose one (and an end frame, where the model takes one)
+  and Animate makes the clip from it with the same settings. Each clip is checked to open on its
+  keyframe and close on its end frame; a finished clip can be extended from its last frame.
+- **Test doubles ship with the product** (D8): the mock engine, a hosted "Mock cloud" model,
+  fake local and remote jobs, a scripted fake LLM, and offline key checks
+  (`FRAMESTUDIO_FAKE_PROVIDERS=1`, where keys starting `fs-test-ok` pass).
 
 ## Development
 

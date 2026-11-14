@@ -1,0 +1,41 @@
+{
+ "synthetic": true,
+ "note": "Written from the provider's documented wire format; replace with a recording (LIVE_API=1 FRAMESTUDIO_RECORD=1).",
+ "model": "gemini-3-pro",
+ "exchanges": [
+  {
+   "method": "GET",
+   "path": "/v1beta/models",
+   "status": 200,
+   "body": {
+    "models": [
+     {
+      "name": "models/gemini-3-pro",
+      "displayName": "Gemini 3 Pro",
+      "inputTokenLimit": 1048576,
+      "outputTokenLimit": 65536,
+      "supportedGenerationMethods": [
+       "generateContent",
+       "countTokens"
+      ],
+      "thinking": true
+     },
+     {
+      "name": "models/gemini-3-pro-image",
+      "displayName": "Nano Banana Pro",
+      "supportedGenerationMethods": [
+       "generateContent"
+      ]
+     },
+     {
+      "name": "models/text-embedding-004",
+      "displayName": "Text Embedding",
+      "supportedGenerationMethods": [
+       "embedContent"
+      ]
+     }
+    ]
+   }
+  }
+ ]
+}

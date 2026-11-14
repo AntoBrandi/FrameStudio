@@ -14,9 +14,16 @@ from framestudio.security import AccessPolicy
 from framestudio.settings import SettingsStore
 
 if TYPE_CHECKING:
+    from framestudio.catalog import Catalog
+    from framestudio.connections.service import Connections
     from framestudio.jobs.queue import JobQueue
+    from framestudio.llm.base import LLMProvider
+    from framestudio.llm.registry import LLMRegistry
     from framestudio.media.store import MediaStore
+    from framestudio.net import OutboundPolicy
     from framestudio.providers.base import GenerationProvider
+    from framestudio.usage import UsageLedger
+    from framestudio.vault import SecretVault
 
 
 @dataclass
@@ -30,7 +37,14 @@ class Services:
     bind_host: str
     media: MediaStore
     jobs: JobQueue = field(init=False)
+    catalog: Catalog = field(init=False)
+    vault: SecretVault = field(init=False)
+    usage: UsageLedger = field(init=False)
+    connections: Connections = field(init=False)
+    outbound: OutboundPolicy = field(init=False)
+    llm_registry: LLMRegistry = field(init=False)
     providers: dict[str, GenerationProvider] = field(default_factory=dict)
+    llms: dict[str, LLMProvider] = field(default_factory=dict)
     started_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     #: Remote access as it was when this process started (changes need a restart).
     remote_access_at_start: bool = False

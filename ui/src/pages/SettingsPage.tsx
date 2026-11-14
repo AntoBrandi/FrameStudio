@@ -8,6 +8,10 @@ import { useTheme } from "@/app/theme";
 import { Button } from "@/components/ui/button";
 import { Field, inputClass } from "@/components/ui/misc";
 import { useAuthStore } from "@/features/auth/store";
+import { ConnectionsSection, UsageSection } from "@/features/connections/ConnectionsSection";
+import { AdherenceSection } from "@/features/cinema/AdherenceSection";
+import { LanguageModelsSection } from "@/features/llm/LanguageModelsSection";
+import { StorageSection } from "@/features/library/StorageSection";
 import { LANGUAGES } from "@/i18n";
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
@@ -98,6 +102,18 @@ export function SettingsPage() {
           }}
         />
       </Section>
+      <Section title={t("settings.connections")}>
+        <ConnectionsSection />
+      </Section>
+      <Section title={t("settings.languageModels")}>
+        <LanguageModelsSection />
+      </Section>
+      <Section title={t("settings.cinema")}>
+        <AdherenceSection />
+      </Section>
+      <Section title={t("settings.usage")}>
+        <UsageSection />
+      </Section>
       <Section title={t("settings.server")}>
         <Toggle
           checked={settings.remote_access}
@@ -156,6 +172,9 @@ export function SettingsPage() {
             {t("settings.fakeRemote")}
           </Button>
         </div>
+      </Section>
+      <Section title={t("settings.storage")}>
+        <StorageSection />
       </Section>
       {info ? (
         <Section title={t("settings.about")}>

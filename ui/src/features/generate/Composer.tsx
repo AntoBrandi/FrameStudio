@@ -1,129 +1,489 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { Cpu, Minus, Plus, Sparkles } from "lucide-react";
-import { type FormEvent, type KeyboardEvent, type ReactNode, useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { AtSign, Minus, Plus, SlidersHorizontal, Sparkles } from "lucide-react";
+import { type FormEvent, type ReactNode, useCallback, useDeferredValue, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { $api, errorMessage, type GenerationOut } from "@/api/client";
-import { GENERATIONS_KEY, upsertById } from "@/api/events";
+import { $api, errorMessage, type GenerationOut, type Schemas } from "@/api/client";
+import { insertGenerations, refresh, SHOTS_KEY } from "@/api/events";
+import { KeyframeFirst } from "@/features/shots/KeyframeFirst";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/misc";
 import { cn } from "@/lib/utils";
+import { type Enhancement, EnhanceButton, EnhancePanel } from "./Enhance";
+import { type Frames, FrameSlots } from "./FrameSlots";
+import { ModelPicker } from "./ModelPicker";
+import { ParamControls, SeedField } from "./ParamControls";
+import { type Mode, type ModelOut, normalize, type Params, paramsFor } from "./params";
+import { PromptEditor } from "./PromptEditor";
+import { RequestPreview } from "./RequestPreview";
+import { addMove, clearMoves, movesIn, removeMove, swapMoves } from "@/features/cinema/moves";
+import { useVocab } from "@/features/cinema/shot";
+import { ShotChips } from "@/features/cinema/ShotPickers";
+import { ReferencePicker } from "./ReferencePicker";
+import { type Reference, ReferenceTray } from "./ReferenceTray";
+import { AUTO, NO_ATTACHMENTS, paramsKey, useComposerStore } from "./store";
+import {
+  mayHoldTokens,
+  mergeTokens,
+  parsePrompt,
+  renderTokens,
+  sameTokens,
+  textToken,
+  type Token,
+  trimTokens,
+} from "./tokens";
 
-export type Mode = "image" | "video";
+export type { Mode } from "./params";
 
-const ASPECTS: Record<Mode, string[]> = {
-  image: ["1:1", "16:9", "9:16", "4:3", "3:4"],
-  video: ["16:9", "9:16", "1:1", "21:9"],
-};
-const DURATIONS = [3, 5, 8];
+/** The default model for a mode: the first local one that can run, else the
+ * first that can run at all. */
+function fallbackModel(models: ModelOut[], mode: Mode): ModelOut | undefined {
+  const offered = models.filter((m) => m.modes.includes(mode) && m.available);
+  return offered.find((m) => m.runtime === "local") ?? offered[0];
+}
 
-function Pill({
-  active,
-  onClick,
-  children,
-  label,
-}: {
-  active?: boolean;
-  onClick?: () => void;
-  children: ReactNode;
-  label?: string;
-}) {
+/** Image or Video: links to the two pages, or (in the Studio, M5.6) a
+ * switch in place when the composer is given `onMode`. */
+function ModeToggle({ mode, onMode }: { mode: Mode; onMode?: (mode: Mode) => void }) {
+  const { t } = useTranslation();
+  const pill = (value: Mode) =>
+    cn(
+      "rounded-full px-2.5 py-0.5 text-xs",
+      value === mode ? "bg-raised font-medium text-ink" : "text-muted hover:text-ink",
+    );
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      aria-label={label}
-      className={cn(
-        "h-7 rounded-full border px-2.5 font-mono text-xs transition-colors",
-        active ? "border-ink/60 bg-raised text-ink" : "border-line text-muted hover:text-ink",
+    <div role="group" aria-label={t("composer.mode")} className="flex rounded-full border border-line p-0.5">
+      {(["image", "video"] as const).map((value) =>
+        onMode ? (
+          <button
+            key={value}
+            type="button"
+            aria-pressed={value === mode}
+            onClick={() => onMode(value)}
+            className={pill(value)}
+            data-testid={`composer-mode-${value}`}
+          >
+            {t(`composer.${value}`)}
+          </button>
+        ) : (
+          <Link
+            key={value}
+            to={value === "image" ? "/image" : "/video"}
+            aria-current={value === mode ? "page" : undefined}
+            className={pill(value)}
+          >
+            {t(`composer.${value}`)}
+          </Link>
+        ),
       )}
-    >
-      {children}
-    </button>
+    </div>
   );
 }
 
-/** Floating composer docked at the bottom of a generation page. The model's
- * parameter schema drives these controls from M2.5; for now it is the mock. */
-export function Composer({ mode }: { mode: Mode }) {
+type EstimateLike = Pick<Schemas["GenerationEstimate"], "ok" | "cost_usd" | "seconds">;
+
+function Estimate({ estimate, pending }: { estimate: EstimateLike | undefined; pending: boolean }) {
+  const { t } = useTranslation();
+  if (!estimate || !estimate.ok) return null;
+  const parts = [];
+  if (estimate.cost_usd != null) parts.push(t("composer.cost", { cost: estimate.cost_usd.toFixed(2) }));
+  if (estimate.seconds != null) parts.push(t("composer.seconds", { seconds: +estimate.seconds.toFixed(1) }));
+  return (
+    <span
+      className={cn(
+        "font-mono text-[11px] font-normal normal-case tracking-normal opacity-80",
+        pending && "opacity-50",
+      )}
+      data-testid="estimate"
+    >
+      {parts.join(" · ")}
+    </span>
+  );
+}
+
+/** Floating composer docked at the bottom of the Image and Video pages
+ * (plan step M2.5). Every control comes from the chosen model's parameter
+ * schema; combinations the model refuses cannot be picked, and Generate
+ * shows what it will cost and how long it should take. */
+const NO_TOKENS: Token[] = [];
+
+/** Whether a prompt names anything the backend should check. */
+const hasTokens = (tokens: Token[]) => tokens.some((token) => token.type !== "text" || mayHoldTokens(token.text));
+
+export interface ComposerProps {
+  mode: Mode;
+  /** Where results land; absent for the global library. */
+  projectId?: string;
+  /** A folder (of that project) the results go into. */
+  folderId?: string;
+  /** Switch modes in place instead of moving between the Image and Video pages. */
+  onMode?: (mode: Mode) => void;
+  /** Runs before a generation is sent and may give the project it goes to
+   * (the Studio home makes one); null cancels. */
+  prepare?: () => Promise<{ projectId?: string } | null>;
+  /** After the generations were created. */
+  onCreated?: (generations: GenerationOut[], projectId: string | undefined) => void;
+  /** Extra controls at the start of the bottom row. */
+  leading?: ReactNode;
+}
+
+export function Composer({ mode, projectId, folderId, onMode, prepare, onCreated, leading }: ComposerProps) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const { data: settings } = $api.useQuery("get", "/api/settings");
+  const { data: models = [] } = $api.useQuery("get", "/api/models");
   const create = $api.useMutation("post", "/api/generations");
-  const [prompt, setPrompt] = useState("");
-  const [aspect, setAspect] = useState(ASPECTS[mode][0]!);
-  const [batch, setBatch] = useState(1);
-  const [duration, setDuration] = useState(3);
-  const [audio, setAudio] = useState(true);
+  const store = useComposerStore();
+  const draft = store.drafts[mode] ?? NO_TOKENS;
+  const shot = store.shots[mode];
+  const prompt = useMemo(() => renderTokens(draft), [draft]);
+  const [enhancement, setEnhancement] = useState<Enhancement | null>(null);
+  // The tokens before Enhance rewrote them, for Undo.
+  const beforeEnhance = useRef<Token[]>(NO_TOKENS);
+  const setDraft = store.setDraft;
 
-  function submit(event?: FormEvent) {
-    event?.preventDefault();
-    const params: Record<string, unknown> = { aspect };
-    if (mode === "video") Object.assign(params, { duration, audio });
-    create.mutate(
-      { body: { mode, model: "mock", prompt: prompt.trim(), batch, params } },
-      {
-        onSuccess: (created) => {
-          for (const generation of [...created].reverse()) {
-            queryClient.setQueriesData<GenerationOut[]>({ queryKey: GENERATIONS_KEY }, (list) =>
-              upsertById(list, generation),
-            );
-          }
+  // On blur, handles typed by hand become chips.
+  const tidy = useCallback(() => {
+    const current = useComposerStore.getState().drafts[mode] ?? NO_TOKENS;
+    if (!hasTokens(current)) return;
+    void parsePrompt({ tokens: current }, projectId).then(({ tokens }) => {
+      const latest = useComposerStore.getState().drafts[mode] ?? NO_TOKENS;
+      if (sameTokens(latest, current) && !sameTokens(tokens, current)) setDraft(mode, tokens);
+    });
+  }, [mode, projectId, setDraft]);
+  const attachments = store.attachments[mode] ?? NO_ATTACHMENTS;
+  const references = attachments.references;
+  const frames: Frames = { start: attachments.start, end: attachments.end };
+  const setReferences = (next: Reference[]) => store.setAttachments(mode, { references: next });
+  const setFrames = (next: Frames) => store.setAttachments(mode, next);
+
+  // Keyframe first (M5.7): stills from this prompt, then the chosen one animates.
+  const keyframing = mode === "video" && store.keyframeFirst;
+
+  // Auto (M2.9): the router picks a model for what is given.
+  const auto = store.models[mode] === AUTO;
+  const { data: routed } = $api.useQuery(
+    "get",
+    "/api/route",
+    {
+      params: {
+        query: {
+          mode,
+          references: references.length,
+          start_frame: Boolean(attachments.start) || keyframing,
+          end_frame: Boolean(attachments.end),
         },
-        onError: (error) => toast.error(t("composer.failed", { error: errorMessage(error) })),
       },
-    );
-  }
+    },
+    { enabled: auto, placeholderData: (previous) => previous },
+  );
+  const model = useMemo(() => {
+    if (auto) return models.find((m) => m.id === routed?.model);
+    const chosen = models.find((m) => m.id === store.models[mode] && m.modes.includes(mode));
+    return chosen?.available ? chosen : (fallbackModel(models, mode) ?? chosen);
+  }, [auto, routed, models, store.models, mode]);
 
-  function onKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
-    if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
-      event.preventDefault();
-      submit();
-    }
-  }
+  const params: Params = useMemo(
+    () => (model ? normalize(model, mode, store.params[paramsKey(model.id, mode)] ?? {}) : {}),
+    [model, mode, store.params],
+  );
+  const maxBatch = keyframing ? 4 : (model?.limits.max_batch ?? 4);
+  const batch = Math.min(store.batch, maxBatch);
+  const maxRefs = model?.limits.max_references ?? 0;
+  // A model that takes fewer references uses the first ones.
+  const usedRefs = useMemo(() => references.slice(0, maxRefs), [references, maxRefs]);
+  const takesFrames = mode === "video" && !keyframing && Boolean(model?.capabilities.includes("image_to_video"));
+  const takesEnd = takesFrames && Boolean(model?.capabilities.includes("start_end_frames"));
+  const start = takesFrames ? frames.start : null;
+  const end = takesEnd && start ? frames.end : null;
 
-  const latency = settings?.mock_latency_seconds ?? 2;
+  const setParam = useCallback(
+    (name: string, value: unknown) => {
+      if (!model) return;
+      store.setParams(model.id, mode, normalize(model, mode, { ...params, [name]: value }, name));
+    },
+    [model, mode, params, store],
+  );
+
+  const body = useMemo(
+    () =>
+      model
+        ? {
+            mode,
+            model: model.id,
+            prompt: prompt.trim(),
+            prompt_tokens: trimTokens(draft),
+            ...(shot ? { shot } : {}),
+            ...(projectId ? { project_id: projectId } : {}),
+            ...(folderId ? { folder_id: folderId } : {}),
+            batch,
+            params,
+            references: usedRefs.map((r) => r.id),
+            ...(start ? { start_frame: start.id } : {}),
+            ...(end ? { end_frame: end.id } : {}),
+            ...(store.seed != null ? { seed: store.seed } : {}),
+          }
+        : null,
+    [model, mode, prompt, draft, shot, projectId, folderId, batch, params, usedRefs, start, end, store.seed],
+  );
+  // The estimate follows the settings, not every keystroke of the prompt.
+  const estimateBody = useDeferredValue(body ? { ...body, prompt: "", prompt_tokens: NO_TOKENS } : null);
+  const { data: estimate, isFetching } = $api.useQuery(
+    "post",
+    "/api/generations/estimate",
+    { body: estimateBody! },
+    { enabled: estimateBody !== null && !keyframing, placeholderData: (previous) => previous },
+  );
+
+  // Keyframe first: a planned shot with its keyframes, priced as keyframes plus one clip.
+  const createShot = $api.useMutation("post", "/api/shots");
+  const shotBody = useMemo(
+    () =>
+      keyframing && model
+        ? {
+            prompt: prompt.trim(),
+            prompt_tokens: trimTokens(draft),
+            ...(shot ? { spec: shot } : {}),
+            ...(projectId ? { project_id: projectId } : {}),
+            ...(folderId ? { folder_id: folderId } : {}),
+            video_model: model.id,
+            video_params: params,
+            keyframe_model: store.keyframeModel,
+            count: batch,
+            ...(store.seed != null ? { seed: store.seed } : {}),
+          }
+        : null,
+    [keyframing, model, prompt, draft, shot, projectId, folderId, params, store.keyframeModel, batch, store.seed],
+  );
+  const shotEstimateBody = useDeferredValue(shotBody ? { ...shotBody, prompt: "", prompt_tokens: NO_TOKENS } : null);
+  const { data: shotEstimate, isFetching: shotPricing } = $api.useQuery(
+    "post",
+    "/api/shots/estimate",
+    { body: shotEstimateBody! },
+    { enabled: shotEstimateBody !== null, placeholderData: (previous) => previous },
+  );
+
+  // What the model will be given (M4.4), and warnings about it: unknown
+  // handles, pictures over the model's limit, descriptions cut to fit.
+  const previewBody = useDeferredValue(body);
+  const { data: preview } = $api.useQuery(
+    "post",
+    "/api/generations/preview",
+    { body: previewBody! },
+    { enabled: previewBody !== null, placeholderData: (previous) => previous, staleTime: 5_000 },
+  );
+  const warnings = preview?.warnings ?? [];
+
+  // Camera moves (M5.3): #move chips in the prompt, in order.
+  const { data: vocab } = useVocab();
+  const moveChoices = useMemo(() => (vocab?.moves ?? []).map((m) => ({ id: m.id, label: m.label })), [vocab]);
+  const movesEditor = useMemo(
+    () => ({
+      list: movesIn(draft),
+      add: (id: string) => setDraft(mode, addMove(draft, id)),
+      remove: (index: number) => setDraft(mode, removeMove(draft, index)),
+      swap: (a: number, b: number) => setDraft(mode, swapMoves(draft, a, b)),
+      clear: () => setDraft(mode, clearMoves(draft)),
+    }),
+    [draft, mode, setDraft],
+  );
+
+  // The reference picker (M4.5): pictures and elements in one dialog.
+  const [picker, setPicker] = useState<"recent" | "elements" | null>(null);
+  const inPrompt = useMemo(
+    () => draft.flatMap((token) => (token.type === "element" && token.element_id ? [token.element_id] : [])),
+    [draft],
+  );
+  // Pictures the prompt's elements already take (their primaries at least).
+  const elementPictures = preview?.elements.filter((e) => e.images > 0).length ?? 0;
+  const room = Math.max(0, maxRefs - usedRefs.length - elementPictures);
+  const addElements = useCallback(
+    (picked: { id: string; handle: string }[]) => {
+      if (!picked.length) return;
+      const current = useComposerStore.getState().drafts[mode] ?? NO_TOKENS;
+      const text = renderTokens(current);
+      const lead = text && !/\s$/.test(text) ? [textToken(" ")] : [];
+      const chips = picked.flatMap((element, index) => [
+        ...(index > 0 ? [textToken(" ")] : []),
+        { type: "element" as const, handle: element.handle, element_id: element.id },
+      ]);
+      setDraft(mode, mergeTokens([...current, ...lead, ...chips, textToken(" ")]));
+    },
+    [mode, setDraft],
+  );
+
+  const [preparing, setPreparing] = useState(false);
+  const submit = useCallback(
+    async (event?: FormEvent) => {
+      event?.preventDefault();
+      if (!body || create.isPending || createShot.isPending || preparing) return;
+      const priced = keyframing ? shotEstimate : estimate;
+      if (priced && !priced.ok) {
+        toast.error(priced.problems[0] ?? t("composer.failed", { error: "" }));
+        return;
+      }
+      let target = projectId;
+      if (prepare) {
+        setPreparing(true);
+        try {
+          const prepared = await prepare();
+          if (!prepared) return;
+          target = prepared.projectId ?? target;
+        } catch (error) {
+          toast.error(t("composer.failed", { error: errorMessage(error) }));
+          return;
+        } finally {
+          setPreparing(false);
+        }
+      }
+      if (keyframing && shotBody) {
+        createShot.mutate(
+          { body: target ? { ...shotBody, project_id: target, folder_id: undefined } : shotBody },
+          {
+            onSuccess: (made) => {
+              insertGenerations(queryClient, made.keyframes);
+              void refresh(queryClient, { queryKey: SHOTS_KEY });
+              onCreated?.(made.keyframes, target);
+            },
+            onError: (error) => toast.error(t("composer.failed", { error: errorMessage(error) })),
+          },
+        );
+        return;
+      }
+      create.mutate(
+        { body: target ? { ...body, project_id: target } : body },
+        {
+          onSuccess: (created) => {
+            insertGenerations(queryClient, created);
+            onCreated?.(created, target);
+          },
+          onError: (error) => toast.error(t("composer.failed", { error: errorMessage(error) })),
+        },
+      );
+    },
+    [
+      body,
+      create,
+      createShot,
+      estimate,
+      shotEstimate,
+      keyframing,
+      shotBody,
+      preparing,
+      prepare,
+      projectId,
+      onCreated,
+      queryClient,
+      t,
+    ],
+  );
+
+  const submitNow = useCallback(() => void submit(), [submit]);
+
+  const advanced = model ? paramsFor(model, mode).filter(([, p]) => p.advanced) : [];
+  const blocked =
+    auto && routed && !routed.model
+      ? [routed.reason]
+      : keyframing
+        ? shotEstimate && !shotEstimate.ok
+          ? shotEstimate.problems
+          : []
+        : estimate && !estimate.ok
+          ? estimate.problems
+          : (preview?.problems ?? []);
   return (
     <form
-      onSubmit={submit}
+      onSubmit={(event) => void submit(event)}
       aria-label={t("composer.label")}
       className="flex flex-col gap-2 rounded-2xl border border-ink/25 bg-flat/95 p-3 shadow-[0_10px_40px_rgba(0,0,0,0.35)] backdrop-blur"
+      data-testid="composer"
     >
-      <textarea
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-        onKeyDown={onKeyDown}
-        rows={2}
-        aria-label={t("composer.label")}
+      {takesFrames ? (
+        <FrameSlots
+          frames={{ start, end }}
+          withEnd={takesEnd}
+          blockedBy={usedRefs.length ? t("frames.blockedByReferences") : null}
+          onChange={setFrames}
+        />
+      ) : null}
+      {maxRefs > 0 && !start && !keyframing ? (
+        <ReferenceTray
+          references={usedRefs}
+          limit={maxRefs}
+          kinds={model?.limits.reference_kinds ?? ["image"]}
+          onChange={setReferences}
+          onOpenPicker={() => setPicker("recent")}
+        />
+      ) : null}
+      {enhancement ? (
+        <EnhancePanel
+          enhancement={enhancement}
+          onUndo={() => {
+            store.setDraft(mode, beforeEnhance.current);
+            setEnhancement(null);
+          }}
+          onClose={() => setEnhancement(null)}
+        />
+      ) : null}
+      <ShotChips
+        shot={shot}
+        onChange={(next) => store.setShot(mode, next)}
+        video={mode === "video"}
+        moves={movesEditor}
+      />
+      <PromptEditor
+        value={draft}
+        onChange={(tokens) => store.setDraft(mode, tokens)}
+        onSubmit={submitNow}
+        onBlur={tidy}
+        projectId={projectId}
+        moves={mode === "video" ? moveChoices : undefined}
+        label={t("composer.label")}
         placeholder={mode === "image" ? t("composer.placeholderImage") : t("composer.placeholderVideo")}
-        className="w-full resize-none bg-transparent px-1 text-[15px] leading-relaxed outline-none placeholder:text-muted"
-        data-testid="prompt-input"
+        maxLength={model?.limits.max_prompt_chars ?? 4000}
       />
       <div className="flex flex-wrap items-center gap-1.5">
-        <span className="inline-flex h-7 items-center gap-1.5 rounded-full border border-line px-2.5 font-mono text-xs text-muted">
-          <Cpu className="size-3.5 text-tungsten" aria-hidden />
-          {t("composer.mock")}
-        </span>
-        <div role="group" aria-label={t("composer.aspect")} className="flex gap-1">
-          {ASPECTS[mode].map((value) => (
-            <Pill key={value} active={aspect === value} onClick={() => setAspect(value)}>
-              {value}
-            </Pill>
-          ))}
-        </div>
+        {leading}
+        <ModeToggle mode={mode} onMode={onMode} />
+        <ModelPicker
+          models={models}
+          mode={mode}
+          value={model}
+          auto={auto}
+          onChange={(id) => store.setModel(mode, id)}
+        />
         {mode === "video" ? (
-          <>
-            <div role="group" aria-label={t("composer.duration")} className="flex gap-1">
-              {DURATIONS.map((value) => (
-                <Pill key={value} active={duration === value} onClick={() => setDuration(value)}>
-                  {value}s
-                </Pill>
-              ))}
-            </div>
-            <Pill active={audio} onClick={() => setAudio(!audio)}>
-              {t("composer.audio")} {audio ? "on" : "off"}
-            </Pill>
-          </>
+          <KeyframeFirst
+            on={keyframing}
+            onToggle={store.setKeyframeFirst}
+            models={models}
+            model={store.keyframeModel}
+            onModel={store.setKeyframeModel}
+          />
+        ) : null}
+        <button
+          type="button"
+          onClick={() => setPicker("elements")}
+          className="inline-flex h-7 items-center gap-1 rounded-full border border-line px-2.5 text-xs text-muted hover:text-ink"
+          data-testid="pick-elements"
+        >
+          <AtSign className="size-3.5" aria-hidden />
+          {t("composer.elements")}
+        </button>
+        <RequestPreview resolved={preview} modelName={model?.name} />
+        <EnhanceButton
+          prompt={prompt}
+          mode={mode}
+          model={model?.id}
+          onEnhanced={(result) => {
+            beforeEnhance.current = draft;
+            setEnhancement(result);
+            // The rewrite keeps handles as text; the parser makes them chips again.
+            void parsePrompt({ text: result.after }, projectId).then(({ tokens }) => setDraft(mode, tokens));
+          }}
+        />
+        {model ? (
+          <ParamControls model={model} mode={mode} params={params} onChange={setParam} advanced={false} />
         ) : null}
         <div
           role="group"
@@ -133,7 +493,7 @@ export function Composer({ mode }: { mode: Mode }) {
           <button
             type="button"
             className="p-1 text-muted hover:text-ink disabled:opacity-40"
-            onClick={() => setBatch(Math.max(1, batch - 1))}
+            onClick={() => store.setBatch(Math.max(1, batch - 1))}
             disabled={batch <= 1}
             aria-label={`${t("composer.batch")} −`}
           >
@@ -145,27 +505,70 @@ export function Composer({ mode }: { mode: Mode }) {
           <button
             type="button"
             className="p-1 text-muted hover:text-ink disabled:opacity-40"
-            onClick={() => setBatch(Math.min(4, batch + 1))}
-            disabled={batch >= 4}
+            onClick={() => store.setBatch(Math.min(maxBatch, batch + 1))}
+            disabled={batch >= maxBatch}
             aria-label={`${t("composer.batch")} +`}
           >
             <Plus className="size-3.5" />
           </button>
         </div>
+        <Popover>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              className="inline-flex h-7 items-center gap-1 rounded-full border border-line px-2.5 text-xs text-muted hover:text-ink"
+              data-testid="more-settings"
+            >
+              <SlidersHorizontal className="size-3.5" aria-hidden />
+              {t("composer.more")}
+            </button>
+          </PopoverTrigger>
+          <PopoverContent side="top" align="start" className="flex w-auto min-w-72 flex-col gap-3">
+            <SeedField label={t("composer.seed")} value={store.seed} onChange={store.setSeed} />
+            {model && advanced.length ? (
+              <ParamControls model={model} mode={mode} params={params} onChange={setParam} advanced />
+            ) : null}
+          </PopoverContent>
+        </Popover>
         <Button
           type="submit"
           variant="primary"
           className="ml-auto uppercase tracking-wide"
-          disabled={create.isPending}
+          disabled={create.isPending || createShot.isPending || preparing || !model || blocked.length > 0}
           data-testid="generate-button"
+          title={keyframing ? t("composer.keyframesHint") : undefined}
         >
           <Sparkles />
-          {t("composer.generate")}
-          <span className="font-mono text-[11px] font-normal normal-case tracking-normal opacity-80">
-            {t("composer.estimate", { seconds: latency })}
-          </span>
+          {keyframing ? t("composer.keyframes") : t("composer.generate")}
+          <Estimate estimate={keyframing ? shotEstimate : estimate} pending={keyframing ? shotPricing : isFetching} />
         </Button>
       </div>
+      {warnings.length ? (
+        <p role="status" className="px-1 text-xs text-tungsten" data-testid="prompt-warnings">
+          {warnings.join(" ")}
+        </p>
+      ) : null}
+      {picker ? (
+        <ReferencePicker
+          open
+          onOpenChange={(open) => !open && setPicker(null)}
+          initialTab={picker}
+          taken={usedRefs.map((r) => r.id)}
+          room={room}
+          limit={maxRefs}
+          kinds={model?.limits.reference_kinds ?? ["image"]}
+          elements={{ inPrompt, projectId }}
+          onAdd={(pictures, elements) => {
+            if (pictures.length) setReferences([...references, ...pictures]);
+            addElements(elements);
+          }}
+        />
+      ) : null}
+      {blocked.length ? (
+        <p role="status" className="px-1 text-xs text-danger" data-testid="composer-problems">
+          {blocked.join(" ")}
+        </p>
+      ) : null}
     </form>
   );
 }

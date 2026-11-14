@@ -8,30 +8,55 @@ import logging
 from collections.abc import AsyncIterator, Iterable
 from contextlib import asynccontextmanager
 
+import httpx2
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from starlette.datastructures import MutableHeaders
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from framestudio import __version__
-from framestudio.api import auth, jobs, library, media, system
+from framestudio.api import (
+    auth,
+    catalog_api,
+    cinema_api,
+    connections_api,
+    elements_api,
+    jobs,
+    library,
+    llm_api,
+    media,
+    prompts_api,
+    shots_api,
+    system,
+)
+from framestudio.catalog import Catalog, load_catalog
+from framestudio.cinema.presets import GradeJob
 from framestudio.config import LOOPBACK_HOST, Config
+from framestudio.connections.fake import fake_provider_transport
+from framestudio.connections.registry import host_allowlist
+from framestudio.connections.service import Connections
 from framestudio.db import migrate
 from framestudio.db.session import Database
 from framestudio.events import EventBus
-from framestudio.generation import GenerateJob
+from framestudio.generation import GenerateHostedJob, GenerateJob, GenerateRemoteJob
 from framestudio.jobs.base import JobKind
 from framestudio.jobs.fake import FakeRemoteJob, FakeSleepJob
 from framestudio.jobs.queue import JobQueue
 from framestudio.library.assets import backfill_derived
+from framestudio.library.describe import DescribeJob
+from framestudio.llm.base import LLMProvider
+from framestudio.llm.registry import LLMRegistry
 from framestudio.media.store import MediaStore
+from framestudio.net import OutboundPolicy
 from framestudio.paths import DataPaths
 from framestudio.providers.base import GenerationProvider
-from framestudio.providers.mock import MockProvider
+from framestudio.providers.mock import MockCloudProvider, MockProvider
 from framestudio.security import AccessGuard, AccessPolicy, load_or_create_token
 from framestudio.services import Services
 from framestudio.settings import SettingsStore
 from framestudio.ui import mount_ui
+from framestudio.usage import UsageLedger
+from framestudio.vault import open_vault
 
 log = logging.getLogger("framestudio")
 
@@ -96,8 +121,11 @@ def create_app(
     config: Config | None = None,
     *,
     providers: dict[str, GenerationProvider] | None = None,
+    llms: dict[str, LLMProvider] | None = None,
+    catalog: Catalog | None = None,
     extra_kinds: Iterable[JobKind] = (),
     lane_limits: dict[str, int] | None = None,
+    http_transport: httpx2.AsyncBaseTransport | None = None,
 ) -> FastAPI:
     config = config or Config()
     paths = DataPaths(config.data_dir).ensure()
@@ -126,11 +154,33 @@ def create_app(
         media=MediaStore(paths.media, paths.tmp),
         remote_access_at_start=current.remote_access,
     )
-    services.providers = providers if providers is not None else {"mock": MockProvider()}
+    services.providers = (
+        providers
+        if providers is not None
+        else {
+            "mock": MockProvider(services.settings),
+            "mock-cloud": MockCloudProvider(services.settings),
+        }
+    )
+    services.catalog = catalog if catalog is not None else load_catalog(user_dir=paths.user_catalog)
+    services.vault = open_vault(paths.key_file, config.secrets)
+    services.usage = UsageLedger(services)
+    services.connections = Connections(services)
+    if http_transport is None and config.fake_providers:
+        http_transport = fake_provider_transport()
+    services.outbound = OutboundPolicy(
+        host_allowlist(), services.connections.is_enabled, http_transport
+    )
+    # Language models of the connections that are on; rebuilt when they change.
+    services.llm_registry = LLMRegistry(services, fixed=llms)
     kinds: list[JobKind] = [
         FakeSleepJob(),
         FakeRemoteJob(),
         GenerateJob(services.providers),
+        GenerateRemoteJob(services.providers),
+        GenerateHostedJob(services.providers),
+        DescribeJob(),
+        GradeJob(),
         *extra_kinds,
     ]
     services.jobs = JobQueue(services, kinds, lane_limits)
@@ -146,6 +196,7 @@ def create_app(
             yield
         finally:
             await services.jobs.stop()
+            await services.outbound.aclose()
             await asyncio.wait({backfill}, timeout=5)
             db.dispose()
 
@@ -159,7 +210,20 @@ def create_app(
         generate_unique_id_function=_operation_id,
     )
     app.state.services = services
-    for router in (system.router, auth.router, jobs.router, media.router, library.router):
+    for router in (
+        system.router,
+        auth.router,
+        jobs.router,
+        media.router,
+        library.router,
+        catalog_api.router,
+        connections_api.router,
+        llm_api.router,
+        elements_api.router,
+        prompts_api.router,
+        cinema_api.router,
+        shots_api.router,
+    ):
         app.include_router(router)
     mount_ui(app, config.resolved_ui_dist())
     app.add_middleware(AccessGuard, policy=policy)

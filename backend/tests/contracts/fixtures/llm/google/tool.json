@@ -1,0 +1,21 @@
+{
+ "synthetic": true,
+ "note": "Written from the provider's documented wire format; replace with a recording (LIVE_API=1 FRAMESTUDIO_RECORD=1).",
+ "model": "gemini-3-pro",
+ "exchanges": [
+  {
+   "method": "POST",
+   "path": "/v1beta/models/gemini-3-pro:streamGenerateContent",
+   "status": 200,
+   "content_type": "text/event-stream",
+   "body": "data: {\"candidates\": [{\"index\": 0, \"content\": {\"role\": \"model\", \"parts\": [{\"functionCall\": {\"name\": \"get_weather\", \"args\": {\"city\": \"Lisbon\"}}, \"thoughtSignature\": \"c3ludGhldGljLXRob3VnaHQtc2lnbmF0dXJl\"}]}, \"finishReason\": \"STOP\"}], \"modelVersion\": \"gemini-3-pro\", \"responseId\": \"synthetic\", \"usageMetadata\": {\"promptTokenCount\": 42, \"candidatesTokenCount\": 12, \"thoughtsTokenCount\": 4, \"totalTokenCount\": 58}}\r\n\r\n"
+  },
+  {
+   "method": "POST",
+   "path": "/v1beta/models/gemini-3-pro:streamGenerateContent",
+   "status": 200,
+   "content_type": "text/event-stream",
+   "body": "data: {\"candidates\": [{\"index\": 0, \"content\": {\"role\": \"model\", \"parts\": [{\"text\": \"It is 21\\u00b0\"}]}}], \"modelVersion\": \"gemini-3-pro\", \"responseId\": \"synthetic\"}\r\n\r\ndata: {\"candidates\": [{\"index\": 0, \"content\": {\"role\": \"model\", \"parts\": [{\"text\": \"C and cle\"}]}}], \"modelVersion\": \"gemini-3-pro\", \"responseId\": \"synthetic\"}\r\n\r\ndata: {\"candidates\": [{\"index\": 0, \"content\": {\"role\": \"model\", \"parts\": [{\"text\": \"ar in Lis\"}]}}], \"modelVersion\": \"gemini-3-pro\", \"responseId\": \"synthetic\"}\r\n\r\ndata: {\"candidates\": [{\"index\": 0, \"content\": {\"role\": \"model\", \"parts\": [{\"text\": \"bon.\"}]}, \"finishReason\": \"STOP\"}], \"modelVersion\": \"gemini-3-pro\", \"responseId\": \"synthetic\", \"usageMetadata\": {\"promptTokenCount\": 42, \"candidatesTokenCount\": 12, \"thoughtsTokenCount\": 4, \"totalTokenCount\": 58}}\r\n\r\n"
+  }
+ ]
+}

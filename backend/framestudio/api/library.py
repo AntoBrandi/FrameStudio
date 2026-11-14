@@ -2,19 +2,41 @@
 
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime
 from pathlib import Path
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, File, Form, HTTPException, Query, Response, UploadFile, status
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    File,
+    Form,
+    HTTPException,
+    Query,
+    Response,
+    UploadFile,
+    status,
+)
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
+from starlette.background import BackgroundTask
 
 from framestudio.api.deps import ServicesDep
+from framestudio.api.llm_errors import http_error
 from framestudio.db.models import Asset
+from framestudio.jobs.base import JobError
 from framestudio.library import assets as lib
 from framestudio.library import projects as proj
+from framestudio.library.describe import (
+    DescribeRequest,
+    NameSuggestions,
+    describe_if_wanted,
+    queue_descriptions,
+    suggest_names,
+)
 from framestudio.library.media import MediaError
+from framestudio.providers.base import ProviderError
 
 router = APIRouter(prefix="/api")
 
@@ -125,6 +147,7 @@ def library_summary(services: ServicesDep, project_id: str | None = None) -> lib
 @router.post("/assets/upload", tags=["assets"], responses=NOT_FOUND)
 def upload_assets(
     services: ServicesDep,
+    background: BackgroundTasks,
     files: Annotated[list[UploadFile], File(description="Images, video or audio")],
     project_id: Annotated[str | None, Form()] = None,
     folder_id: Annotated[str | None, Form()] = None,
@@ -147,9 +170,50 @@ def upload_assets(
                 services, tmp, name=name, provenance="uploaded", placement=placement
             )
             results.append(lib.IngestItem(name=name, asset=asset, duplicate=duplicate))
+            if not duplicate:
+                background.add_task(describe_if_wanted, services, asset.id)
         except MediaError as exc:
             results.append(lib.IngestItem(name=name, error_code=exc.code, error=exc.message))
     return results
+
+
+class DescribeQueued(BaseModel):
+    job_ids: list[str]
+
+
+@router.post(
+    "/assets/describe", tags=["assets"], status_code=status.HTTP_202_ACCEPTED, responses=NOT_FOUND
+)
+async def describe_assets(body: DescribeRequest, services: ServicesDep) -> DescribeQueued:
+    """Caption and tag these assets with the model chosen for captions (sends
+    a downscaled copy of each picture to it). Runs as background jobs."""
+    if not services.llms:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT, "Connect a language model in Settings › Connections first."
+        )
+
+    def missing() -> list[str]:
+        with services.db.session() as session:
+            return [i for i in body.asset_ids if session.get(Asset, i) is None]
+
+    if await asyncio.to_thread(missing):
+        raise _404("Asset")
+    return DescribeQueued(
+        job_ids=await queue_descriptions(services, list(dict.fromkeys(body.asset_ids)))
+    )
+
+
+@router.post("/assets/{asset_id}/name-suggestions", tags=["assets"], responses=NOT_FOUND)
+async def name_suggestions(asset_id: str, services: ServicesDep) -> NameSuggestions:
+    """Three short names for an asset, from its caption and prompt."""
+    try:
+        return await suggest_names(services, asset_id)
+    except LookupError:
+        raise _404("Asset") from None
+    except ProviderError as exc:
+        raise http_error(exc) from None
+    except JobError as exc:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, exc.message) from None
 
 
 @router.get("/assets/{asset_id}", tags=["assets"], responses=NOT_FOUND)
@@ -209,14 +273,6 @@ def _send(
     )
 
 
-def _download_name(asset: Asset) -> str:
-    ext = Path(asset.path).suffix
-    if asset.original_name:
-        stem = Path(asset.original_name).stem
-        return f"{stem}{ext}"
-    return f"framestudio-{asset.id[:8]}{ext}"
-
-
 @router.get(
     "/assets/{asset_id}/file",
     tags=["assets"],
@@ -230,7 +286,7 @@ def asset_file(asset_id: str, services: ServicesDep, download: bool = False) -> 
         asset = session.get(Asset, asset_id)
         if asset is None:
             raise _404("Asset")
-        rel, mime, name = asset.path, asset.mime, _download_name(asset)
+        rel, mime, name = asset.path, asset.mime, proj.download_name(asset)
     if download:
         response = _send(services, rel, mime, filename=name)  # 404s before anything is recorded
         lib.mark(services, asset_id, "downloaded")
@@ -347,6 +403,32 @@ def trash_project(project_id: str, services: ServicesDep) -> proj.ProjectDetail:
     if out is None:
         raise _404("Project")
     return out
+
+
+@router.get(
+    "/projects/{project_id}/export",
+    tags=["projects"],
+    response_class=FileResponse,
+    responses={200: {"content": {"application/zip": {}}}, **NOT_FOUND},
+)
+async def export_project(
+    project_id: str,
+    services: ServicesDep,
+    folder_id: Annotated[str | None, Query(description="Only this folder")] = None,
+) -> FileResponse:
+    """The project's media as a zip (M5.6): one directory named by the
+    project's slug, a subdirectory per folder, and the brief."""
+    made = await asyncio.to_thread(proj.export_project, services, project_id, folder_id)
+    if made is None:
+        raise _404("Project or folder")
+    path, name = made
+    return FileResponse(
+        path,
+        media_type="application/zip",
+        filename=name,
+        headers={"Cache-Control": "no-store"},
+        background=BackgroundTask(path.unlink, missing_ok=True),
+    )
 
 
 @router.post("/projects/{project_id}/restore", tags=["projects"], responses=NOT_FOUND)

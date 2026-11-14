@@ -16,6 +16,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import Select, and_, column, func, or_, select, text, update
 from sqlalchemy.orm import Session
 
+from framestudio.cinema import ShotSpec
 from framestudio.db.base import utcnow
 from framestudio.db.models import Asset, Folder, Generation, Project
 from framestudio.library import search
@@ -27,6 +28,7 @@ from framestudio.library.media import (
     remove_derived,
 )
 from framestudio.media.store import sha256_file
+from framestudio.prompts import Token
 from framestudio.services import Services
 
 Kind = Literal["image", "video", "audio"]
@@ -38,8 +40,17 @@ class GenerationSummary(BaseModel):
     mode: str
     model_id: str
     prompt: str
+    #: The prompt as tokens (M4.3); None for generations made before them.
+    prompt_tokens: list[Token] | None = None
+    #: Cinema controls (M5.1), for Recreate.
+    shot: ShotSpec | None = None
     seed: int | None
     params: dict[str, Any]
+    #: Lineage: the assets given as references, and the one it was made from.
+    references: list[str] = []
+    start_frame: str | None = None
+    end_frame: str | None = None
+    parent_asset_id: str | None = None
 
 
 class AssetOut(BaseModel):
@@ -68,6 +79,8 @@ class AssetOut(BaseModel):
     favorite: bool
     notes: str
     caption: str | None
+    #: Search tags from Describe image (M2.6).
+    tags: list[str]
     last_viewed_at: datetime | None
     last_downloaded_at: datetime | None
     created_at: datetime
@@ -173,7 +186,13 @@ def asset_out(asset: Asset, generation: Generation | None = None) -> AssetOut:
             mode=generation.mode,
             model_id=generation.model_id,
             prompt=generation.prompt,
+            prompt_tokens=generation.prompt_tokens,  # type: ignore[arg-type]
+            shot=generation.shot,  # type: ignore[arg-type]
             seed=generation.seed,
+            references=list(generation.reference_ids or []),
+            start_frame=generation.start_frame_id,
+            end_frame=generation.end_frame_id,
+            parent_asset_id=generation.parent_asset_id,
             params=generation.params or {},
         )
         if generation is not None
@@ -205,6 +224,7 @@ def asset_out(asset: Asset, generation: Generation | None = None) -> AssetOut:
         favorite=asset.favorite,
         notes=asset.notes or "",
         caption=asset.caption,
+        tags=list(asset.tags or []),
         last_viewed_at=asset.last_viewed_at,
         last_downloaded_at=asset.last_downloaded_at,
         created_at=asset.created_at,

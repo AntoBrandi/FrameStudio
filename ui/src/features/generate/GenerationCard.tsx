@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/misc";
 import { cn } from "@/lib/utils";
 
-function aspectOf(generation: GenerationOut): string {
+export function aspectOf(generation: GenerationOut): string {
   const asset = generation.asset;
   if (asset?.width && asset.height) return `${asset.width} / ${asset.height}`;
   const aspect = String(generation.params.aspect ?? (generation.mode === "video" ? "16:9" : "1:1"));
@@ -17,10 +17,13 @@ export function GenerationCard({
   generation,
   job,
   onOpen,
+  fill = false,
 }: {
   generation: GenerationOut;
   job?: JobOut;
   onOpen: (generation: GenerationOut) => void;
+  /** Fill a box sized by the gallery layout instead of keeping its own aspect ratio. */
+  fill?: boolean;
 }) {
   const { t } = useTranslation();
   const retry = $api.useMutation("post", "/api/generations/{generation_id}/retry");
@@ -35,8 +38,8 @@ export function GenerationCard({
       data-testid="generation-card"
       data-status={status}
       aria-label={generation.prompt || generation.id}
-      className="group relative overflow-hidden rounded-xl border border-line bg-flat"
-      style={{ aspectRatio: aspectOf(generation) }}
+      className={cn("group relative overflow-hidden rounded-xl border border-line bg-flat", fill && "size-full")}
+      style={fill ? undefined : { aspectRatio: aspectOf(generation) }}
     >
       {status === "succeeded" && asset ? (
         <button
