@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { Carousel, type CarouselOption } from "./Carousel";
 import { Drum } from "./Drum";
 import { type MovesEditor, MovesPicker } from "./MovesPicker";
+import { LightingPicker } from "./LightingPicker";
 import { PalettePicker, Swatches, usePaletteLook } from "./PalettePicker";
 import { PreviewArt } from "./PreviewArt";
 import {
@@ -214,7 +215,17 @@ export function ShotChips({
 }) {
   const { t } = useTranslation();
   const { data: vocab } = useVocab();
-  const [open, setOpen] = useState<"film" | "camera" | "moves" | "palette" | null>(null);
+  const [open, setOpen] = useState<"film" | "camera" | "moves" | "palette" | "lighting" | null>(null);
+  const lighting = shot?.lighting;
+  const lightingPreset = vocab?.lighting.find((l) => l.id === lighting?.preset)?.label;
+  const lightingLabel = lighting
+    ? (lighting.label ??
+      (lighting.rig
+        ? lightingPreset
+          ? t("lighting.edited", { name: lightingPreset })
+          : t("lighting.custom")
+        : lightingPreset))
+    : null;
   const look = usePaletteLook(shot?.palette);
   const moveLabel = (id: string) => vocab?.moves.find((m) => m.id === id)?.label ?? id;
   const chips = [
@@ -236,6 +247,12 @@ export function ShotChips({
       values: look ? [look.label] : [],
       swatches: look?.colours,
       clear: () => onChange(cleanShot({ ...shot, palette: null })),
+    },
+    {
+      key: "lighting" as const,
+      label: t("lighting.chip"),
+      values: lightingLabel ? [lightingLabel] : [],
+      clear: () => onChange(cleanShot({ ...shot, lighting: null })),
     },
     ...(video && moves
       ? [
@@ -293,6 +310,12 @@ export function ShotChips({
         shot={shot}
         onChange={onChange}
         video={video}
+      />
+      <LightingPicker
+        open={open === "lighting"}
+        onOpenChange={(next) => !next && setOpen(null)}
+        lighting={lighting}
+        onChange={(next) => onChange(cleanShot({ ...shot, lighting: next }))}
       />
       <PalettePicker
         open={open === "palette"}

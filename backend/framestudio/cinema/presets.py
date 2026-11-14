@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Literal
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 
-from framestudio.cinema import PaletteSpec, vocab
+from framestudio.cinema import PaletteSpec, Rig, vocab
 from framestudio.cinema import palette as pal
 from framestudio.db.models import Asset, Preset
 from framestudio.jobs.base import JobContext, JobError, JobKind
@@ -112,6 +112,8 @@ def list_presets(services: Services, kind: str | None) -> list[PresetOut]:
 def create_preset(services: Services, body: PresetCreate) -> PresetOut:
     if body.kind == "palette":
         PaletteSpec.model_validate(body.data)  # a palette must be a valid one
+    else:
+        Rig.model_validate(body.data)  # and a lighting preset a valid rig
     with services.db.session() as session:
         if body.preview_asset_id and session.get(Asset, body.preview_asset_id) is None:
             raise LookupError("asset")

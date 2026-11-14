@@ -770,5 +770,41 @@
     "delete": "Delete {{name}}",
     "saved_heading": "Saved",
     "presets": "Presets"
+  },
+  "lighting": {
+    "chip": "Lighting",
+    "title": "Lighting",
+    "hint": "Start from a preset or place up to four lights around the subject. Drag a light on the sphere, or use the sliders.",
+    "presets": "Presets",
+    "saved_heading": "Saved",
+    "edited": "{{name}} (edited)",
+    "custom": "Custom rig",
+    "diagram": "The lights seen from above",
+    "camera": "camera",
+    "lights": "Lights",
+    "light": "Light {{n}}",
+    "add": "Light",
+    "remove": "Remove light {{n}}",
+    "quick": "Place the light",
+    "quickKeys": {
+      "top": "Top",
+      "front": "Front",
+      "left": "Left",
+      "right": "Right",
+      "back": "Back",
+      "bottom": "Bottom"
+    },
+    "azimuth": "Around",
+    "elevation": "Height",
+    "brightness": "Brightness",
+    "softness": "Softness",
+    "colour": "Colour",
+    "ambient": "Ambient",
+    "words": "In the prompt",
+    "saveName": "Name to save it as",
+    "save": "Save",
+    "saved": "Saved {{name}}.",
+    "deleted": "Deleted {{name}}.",
+    "delete": "Delete {{name}}"
   }
 }

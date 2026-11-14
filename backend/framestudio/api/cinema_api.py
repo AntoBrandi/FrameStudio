@@ -14,11 +14,12 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from framestudio.api.deps import ServicesDep
-from framestudio.cinema import Vocab, vocab
+from framestudio.cinema import Rig, Vocab, vocab
 from framestudio.cinema import adherence as adh
 from framestudio.cinema import presets as ps
 from framestudio.cinema import previews as pv
 from framestudio.cinema.compiler import PROFILES, Profile
+from framestudio.cinema.lighting import describe as describe_rig
 
 router = APIRouter(prefix="/api/cinema", tags=["cinema"])
 log = logging.getLogger("framestudio.cinema")
@@ -210,3 +211,16 @@ async def grade_asset(asset_id: str, body: ps.GradeRequest, services: ServicesDe
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Asset not found") from None
     except ValueError as exc:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc)) from None
+
+
+# ---------------------------------------------------------------- lighting (M5.5)
+
+
+class RigWords(BaseModel):
+    words: str
+
+
+@router.post("/lighting/describe")
+def describe_lighting(rig: Rig) -> RigWords:
+    """The words a lighting rig becomes in a prompt."""
+    return RigWords(words=describe_rig(rig))

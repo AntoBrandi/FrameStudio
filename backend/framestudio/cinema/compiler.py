@@ -26,6 +26,7 @@ from pydantic import BaseModel, ConfigDict
 
 from framestudio.catalog import ModelSpec
 from framestudio.cinema import Family, ShotSpec, depth_of_field, focal_character, vocab
+from framestudio.cinema.lighting import describe as describe_rig
 
 Style = Literal["sentences", "tags"]
 
@@ -177,7 +178,9 @@ def _cinema_sections(
     # Lighting.
     if shot.lighting:
         bits = []
-        if shot.lighting.preset and (term := words.find("lighting", shot.lighting.preset)):
+        if shot.lighting.rig:  # the editor's rig is the truth (M5.5)
+            bits.append(describe_rig(shot.lighting.rig))
+        elif shot.lighting.preset and (term := words.find("lighting", shot.lighting.preset)):
             bits.append(term.tags if tags else term.phrase)
         if shot.lighting.description:
             bits.append(shot.lighting.description.strip().rstrip("."))

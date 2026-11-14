@@ -28,6 +28,38 @@ CONTROL_FAMILIES: tuple[str, ...] = (
 _HEX = re.compile(r"^#[0-9A-Fa-f]{6}$")
 
 
+class Light(BaseModel):
+    """One light of a rig (M5.5), placed on a sphere around the subject as
+    seen from the camera: azimuth 0° is the camera's side, 90° screen right,
+    180° behind the subject, 270° screen left; elevation 90° is straight
+    above, −90° straight below."""
+
+    model_config = ConfigDict(extra="forbid")
+    azimuth: float = Field(ge=0, lt=360)
+    elevation: float = Field(ge=-90, le=90)
+    colour: str = "#FFFFFF"
+    #: Relative brightness, 0 (off) to 1 (the brightest a light can be).
+    intensity: float = Field(default=1.0, ge=0, le=1)
+    #: 0: a hard, small source; 1: a large, diffused one.
+    softness: float = Field(default=0.5, ge=0, le=1)
+
+    @field_validator("colour")
+    @classmethod
+    def _colour(cls, v: str) -> str:
+        if not _HEX.match(v):
+            raise ValueError(f"'{v}' is not a colour such as #FFD9A0")
+        return v.upper()
+
+
+class Rig(BaseModel):
+    """A lighting rig (M5.5): one to four lights and the ambient fill."""
+
+    model_config = ConfigDict(extra="forbid")
+    lights: list[Light] = Field(min_length=1, max_length=4)
+    #: Light from everywhere (bounce, sky): 0 (none, black shadows) to 1.
+    ambient: float = Field(default=0.1, ge=0, le=1)
+
+
 class Term(BaseModel):
     """One choice: what the picker shows and what it becomes in a prompt."""
 
@@ -39,6 +71,8 @@ class Term(BaseModel):
     negative: str | None = None
     #: Wording for a compiler profile (e.g. "seedance") instead of ``phrase``.
     profiles: dict[str, str] = {}
+    #: For lighting presets: the rig the editor opens with (M5.5).
+    rig: Rig | None = None
 
     def phrase_for(self, profile: str) -> str:
         return self.profiles.get(profile, self.phrase)
@@ -168,8 +202,13 @@ class PaletteSpec(BaseModel):
 class LightingSpec(BaseModel):
     model_config = ConfigDict(extra="forbid")
     preset: str | None = None
-    #: Words from the rig editor (M5.5), used after the preset's.
+    #: A rig from the editor (M5.5): when set, its description is used
+    #: instead of the preset's words (the preset is where it started).
+    rig: Rig | None = None
+    #: Free words, used after the rest.
     description: str | None = Field(default=None, max_length=400)
+    #: A name to show for it (a saved rig's), not sent to the model.
+    label: str | None = Field(default=None, max_length=80)
 
     @field_validator("preset")
     @classmethod

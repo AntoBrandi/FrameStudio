@@ -3468,6 +3468,49 @@
         "title": "LicenseRecord",
         "type": "object"
       },
+      "Light": {
+        "additionalProperties": false,
+        "description": "One light of a rig (M5.5), placed on a sphere around the subject as\nseen from the camera: azimuth 0\u00b0 is the camera's side, 90\u00b0 screen right,\n180\u00b0 behind the subject, 270\u00b0 screen left; elevation 90\u00b0 is straight\nabove, \u221290\u00b0 straight below.",
+        "properties": {
+          "azimuth": {
+            "exclusiveMaximum": 360.0,
+            "minimum": 0.0,
+            "title": "Azimuth",
+            "type": "number"
+          },
+          "colour": {
+            "default": "#FFFFFF",
+            "title": "Colour",
+            "type": "string"
+          },
+          "elevation": {
+            "maximum": 90.0,
+            "minimum": -90.0,
+            "title": "Elevation",
+            "type": "number"
+          },
+          "intensity": {
+            "default": 1.0,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Intensity",
+            "type": "number"
+          },
+          "softness": {
+            "default": 0.5,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Softness",
+            "type": "number"
+          }
+        },
+        "required": [
+          "azimuth",
+          "elevation"
+        ],
+        "title": "Light",
+        "type": "object"
+      },
       "LightingSpec": {
         "additionalProperties": false,
         "properties": {
@@ -3483,6 +3526,18 @@
             ],
             "title": "Description"
           },
+          "label": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
           "preset": {
             "anyOf": [
               {
@@ -3493,6 +3548,16 @@
               }
             ],
             "title": "Preset"
+          },
+          "rig": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Rig"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "title": "LightingSpec",
@@ -5137,6 +5202,46 @@
         "title": "ResolvedReference",
         "type": "object"
       },
+      "Rig": {
+        "additionalProperties": false,
+        "description": "A lighting rig (M5.5): one to four lights and the ambient fill.",
+        "properties": {
+          "ambient": {
+            "default": 0.1,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Ambient",
+            "type": "number"
+          },
+          "lights": {
+            "items": {
+              "$ref": "#/components/schemas/Light"
+            },
+            "maxItems": 4,
+            "minItems": 1,
+            "title": "Lights",
+            "type": "array"
+          }
+        },
+        "required": [
+          "lights"
+        ],
+        "title": "Rig",
+        "type": "object"
+      },
+      "RigWords": {
+        "properties": {
+          "words": {
+            "title": "Words",
+            "type": "string"
+          }
+        },
+        "required": [
+          "words"
+        ],
+        "title": "RigWords",
+        "type": "object"
+      },
       "RouteOption": {
         "properties": {
           "available": {
@@ -5736,6 +5841,16 @@
             "default": {},
             "title": "Profiles",
             "type": "object"
+          },
+          "rig": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Rig"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "tags": {
             "default": "",
@@ -7615,6 +7730,48 @@
           }
         },
         "summary": "Grade Asset",
+        "tags": [
+          "cinema"
+        ]
+      }
+    },
+    "/api/cinema/lighting/describe": {
+      "post": {
+        "description": "The words a lighting rig becomes in a prompt.",
+        "operationId": "describe_lighting",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Rig"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RigWords"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Describe Lighting",
         "tags": [
           "cinema"
         ]

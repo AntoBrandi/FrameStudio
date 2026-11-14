@@ -477,6 +477,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/cinema/lighting/describe": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Describe Lighting
+     * @description The words a lighting rig becomes in a prompt.
+     */
+    post: operations["describe_lighting"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/cinema/palettes/extract": {
     parameters: {
       query?: never;
@@ -2508,12 +2528,43 @@ export interface components {
       /** Source Url */
       source_url: string;
     };
+    /**
+     * Light
+     * @description One light of a rig (M5.5), placed on a sphere around the subject as
+     *     seen from the camera: azimuth 0° is the camera's side, 90° screen right,
+     *     180° behind the subject, 270° screen left; elevation 90° is straight
+     *     above, −90° straight below.
+     */
+    Light: {
+      /** Azimuth */
+      azimuth: number;
+      /**
+       * Colour
+       * @default #FFFFFF
+       */
+      colour?: string;
+      /** Elevation */
+      elevation: number;
+      /**
+       * Intensity
+       * @default 1
+       */
+      intensity?: number;
+      /**
+       * Softness
+       * @default 0.5
+       */
+      softness?: number;
+    };
     /** LightingSpec */
     LightingSpec: {
       /** Description */
       description?: string | null;
+      /** Label */
+      label?: string | null;
       /** Preset */
       preset?: string | null;
+      rig?: components["schemas"]["Rig"] | null;
     };
     /** Limits */
     Limits: {
@@ -3047,6 +3098,24 @@ export interface components {
       /** Thumb Url */
       thumb_url?: string | null;
     };
+    /**
+     * Rig
+     * @description A lighting rig (M5.5): one to four lights and the ambient fill.
+     */
+    Rig: {
+      /**
+       * Ambient
+       * @default 0.1
+       */
+      ambient?: number;
+      /** Lights */
+      lights: components["schemas"]["Light"][];
+    };
+    /** RigWords */
+    RigWords: {
+      /** Words */
+      words: string;
+    };
     /** RouteOption */
     RouteOption: {
       /** Available */
@@ -3287,6 +3356,7 @@ export interface components {
       profiles?: {
         [key: string]: string;
       };
+      rig?: components["schemas"]["Rig"] | null;
       /**
        * Tags
        * @default
@@ -4361,6 +4431,39 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  describe_lighting: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["Rig"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RigWords"];
+        };
       };
       /** @description Validation Error */
       422: {

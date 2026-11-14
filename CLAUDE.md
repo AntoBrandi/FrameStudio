@@ -138,6 +138,16 @@ Test media: `backend/tests/fixtures/media` (regenerate with `make_corpus.py`).
   Routes under `/api/cinema/` (`palettes/extract`, `presets`, `grade/{asset_id}`). UI:
   `PalettePicker`, `GradeDialog` (viewer's Colour grade). i18n: `palette.*` is the command
   palette; colour palettes use `colourPalette.*` (never overwrite an existing i18n section).
+- Lighting (M5.5): `Rig` / `Light` in `cinema/__init__.py` (1–4 lights; azimuth 0 = from the camera
+  side, 90 = screen right, 180 = behind; elevation −90…90; colour, intensity, softness; ambient).
+  Every lighting preset in `vocab.yaml` has a `rig`; `cinema/lighting.py` `describe()` turns a rig
+  into words (key/fill/rim roles, direction, contrast), and the compiler uses them when
+  `shot.lighting.rig` is set (the preset stays as where the edit began; `label` names a saved rig).
+  Saved rigs are `presets` of kind lighting; `POST /api/cinema/lighting/describe`. UI:
+  `LightingPicker` (presets, saved rigs, sliders, quick directions, live words) with
+  `LightSphere.tsx` (three.js, lazy-loaded; drag markers on the guide sphere), falling back to an
+  SVG diagram without WebGL (jsdom). The picker is a modal: the chips behind it are hidden from the
+  accessibility tree while it is open.
 - LLM contract fixtures: `backend/tests/contracts/fixtures/llm/<provider>/<case>.json`, synthetic
   until recorded (`uv run python -m tests.contracts.llm_wire` rewrites synthetic ones). Live runs:
   `LIVE_API=1 FRAMESTUDIO_LIVE_<PROVIDER>_KEY=… uv run pytest tests/contracts` (paid);
