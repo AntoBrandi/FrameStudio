@@ -16,6 +16,7 @@ import { ParamControls, SeedField } from "./ParamControls";
 import { type Mode, type ModelOut, normalize, type Params, paramsFor } from "./params";
 import { PromptEditor } from "./PromptEditor";
 import { RequestPreview } from "./RequestPreview";
+import { ShotChips } from "@/features/cinema/ShotPickers";
 import { ReferencePicker } from "./ReferencePicker";
 import { type Reference, ReferenceTray } from "./ReferenceTray";
 import { AUTO, NO_ATTACHMENTS, paramsKey, useComposerStore } from "./store";
@@ -292,6 +293,7 @@ export function Composer({ mode, projectId }: { mode: Mode; projectId?: string }
           onClose={() => setEnhancement(null)}
         />
       ) : null}
+      <ShotChips shot={shot} onChange={(next) => store.setShot(mode, next)} video={mode === "video"} />
       <PromptEditor
         value={draft}
         onChange={(tokens) => store.setDraft(mode, tokens)}

@@ -5,15 +5,18 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
 import uuid
 from typing import Literal
 
 from fastapi import APIRouter, HTTPException, Request, status
-from pydantic import BaseModel
+from fastapi.responses import FileResponse
+from pydantic import BaseModel, Field
 
 from framestudio.api.deps import ServicesDep
 from framestudio.cinema import Vocab, vocab
 from framestudio.cinema import adherence as adh
+from framestudio.cinema import previews as pv
 from framestudio.cinema.compiler import PROFILES, Profile
 
 router = APIRouter(prefix="/api/cinema", tags=["cinema"])
@@ -28,10 +31,45 @@ class RunState(BaseModel):
     error: str | None = None
 
 
+class Preview(BaseModel):
+    image: str | None = None
+    video: str | None = None
+
+
+class VocabOut(Vocab):
+    #: Preview artwork per family and choice, where it has been made (M5.2).
+    previews: dict[str, dict[str, Preview]] = Field(default_factory=dict)
+
+
 @router.get("/vocab")
-def get_vocab() -> Vocab:
-    """Every choice the film, camera, move, palette and lighting pickers offer."""
-    return vocab()
+def get_vocab() -> VocabOut:
+    """Every choice the film, camera, move, palette and lighting pickers offer,
+    with the preview artwork that exists for them."""
+    previews = {
+        family: {
+            term: Preview(
+                **{kind: f"/api/cinema/previews/{family}/{name}" for kind, name in files.items()}
+            )
+            for term, files in terms.items()
+        }
+        for family, terms in pv.installed().items()
+    }
+    return VocabOut(**vocab().model_dump(), previews=previews)
+
+
+_PREVIEW_FILE = re.compile(r"^[a-z0-9][a-z0-9-]*\.(webp|mp4)$")
+
+
+@router.get("/previews/{family}/{name}", responses={404: {"description": "Not found"}})
+def get_preview(family: str, name: str) -> FileResponse:
+    """A picker preview (local file shipped with the app)."""
+    if family not in pv.FAMILIES or not _PREVIEW_FILE.match(name):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Preview not found")
+    path = pv.PREVIEW_DIR / family / name
+    if not path.is_file():
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Preview not found")
+    media = "video/mp4" if name.endswith(".mp4") else "image/webp"
+    return FileResponse(path, media_type=media, headers={"Cache-Control": "max-age=86400"})
 
 
 @router.get("/profiles")

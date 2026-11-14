@@ -121,3 +121,15 @@ class OutboundPolicy:
         if self._transport is not None:
             await self._transport.aclose()
             self._transport = None
+
+
+def backend_client(base_url: str, token: str, timeout: float = 120.0) -> httpx2.Client:
+    """A client for a FrameStudio backend the user named (the CLI's scripts,
+    such as ``framestudio previews``): its own API, signed in with its token.
+    It reaches no provider: those calls are the backend's, through its policy."""
+    return httpx2.Client(
+        base_url=base_url,
+        headers={"Authorization": f"Bearer {token}"},
+        timeout=timeout,
+        transport=httpx2.HTTPTransport(),
+    )

@@ -101,6 +101,8 @@ scripts/   dev, start and setup commands (plain Node, any OS)
   camera movement first for Seedance, tags and a negative prompt for diffusion models. Preview
   shows the result by section, and Settings shows which controls each model actually follows,
   measured with fixed-seed A/B pairs (hosted models are measured with your keys, within a budget).
+  Film and Camera chips above the prompt open the pickers: carousels for genre, era and pace,
+  dials for camera body, lens, focal length and aperture, all usable from the keyboard.
 - **Test doubles ship with the product** (D8): the mock engine, a hosted "Mock cloud" model,
   fake local and remote jobs, a scripted fake LLM, and offline key checks
   (`FRAMESTUDIO_FAKE_PROVIDERS=1`, where keys starting `fs-test-ok` pass).

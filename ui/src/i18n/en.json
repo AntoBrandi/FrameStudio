@@ -715,5 +715,24 @@
     },
     "checked": "measured {{date}}",
     "legend": "✓ followed · ~ partly · ✕ ignored · · not measured yet (hosted models are measured with your keys, within a budget) · – does not apply"
+  },
+  "shot": {
+    "film": "Film",
+    "filmHint": "The genre, era and pace the shot should feel like. The previews show each choice on the same scene.",
+    "camera": "Camera",
+    "cameraHint": "Camera body, lens, focal length and aperture. Turn a dial with the arrow keys or the mouse wheel.",
+    "cameraEmpty": "Pick a camera or a lens to see its look.",
+    "genre": "Genre",
+    "era": "Era",
+    "tempo": "Pace",
+    "body": "Camera",
+    "lens": "Lens",
+    "focal": "Focal length",
+    "aperture": "Aperture",
+    "none": "None",
+    "reset": "Reset all",
+    "done": "Done",
+    "close": "Close",
+    "clear": "Clear {{name}}"
   }
 }

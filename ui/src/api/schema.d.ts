@@ -456,6 +456,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/cinema/previews/{family}/{name}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get Preview
+     * @description A picker preview (local file shipped with the app).
+     */
+    get: operations["get_preview"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/cinema/profiles": {
     parameters: {
       query?: never;
@@ -485,7 +505,8 @@ export interface paths {
     };
     /**
      * Get Vocab
-     * @description Every choice the film, camera, move, palette and lighting pickers offer.
+     * @description Every choice the film, camera, move, palette and lighting pickers offer,
+     *     with the preview artwork that exists for them.
      */
     get: operations["get_vocab"];
     put?: never;
@@ -2580,6 +2601,13 @@ export interface components {
       /** Values */
       values?: (string | number)[] | null;
     };
+    /** Preview */
+    Preview: {
+      /** Image */
+      image?: string | null;
+      /** Video */
+      video?: string | null;
+    };
     /**
      * Pricing
      * @description What a request costs, for the estimate shown before Generate.
@@ -3180,8 +3208,8 @@ export interface components {
       /** Vram Recommended Gb */
       vram_recommended_gb?: number | null;
     };
-    /** Vocab */
-    Vocab: {
+    /** VocabOut */
+    VocabOut: {
       /** Apertures */
       apertures: string[];
       /** Bodies */
@@ -3200,6 +3228,12 @@ export interface components {
       moves: components["schemas"]["Term"][];
       /** Palettes */
       palettes: components["schemas"]["PaletteTerm"][];
+      /** Previews */
+      previews?: {
+        [key: string]: {
+          [key: string]: components["schemas"]["Preview"];
+        };
+      };
       /** Tempos */
       tempos: components["schemas"]["Term"][];
     };
@@ -4144,6 +4178,45 @@ export interface operations {
       };
     };
   };
+  get_preview: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        family: string;
+        name: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": unknown;
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
   get_profiles: {
     parameters: {
       query?: never;
@@ -4179,7 +4252,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["Vocab"];
+          "application/json": components["schemas"]["VocabOut"];
         };
       };
     };

@@ -117,6 +117,13 @@ Test media: `backend/tests/fixtures/media` (regenerate with `make_corpus.py`).
   picture metrics or a vision-model judge asked twice with the pictures swapped); built-in results
   in `adherence.yaml`, runs saved to `<data>/adherence.json`; ignored controls are flagged.
   Compiler goldens: `tests/golden/compiler/` (`FRAMESTUDIO_UPDATE_GOLDEN=1`).
+- Shot pickers (M5.2): UI `features/cinema/` — `ShotChips` (chips above the prompt) opens
+  `FilmPicker` (genre, era, pace carousels: radio groups) and `CameraPicker` (body, lens, focal,
+  aperture drums: listboxes); they write the composer store's `shots[mode]` (persisted).
+  Preview artwork: `cinema/previews.yaml` + `framestudio previews` (talks to a running backend
+  through `net.backend_client`; `--dry-run` prices it, a run needs `--budget`); installed files in
+  `framestudio/cinema/previews/`, listed in `/api/cinema/vocab` and served from
+  `/api/cinema/previews/...`; until then `PreviewArt` draws placeholders.
 - LLM contract fixtures: `backend/tests/contracts/fixtures/llm/<provider>/<case>.json`, synthetic
   until recorded (`uv run python -m tests.contracts.llm_wire` rewrites synthetic ones). Live runs:
   `LIVE_API=1 FRAMESTUDIO_LIVE_<PROVIDER>_KEY=… uv run pytest tests/contracts` (paid);

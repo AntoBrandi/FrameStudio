@@ -1,0 +1,41 @@
+# Preview artwork for the cinema pickers (plan step M5.2), made by
+# `framestudio previews` through a running FrameStudio with your keys.
+#
+# Each preview is a real generation: a fixed subject with one control set
+# (through the ShotSpec, so the compiler words it as that model reads it), so
+# the picture shows what the control does. Run with --dry-run first: it prices
+# every generation; a run is refused above its --budget. Several candidates
+# are made per choice; the first is installed and the others are kept to pick
+# from (--pick).
+
+image_model: nano-banana
+video_model: seedance-2-0-fast
+candidates: 2
+image_params: { aspect: "3:4" }
+video_params: { aspect: "1:1", resolution: "480p", duration: 4, audio: false }
+
+families:
+  genres:
+    kind: image
+    subject: "A woman waits under a streetlight in a small town square at dusk, a suitcase at her feet."
+  eras:
+    kind: image
+    subject: "A man reads a newspaper at a diner counter, a waitress pouring coffee behind him."
+  tempos:
+    kind: video
+    subject: "Commuters cross a busy city street at a crossing."
+  bodies:
+    kind: image
+    subject: "A girl on a bicycle rides past a row of shop fronts on a sunny afternoon."
+  lenses:
+    kind: image
+    subject: "A fox sits in a meadow of tall grass, looking at the camera."
+  palettes:
+    kind: image
+    subject: "A harbour street with fishing boats and a lighthouse in the distance."
+  lighting:
+    kind: image
+    subject: "A man sits alone at a wooden table in a quiet room, hands folded."
+  moves:
+    kind: video
+    subject: "A woman walks through a market hall full of hanging lamps and fruit stalls."

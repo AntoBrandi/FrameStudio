@@ -3736,6 +3736,34 @@
         "title": "ParamSpec",
         "type": "object"
       },
+      "Preview": {
+        "properties": {
+          "image": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image"
+          },
+          "video": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Video"
+          }
+        },
+        "title": "Preview",
+        "type": "object"
+      },
       "Pricing": {
         "additionalProperties": false,
         "description": "What a request costs, for the estimate shown before Generate.",
@@ -5217,7 +5245,7 @@
         "title": "Variant",
         "type": "object"
       },
-      "Vocab": {
+      "VocabOut": {
         "additionalProperties": false,
         "properties": {
           "apertures": {
@@ -5283,6 +5311,16 @@
             "title": "Palettes",
             "type": "array"
           },
+          "previews": {
+            "additionalProperties": {
+              "additionalProperties": {
+                "$ref": "#/components/schemas/Preview"
+              },
+              "type": "object"
+            },
+            "title": "Previews",
+            "type": "object"
+          },
           "tempos": {
             "items": {
               "$ref": "#/components/schemas/Term"
@@ -5303,7 +5341,7 @@
           "lighting",
           "palettes"
         ],
-        "title": "Vocab",
+        "title": "VocabOut",
         "type": "object"
       }
     }
@@ -6747,6 +6785,57 @@
         "tags": ["cinema"]
       }
     },
+    "/api/cinema/previews/{family}/{name}": {
+      "get": {
+        "description": "A picker preview (local file shipped with the app).",
+        "operationId": "get_preview",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "family",
+            "required": true,
+            "schema": {
+              "title": "Family",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "title": "Name",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Preview",
+        "tags": ["cinema"]
+      }
+    },
     "/api/cinema/profiles": {
       "get": {
         "description": "How the compiler writes for each model family.",
@@ -6773,14 +6862,14 @@
     },
     "/api/cinema/vocab": {
       "get": {
-        "description": "Every choice the film, camera, move, palette and lighting pickers offer.",
+        "description": "Every choice the film, camera, move, palette and lighting pickers offer,\nwith the preview artwork that exists for them.",
         "operationId": "get_vocab",
         "responses": {
           "200": {
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Vocab"
+                  "$ref": "#/components/schemas/VocabOut"
                 }
               }
             },
