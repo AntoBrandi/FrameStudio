@@ -37,6 +37,11 @@ class Term(BaseModel):
     phrase: str = ""
     tags: str = ""
     negative: str | None = None
+    #: Wording for a compiler profile (e.g. "seedance") instead of ``phrase``.
+    profiles: dict[str, str] = {}
+
+    def phrase_for(self, profile: str) -> str:
+        return self.profiles.get(profile, self.phrase)
 
 
 class PaletteTerm(BaseModel):

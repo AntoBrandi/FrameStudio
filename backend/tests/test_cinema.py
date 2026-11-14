@@ -155,7 +155,7 @@ def test_each_control_changes_the_request(profile: str, control: str) -> None:
 def test_the_families_write_differently() -> None:
     demo = {p: compiled(p, CASES["demo"]).prompt for p in PROFILES}
     # Seedance names the camera movement right after the subject.
-    assert re.search(r"glass\. Camera movement: the camera dollies in", demo["seedance"])
+    assert re.search(r"glass\. Camera movement: the camera pushes in", demo["seedance"])
     # Nano Banana spells out the palette's colours; Seedance does not.
     assert "#1F6F78" in demo["gemini"] and "#1F6F78" not in demo["seedance"]
     # Diffusion models get tags, not sentences.
@@ -187,8 +187,8 @@ def test_moves_from_tokens_come_first_and_once() -> None:
         spec, "video", SUBJECT, shot=shot, token_moves=["dolly-in", "rack-focus"]
     )
     assert (
-        "Camera movement: the camera dollies in toward the subject, then the focus racks "
-        "from the foreground to the background, then the camera orbits a full circle"
+        "Camera movement: the camera pushes in toward the subject, then the focus shifts "
+        "from the foreground to the background, then the camera orbits around the subject"
     ) in result.prompt
 
 
@@ -244,7 +244,8 @@ def test_vocabulary() -> None:
     for move in words.moves:
         assert re.fullmatch(r"[a-z0-9][a-z0-9-]*", move.id)
     # Natural words the offline test stand-ins react to must not appear in it.
-    text = VOCAB_FILE.read_text(encoding="utf-8").split("\n", 12)[-1].lower()
+    lines = VOCAB_FILE.read_text(encoding="utf-8").lower().splitlines()
+    text = "\n".join(line for line in lines if not line.lstrip().startswith("#"))
     for word in ("slow", "blocked", "inactive", "flaky", "expired"):
         assert not re.search(rf"\b{word}\b", text), word
 

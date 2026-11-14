@@ -124,6 +124,13 @@ Test media: `backend/tests/fixtures/media` (regenerate with `make_corpus.py`).
   through `net.backend_client`; `--dry-run` prices it, a run needs `--budget`); installed files in
   `framestudio/cinema/previews/`, listed in `/api/cinema/vocab` and served from
   `/api/cinema/previews/...`; until then `PreviewArt` draws placeholders.
+- Camera moves (M5.3): #move tokens in the prompt are the shot's moves, in prompt order (`shot.moves`
+  is for the API and the Director). Vocab entries can carry per-profile wording (`profiles:
+{seedance: …}`: BytePlus's camera verbs); the seedance profile notes more than two moves.
+  UI: `#` typeahead (`MovesPlugin` in `PromptEditor.tsx`, video only), `MovesPicker` and the Moves
+  chip; token edits in `features/cinema/moves.ts`. `cinema/motion.py` measures a clip's zoom
+  divergence (dolly in > 0, static ≈ 0) for smoke checks. Do not run `npx prettier --write src`
+  from `ui/`: it reformats the generated `openapi.json` (the ignore file lives at the root).
 - LLM contract fixtures: `backend/tests/contracts/fixtures/llm/<provider>/<case>.json`, synthetic
   until recorded (`uv run python -m tests.contracts.llm_wire` rewrites synthetic ones). Live runs:
   `LIVE_API=1 FRAMESTUDIO_LIVE_<PROVIDER>_KEY=… uv run pytest tests/contracts` (paid);

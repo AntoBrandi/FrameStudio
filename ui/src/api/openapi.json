@@ -19,7 +19,11 @@
             "type": "string"
           }
         },
-        "required": ["model", "name", "controls"],
+        "required": [
+          "model",
+          "name",
+          "controls"
+        ],
         "title": "AdherenceRow",
         "type": "object"
       },
@@ -93,7 +97,11 @@
           },
           "theme": {
             "default": "dark",
-            "enum": ["dark", "light", "system"],
+            "enum": [
+              "dark",
+              "light",
+              "system"
+            ],
             "title": "Theme",
             "type": "string"
           }
@@ -245,7 +253,11 @@
           "theme": {
             "anyOf": [
               {
-                "enum": ["dark", "light", "system"],
+                "enum": [
+                  "dark",
+                  "light",
+                  "system"
+                ],
                 "type": "string"
               },
               {
@@ -282,7 +294,11 @@
             "type": "array"
           }
         },
-        "required": ["kinds", "models", "months"],
+        "required": [
+          "kinds",
+          "models",
+          "months"
+        ],
         "title": "AssetFacets",
         "type": "object"
       },
@@ -298,7 +314,9 @@
             "type": "array"
           }
         },
-        "required": ["asset_ids"],
+        "required": [
+          "asset_ids"
+        ],
         "title": "AssetIds",
         "type": "object"
       },
@@ -309,7 +327,9 @@
             "type": "string"
           }
         },
-        "required": ["path"],
+        "required": [
+          "path"
+        ],
         "title": "AssetLocation",
         "type": "object"
       },
@@ -428,7 +448,11 @@
             "type": "string"
           },
           "kind": {
-            "enum": ["image", "video", "audio"],
+            "enum": [
+              "image",
+              "video",
+              "audio"
+            ],
             "title": "Kind",
             "type": "string"
           },
@@ -509,7 +533,10 @@
             "title": "Project Id"
           },
           "provenance": {
-            "enum": ["uploaded", "generated"],
+            "enum": [
+              "uploaded",
+              "generated"
+            ],
             "title": "Provenance",
             "type": "string"
           },
@@ -637,7 +664,11 @@
             "type": "integer"
           }
         },
-        "required": ["items", "next_cursor", "total"],
+        "required": [
+          "items",
+          "next_cursor",
+          "total"
+        ],
         "title": "AssetPage",
         "type": "object"
       },
@@ -715,7 +746,9 @@
             "title": "Project Id"
           }
         },
-        "required": ["file"],
+        "required": [
+          "file"
+        ],
         "title": "Body_import_elements",
         "type": "object"
       },
@@ -753,7 +786,9 @@
             "title": "Project Id"
           }
         },
-        "required": ["files"],
+        "required": [
+          "files"
+        ],
         "title": "Body_upload_assets",
         "type": "object"
       },
@@ -764,7 +799,9 @@
             "type": "integer"
           }
         },
-        "required": ["updated"],
+        "required": [
+          "updated"
+        ],
         "title": "BulkResult",
         "type": "object"
       },
@@ -856,7 +893,11 @@
           "key_store": {
             "anyOf": [
               {
-                "enum": ["keyring", "file", "memory"],
+                "enum": [
+                  "keyring",
+                  "file",
+                  "memory"
+                ],
                 "type": "string"
               },
               {
@@ -906,7 +947,13 @@
           "status": {
             "anyOf": [
               {
-                "enum": ["ok", "refused", "unreachable", "unchecked", "missing"],
+                "enum": [
+                  "ok",
+                  "refused",
+                  "unreachable",
+                  "unchecked",
+                  "missing"
+                ],
                 "type": "string"
               },
               {
@@ -1018,7 +1065,9 @@
             "type": "array"
           }
         },
-        "required": ["job_ids"],
+        "required": [
+          "job_ids"
+        ],
         "title": "DescribeQueued",
         "type": "object"
       },
@@ -1034,7 +1083,9 @@
             "type": "array"
           }
         },
-        "required": ["asset_ids"],
+        "required": [
+          "asset_ids"
+        ],
         "title": "DescribeRequest",
         "type": "object"
       },
@@ -1050,7 +1101,12 @@
           },
           "category": {
             "default": "auto",
-            "enum": ["character", "location", "prop", "auto"],
+            "enum": [
+              "character",
+              "location",
+              "prop",
+              "auto"
+            ],
             "title": "Category",
             "type": "string"
           },
@@ -1108,12 +1164,17 @@
           },
           "status": {
             "default": "draft",
-            "enum": ["draft", "ready"],
+            "enum": [
+              "draft",
+              "ready"
+            ],
             "title": "Status",
             "type": "string"
           }
         },
-        "required": ["name"],
+        "required": [
+          "name"
+        ],
         "title": "ElementCreate",
         "type": "object"
       },
@@ -1143,7 +1204,9 @@
             "title": "Project Id"
           }
         },
-        "required": ["name"],
+        "required": [
+          "name"
+        ],
         "title": "ElementFolderCreate",
         "type": "object"
       },
@@ -1177,7 +1240,13 @@
             "title": "Project Id"
           }
         },
-        "required": ["id", "project_id", "name", "color", "element_count"],
+        "required": [
+          "id",
+          "project_id",
+          "name",
+          "color",
+          "element_count"
+        ],
         "title": "ElementFolderOut",
         "type": "object"
       },
@@ -1226,7 +1295,12 @@
             "title": "Model"
           },
           "recipe": {
-            "enum": ["character_sheet", "location_set", "prop_turnaround", "turntable"],
+            "enum": [
+              "character_sheet",
+              "location_set",
+              "prop_turnaround",
+              "turntable"
+            ],
             "title": "Recipe",
             "type": "string"
           },
@@ -1258,7 +1332,9 @@
             "title": "Views"
           }
         },
-        "required": ["recipe"],
+        "required": [
+          "recipe"
+        ],
         "title": "ElementGenerate",
         "type": "object"
       },
@@ -1324,7 +1400,15 @@
             "type": "integer"
           }
         },
-        "required": ["ok", "problems", "model", "model_name", "views", "cost_usd", "seconds"],
+        "required": [
+          "ok",
+          "problems",
+          "model",
+          "model_name",
+          "views",
+          "cost_usd",
+          "seconds"
+        ],
         "title": "ElementGenerateEstimate",
         "type": "object"
       },
@@ -1346,7 +1430,9 @@
             "type": "string"
           }
         },
-        "required": ["asset_ids"],
+        "required": [
+          "asset_ids"
+        ],
         "title": "ElementMediaChange",
         "type": "object"
       },
@@ -1384,14 +1470,26 @@
             "type": "string"
           }
         },
-        "required": ["asset_id", "role", "position", "kind", "url", "thumb_url"],
+        "required": [
+          "asset_id",
+          "role",
+          "position",
+          "kind",
+          "url",
+          "thumb_url"
+        ],
         "title": "ElementMediaOut",
         "type": "object"
       },
       "ElementOut": {
         "properties": {
           "category": {
-            "enum": ["character", "location", "prop", "auto"],
+            "enum": [
+              "character",
+              "location",
+              "prop",
+              "auto"
+            ],
             "title": "Category",
             "type": "string"
           },
@@ -1464,7 +1562,10 @@
             "type": "object"
           },
           "status": {
-            "enum": ["draft", "ready"],
+            "enum": [
+              "draft",
+              "ready"
+            ],
             "title": "Status",
             "type": "string"
           },
@@ -1507,7 +1608,12 @@
           "category": {
             "anyOf": [
               {
-                "enum": ["character", "location", "prop", "auto"],
+                "enum": [
+                  "character",
+                  "location",
+                  "prop",
+                  "auto"
+                ],
                 "type": "string"
               },
               {
@@ -1585,7 +1691,10 @@
           "status": {
             "anyOf": [
               {
-                "enum": ["draft", "ready"],
+                "enum": [
+                  "draft",
+                  "ready"
+                ],
                 "type": "string"
               },
               {
@@ -1621,7 +1730,10 @@
             "type": "string"
           }
         },
-        "required": ["type", "handle"],
+        "required": [
+          "type",
+          "handle"
+        ],
         "title": "ElementToken",
         "type": "object"
       },
@@ -1640,7 +1752,11 @@
             "type": "integer"
           }
         },
-        "required": ["assets_deleted", "projects_deleted", "bytes_freed"],
+        "required": [
+          "assets_deleted",
+          "projects_deleted",
+          "bytes_freed"
+        ],
         "title": "EmptyTrashResult",
         "type": "object"
       },
@@ -1648,7 +1764,10 @@
         "properties": {
           "mode": {
             "default": "image",
-            "enum": ["image", "video"],
+            "enum": [
+              "image",
+              "video"
+            ],
             "title": "Mode",
             "type": "string"
           },
@@ -1670,7 +1789,9 @@
             "type": "string"
           }
         },
-        "required": ["prompt"],
+        "required": [
+          "prompt"
+        ],
         "title": "EnhanceRequest",
         "type": "object"
       },
@@ -1692,7 +1813,11 @@
             "type": "string"
           }
         },
-        "required": ["prompt", "changes", "llm"],
+        "required": [
+          "prompt",
+          "changes",
+          "llm"
+        ],
         "title": "EnhanceResult",
         "type": "object"
       },
@@ -1705,7 +1830,10 @@
           },
           "kind": {
             "default": "local",
-            "enum": ["local", "remote"],
+            "enum": [
+              "local",
+              "remote"
+            ],
             "title": "Kind",
             "type": "string"
           },
@@ -1732,7 +1860,9 @@
             "type": "array"
           }
         },
-        "required": ["endpoint_ids"],
+        "required": [
+          "endpoint_ids"
+        ],
         "title": "FalImport",
         "type": "object"
       },
@@ -1766,7 +1896,13 @@
             "type": "boolean"
           }
         },
-        "required": ["endpoint_id", "name", "category", "description", "supported"],
+        "required": [
+          "endpoint_id",
+          "name",
+          "category",
+          "description",
+          "supported"
+        ],
         "title": "FalModelSummary",
         "type": "object"
       },
@@ -1786,7 +1922,10 @@
             "type": "boolean"
           }
         },
-        "required": ["asset_ids", "favorite"],
+        "required": [
+          "asset_ids",
+          "favorite"
+        ],
         "title": "FavoriteAssets",
         "type": "object"
       },
@@ -1834,7 +1973,16 @@
         "properties": {
           "color": {
             "default": "tungsten",
-            "enum": ["tungsten", "daylight", "green", "rose", "violet", "teal", "amber", "slate"],
+            "enum": [
+              "tungsten",
+              "daylight",
+              "green",
+              "rose",
+              "violet",
+              "teal",
+              "amber",
+              "slate"
+            ],
             "title": "Color",
             "type": "string"
           },
@@ -1856,7 +2004,9 @@
             "title": "Project Id"
           }
         },
-        "required": ["name"],
+        "required": [
+          "name"
+        ],
         "title": "FolderCreate",
         "type": "object"
       },
@@ -1872,7 +2022,9 @@
             "type": "array"
           }
         },
-        "required": ["folder_ids"],
+        "required": [
+          "folder_ids"
+        ],
         "title": "FolderOrder",
         "type": "object"
       },
@@ -1883,7 +2035,16 @@
             "type": "integer"
           },
           "color": {
-            "enum": ["tungsten", "daylight", "green", "rose", "violet", "teal", "amber", "slate"],
+            "enum": [
+              "tungsten",
+              "daylight",
+              "green",
+              "rose",
+              "violet",
+              "teal",
+              "amber",
+              "slate"
+            ],
             "title": "Color",
             "type": "string"
           },
@@ -1916,7 +2077,15 @@
             "type": "integer"
           }
         },
-        "required": ["id", "project_id", "name", "color", "sort_order", "asset_count", "created_at"],
+        "required": [
+          "id",
+          "project_id",
+          "name",
+          "color",
+          "sort_order",
+          "asset_count",
+          "created_at"
+        ],
         "title": "FolderOut",
         "type": "object"
       },
@@ -1925,7 +2094,16 @@
           "color": {
             "anyOf": [
               {
-                "enum": ["tungsten", "daylight", "green", "rose", "violet", "teal", "amber", "slate"],
+                "enum": [
+                  "tungsten",
+                  "daylight",
+                  "green",
+                  "rose",
+                  "violet",
+                  "teal",
+                  "amber",
+                  "slate"
+                ],
                 "type": "string"
               },
               {
@@ -1978,7 +2156,11 @@
           },
           "attach_role": {
             "default": "sheet",
-            "enum": ["sheet", "angle", "turntable"],
+            "enum": [
+              "sheet",
+              "angle",
+              "turntable"
+            ],
             "title": "Attach Role",
             "type": "string"
           },
@@ -2018,7 +2200,10 @@
           },
           "mode": {
             "default": "image",
-            "enum": ["image", "video"],
+            "enum": [
+              "image",
+              "video"
+            ],
             "title": "Mode",
             "type": "string"
           },
@@ -2202,7 +2387,13 @@
             "title": "Seconds"
           }
         },
-        "required": ["ok", "problems", "cost_usd", "seconds", "notes"],
+        "required": [
+          "ok",
+          "problems",
+          "cost_usd",
+          "seconds",
+          "notes"
+        ],
         "title": "GenerationEstimate",
         "type": "object"
       },
@@ -2314,7 +2505,10 @@
             "title": "Job Id"
           },
           "mode": {
-            "enum": ["image", "video"],
+            "enum": [
+              "image",
+              "video"
+            ],
             "title": "Mode",
             "type": "string"
           },
@@ -2448,7 +2642,14 @@
             "title": "Started At"
           },
           "status": {
-            "enum": ["queued", "running", "succeeded", "failed", "cancelled", "interrupted"],
+            "enum": [
+              "queued",
+              "running",
+              "succeeded",
+              "failed",
+              "cancelled",
+              "interrupted"
+            ],
             "title": "Status",
             "type": "string"
           }
@@ -2605,7 +2806,14 @@
             "title": "Start Frame"
           }
         },
-        "required": ["id", "mode", "model_id", "prompt", "seed", "params"],
+        "required": [
+          "id",
+          "mode",
+          "model_id",
+          "prompt",
+          "seed",
+          "params"
+        ],
         "title": "GenerationSummary",
         "type": "object"
       },
@@ -2643,7 +2851,12 @@
             "type": "string"
           }
         },
-        "required": ["status", "app", "version", "api_version"],
+        "required": [
+          "status",
+          "app",
+          "version",
+          "api_version"
+        ],
         "title": "Health",
         "type": "object"
       },
@@ -2671,7 +2884,11 @@
             "type": "object"
           }
         },
-        "required": ["created", "renamed", "problems"],
+        "required": [
+          "created",
+          "renamed",
+          "problems"
+        ],
         "title": "ImportResult",
         "type": "object"
       },
@@ -2719,7 +2936,9 @@
             "type": "string"
           }
         },
-        "required": ["name"],
+        "required": [
+          "name"
+        ],
         "title": "IngestItem",
         "type": "object"
       },
@@ -2777,7 +2996,10 @@
             "type": "string"
           },
           "lane": {
-            "enum": ["gpu", "network"],
+            "enum": [
+              "gpu",
+              "network"
+            ],
             "title": "Lane",
             "type": "string"
           },
@@ -2825,7 +3047,15 @@
             "title": "Started At"
           },
           "state": {
-            "enum": ["queued", "submitting", "running", "succeeded", "failed", "cancelled", "interrupted"],
+            "enum": [
+              "queued",
+              "submitting",
+              "running",
+              "succeeded",
+              "failed",
+              "cancelled",
+              "interrupted"
+            ],
             "title": "State",
             "type": "string"
           },
@@ -2967,7 +3197,10 @@
             "type": "array"
           }
         },
-        "required": ["providers", "tasks"],
+        "required": [
+          "providers",
+          "tasks"
+        ],
         "title": "LLMOverview",
         "type": "object"
       },
@@ -3000,7 +3233,12 @@
             "type": "string"
           }
         },
-        "required": ["provider", "name", "models", "error"],
+        "required": [
+          "provider",
+          "name",
+          "models",
+          "error"
+        ],
         "title": "LLMProviderOut",
         "type": "object"
       },
@@ -3022,12 +3260,21 @@
             "title": "Effective"
           },
           "task": {
-            "enum": ["default", "prompt_help", "captions", "director"],
+            "enum": [
+              "default",
+              "prompt_help",
+              "captions",
+              "director"
+            ],
             "title": "Task",
             "type": "string"
           }
         },
-        "required": ["task", "choice", "effective"],
+        "required": [
+          "task",
+          "choice",
+          "effective"
+        ],
         "title": "LLMTaskOut",
         "type": "object"
       },
@@ -3082,7 +3329,15 @@
             "type": "integer"
           }
         },
-        "required": ["total", "favorites", "trashed", "kinds", "models", "last_viewed_id", "last_downloaded_id"],
+        "required": [
+          "total",
+          "favorites",
+          "trashed",
+          "kinds",
+          "models",
+          "last_viewed_id",
+          "last_downloaded_id"
+        ],
         "title": "LibrarySummary",
         "type": "object"
       },
@@ -3091,7 +3346,12 @@
         "description": "Who made the model and on what terms, shown before use.",
         "properties": {
           "commercial_use": {
-            "enum": ["yes", "no", "restricted", "unknown"],
+            "enum": [
+              "yes",
+              "no",
+              "restricted",
+              "unknown"
+            ],
             "title": "Commercial Use",
             "type": "string"
           },
@@ -3112,7 +3372,11 @@
             "title": "Evidence Url"
           },
           "kind": {
-            "enum": ["open_weights", "hosted_service", "test_double"],
+            "enum": [
+              "open_weights",
+              "hosted_service",
+              "test_double"
+            ],
             "title": "Kind",
             "type": "string"
           },
@@ -3132,7 +3396,13 @@
             "type": "string"
           }
         },
-        "required": ["kind", "name", "commercial_use", "credit", "source_url"],
+        "required": [
+          "kind",
+          "name",
+          "commercial_use",
+          "credit",
+          "source_url"
+        ],
         "title": "LicenseRecord",
         "type": "object"
       },
@@ -3196,7 +3466,11 @@
           },
           "reference_kinds": {
             "items": {
-              "enum": ["image", "video", "audio"],
+              "enum": [
+                "image",
+                "video",
+                "audio"
+              ],
               "type": "string"
             },
             "title": "Reference Kinds",
@@ -3222,7 +3496,10 @@
           "method": {
             "anyOf": [
               {
-                "enum": ["metric", "judge"],
+                "enum": [
+                  "metric",
+                  "judge"
+                ],
                 "type": "string"
               },
               {
@@ -3254,12 +3531,19 @@
             "title": "Score"
           },
           "status": {
-            "enum": ["followed", "weak", "ignored", "untested"],
+            "enum": [
+              "followed",
+              "weak",
+              "ignored",
+              "untested"
+            ],
             "title": "Status",
             "type": "string"
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "title": "Measurement",
         "type": "object"
       },
@@ -3274,7 +3558,9 @@
             "type": "array"
           }
         },
-        "required": ["asset_ids"],
+        "required": [
+          "asset_ids"
+        ],
         "title": "MediaOrder",
         "type": "object"
       },
@@ -3317,7 +3603,10 @@
           },
           "modes": {
             "items": {
-              "enum": ["image", "video"],
+              "enum": [
+                "image",
+                "video"
+              ],
               "type": "string"
             },
             "title": "Modes",
@@ -3364,7 +3653,10 @@
             "type": "array"
           },
           "runtime": {
-            "enum": ["local", "api"],
+            "enum": [
+              "local",
+              "api"
+            ],
             "title": "Runtime",
             "type": "string"
           },
@@ -3427,7 +3719,10 @@
             "type": "string"
           }
         },
-        "required": ["month", "count"],
+        "required": [
+          "month",
+          "count"
+        ],
         "title": "MonthCount",
         "type": "object"
       },
@@ -3466,7 +3761,9 @@
             "title": "Project Id"
           }
         },
-        "required": ["asset_ids"],
+        "required": [
+          "asset_ids"
+        ],
         "title": "MoveAssets",
         "type": "object"
       },
@@ -3482,7 +3779,10 @@
             "type": "string"
           }
         },
-        "required": ["type", "name"],
+        "required": [
+          "type",
+          "name"
+        ],
         "title": "MoveToken",
         "type": "object"
       },
@@ -3496,7 +3796,9 @@
             "type": "array"
           }
         },
-        "required": ["names"],
+        "required": [
+          "names"
+        ],
         "title": "NameSuggestions",
         "type": "object"
       },
@@ -3585,7 +3887,12 @@
             "type": "string"
           }
         },
-        "required": ["id", "label", "words", "swatches"],
+        "required": [
+          "id",
+          "label",
+          "words",
+          "swatches"
+        ],
         "title": "PaletteTerm",
         "type": "object"
       },
@@ -3600,7 +3907,15 @@
           "control": {
             "anyOf": [
               {
-                "enum": ["pills", "select", "slider", "toggle", "stepper", "seed", "text"],
+                "enum": [
+                  "pills",
+                  "select",
+                  "slider",
+                  "toggle",
+                  "stepper",
+                  "seed",
+                  "text"
+                ],
                 "type": "string"
               },
               {
@@ -3617,7 +3932,10 @@
               {
                 "additionalProperties": true,
                 "propertyNames": {
-                  "enum": ["image", "video"]
+                  "enum": [
+                    "image",
+                    "video"
+                  ]
                 },
                 "type": "object"
               },
@@ -3669,7 +3987,10 @@
             "anyOf": [
               {
                 "items": {
-                  "enum": ["image", "video"],
+                  "enum": [
+                    "image",
+                    "video"
+                  ],
                   "type": "string"
                 },
                 "type": "array"
@@ -3692,7 +4013,14 @@
             "title": "Step"
           },
           "type": {
-            "enum": ["enum", "integer", "number", "boolean", "seed", "string"],
+            "enum": [
+              "enum",
+              "integer",
+              "number",
+              "boolean",
+              "seed",
+              "string"
+            ],
             "title": "Type",
             "type": "string"
           },
@@ -3732,7 +4060,10 @@
             "title": "Values"
           }
         },
-        "required": ["type", "label"],
+        "required": [
+          "type",
+          "label"
+        ],
         "title": "ParamSpec",
         "type": "object"
       },
@@ -3804,7 +4135,11 @@
             "title": "Table"
           },
           "unit": {
-            "enum": ["image", "video_second", "request"],
+            "enum": [
+              "image",
+              "video_second",
+              "request"
+            ],
             "title": "Unit",
             "type": "string"
           },
@@ -3814,7 +4149,12 @@
             "type": "number"
           }
         },
-        "required": ["unit", "usd", "source_url", "checked_at"],
+        "required": [
+          "unit",
+          "usd",
+          "source_url",
+          "checked_at"
+        ],
         "title": "Pricing",
         "type": "object"
       },
@@ -3823,7 +4163,16 @@
         "properties": {
           "drop_order": {
             "items": {
-              "enum": ["subject", "moves", "camera", "film", "lighting", "palette", "elements", "negative"],
+              "enum": [
+                "subject",
+                "moves",
+                "camera",
+                "film",
+                "lighting",
+                "palette",
+                "elements",
+                "negative"
+              ],
               "type": "string"
             },
             "title": "Drop Order",
@@ -3837,6 +4186,17 @@
           "id": {
             "title": "Id",
             "type": "string"
+          },
+          "max_moves": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Moves"
           },
           "native": {
             "additionalProperties": {
@@ -3855,25 +4215,47 @@
             "type": "object"
           },
           "negatives": {
-            "enum": ["inline", "param", "drop"],
+            "enum": [
+              "inline",
+              "param",
+              "drop"
+            ],
             "title": "Negatives",
             "type": "string"
           },
           "order": {
             "items": {
-              "enum": ["subject", "moves", "camera", "film", "lighting", "palette", "elements", "negative"],
+              "enum": [
+                "subject",
+                "moves",
+                "camera",
+                "film",
+                "lighting",
+                "palette",
+                "elements",
+                "negative"
+              ],
               "type": "string"
             },
             "title": "Order",
             "type": "array"
           },
           "style": {
-            "enum": ["sentences", "tags"],
+            "enum": [
+              "sentences",
+              "tags"
+            ],
             "title": "Style",
             "type": "string"
           }
         },
-        "required": ["id", "style", "order", "drop_order", "negatives"],
+        "required": [
+          "id",
+          "style",
+          "order",
+          "drop_order",
+          "negatives"
+        ],
         "title": "Profile",
         "type": "object"
       },
@@ -3892,7 +4274,9 @@
             "type": "string"
           }
         },
-        "required": ["name"],
+        "required": [
+          "name"
+        ],
         "title": "ProjectCreate",
         "type": "object"
       },
@@ -4263,7 +4647,11 @@
             "type": "array"
           }
         },
-        "required": ["tokens", "text", "warnings"],
+        "required": [
+          "tokens",
+          "text",
+          "warnings"
+        ],
         "title": "PromptParsed",
         "type": "object"
       },
@@ -4332,7 +4720,12 @@
             "type": "array"
           },
           "id": {
-            "enum": ["character_sheet", "location_set", "prop_turnaround", "turntable"],
+            "enum": [
+              "character_sheet",
+              "location_set",
+              "prop_turnaround",
+              "turntable"
+            ],
             "title": "Id",
             "type": "string"
           },
@@ -4341,7 +4734,10 @@
             "type": "string"
           },
           "mode": {
-            "enum": ["image", "video"],
+            "enum": [
+              "image",
+              "video"
+            ],
             "title": "Mode",
             "type": "string"
           },
@@ -4375,7 +4771,15 @@
             "type": "array"
           }
         },
-        "required": ["id", "label", "mode", "categories", "views", "model", "model_name"],
+        "required": [
+          "id",
+          "label",
+          "mode",
+          "categories",
+          "views",
+          "model",
+          "model_name"
+        ],
         "title": "RecipeOut",
         "type": "object"
       },
@@ -4390,7 +4794,10 @@
             "type": "string"
           }
         },
-        "required": ["id", "label"],
+        "required": [
+          "id",
+          "label"
+        ],
         "title": "RecipeViewOut",
         "type": "object"
       },
@@ -4452,7 +4859,11 @@
             "type": "array"
           },
           "strategy": {
-            "enum": ["multi_reference", "single_image", "description"],
+            "enum": [
+              "multi_reference",
+              "single_image",
+              "description"
+            ],
             "title": "Strategy",
             "type": "string"
           },
@@ -4464,7 +4875,14 @@
             "type": "array"
           }
         },
-        "required": ["model", "strategy", "prompt", "references", "elements", "warnings"],
+        "required": [
+          "model",
+          "strategy",
+          "prompt",
+          "references",
+          "elements",
+          "warnings"
+        ],
         "title": "Resolved",
         "type": "object"
       },
@@ -4495,7 +4913,14 @@
             "type": "integer"
           }
         },
-        "required": ["id", "handle", "name", "version", "images", "described"],
+        "required": [
+          "id",
+          "handle",
+          "name",
+          "version",
+          "images",
+          "described"
+        ],
         "title": "ResolvedElement",
         "type": "object"
       },
@@ -4521,7 +4946,10 @@
             "type": "string"
           },
           "source": {
-            "enum": ["attached", "element"],
+            "enum": [
+              "attached",
+              "element"
+            ],
             "title": "Source",
             "type": "string"
           },
@@ -4537,7 +4965,11 @@
             "title": "Thumb Url"
           }
         },
-        "required": ["asset_id", "label", "source"],
+        "required": [
+          "asset_id",
+          "label",
+          "source"
+        ],
         "title": "ResolvedReference",
         "type": "object"
       },
@@ -4578,7 +5010,13 @@
             "title": "Rank"
           }
         },
-        "required": ["id", "name", "rank", "available", "misfit"],
+        "required": [
+          "id",
+          "name",
+          "rank",
+          "available",
+          "misfit"
+        ],
         "title": "RouteOption",
         "type": "object"
       },
@@ -4607,7 +5045,11 @@
             "type": "string"
           }
         },
-        "required": ["model", "reason", "options"],
+        "required": [
+          "model",
+          "reason",
+          "options"
+        ],
         "title": "RouteResult",
         "type": "object"
       },
@@ -4646,7 +5088,11 @@
             "type": "object"
           }
         },
-        "required": ["when", "allow", "reason"],
+        "required": [
+          "when",
+          "allow",
+          "reason"
+        ],
         "title": "Rule",
         "type": "object"
       },
@@ -4676,7 +5122,13 @@
             "type": "boolean"
           }
         },
-        "required": ["model", "controls", "generations", "cost_usd", "within_budget"],
+        "required": [
+          "model",
+          "controls",
+          "generations",
+          "cost_usd",
+          "within_budget"
+        ],
         "title": "RunEstimate",
         "type": "object"
       },
@@ -4714,7 +5166,9 @@
             "type": "integer"
           }
         },
-        "required": ["model"],
+        "required": [
+          "model"
+        ],
         "title": "RunRequest",
         "type": "object"
       },
@@ -4748,12 +5202,20 @@
             "type": "object"
           },
           "state": {
-            "enum": ["running", "done", "failed"],
+            "enum": [
+              "running",
+              "done",
+              "failed"
+            ],
             "title": "State",
             "type": "string"
           }
         },
-        "required": ["id", "model", "state"],
+        "required": [
+          "id",
+          "model",
+          "state"
+        ],
         "title": "RunState",
         "type": "object"
       },
@@ -4768,7 +5230,16 @@
             "type": "array"
           },
           "family": {
-            "enum": ["subject", "moves", "camera", "film", "lighting", "palette", "elements", "negative"],
+            "enum": [
+              "subject",
+              "moves",
+              "camera",
+              "film",
+              "lighting",
+              "palette",
+              "elements",
+              "negative"
+            ],
             "title": "Family",
             "type": "string"
           },
@@ -4793,7 +5264,10 @@
             "type": "string"
           }
         },
-        "required": ["family", "text"],
+        "required": [
+          "family",
+          "text"
+        ],
         "title": "Section",
         "type": "object"
       },
@@ -4806,7 +5280,9 @@
             "type": "string"
           }
         },
-        "required": ["token"],
+        "required": [
+          "token"
+        ],
         "title": "SessionCreate",
         "type": "object"
       },
@@ -4864,7 +5340,10 @@
             "type": "string"
           }
         },
-        "required": ["type", "name"],
+        "required": [
+          "type",
+          "name"
+        ],
         "title": "SkillToken",
         "type": "object"
       },
@@ -4904,7 +5383,15 @@
             "$ref": "#/components/schemas/StorageRow"
           }
         },
-        "required": ["disk_bytes", "media_bytes", "derived_bytes", "database_bytes", "by_kind", "by_project", "trash"],
+        "required": [
+          "disk_bytes",
+          "media_bytes",
+          "derived_bytes",
+          "database_bytes",
+          "by_kind",
+          "by_project",
+          "trash"
+        ],
         "title": "StorageReport",
         "type": "object"
       },
@@ -4927,7 +5414,12 @@
             "type": "string"
           }
         },
-        "required": ["key", "label", "count", "bytes"],
+        "required": [
+          "key",
+          "label",
+          "count",
+          "bytes"
+        ],
         "title": "StorageRow",
         "type": "object"
       },
@@ -4959,7 +5451,12 @@
             "type": "boolean"
           },
           "os": {
-            "enum": ["linux", "windows", "macos", "other"],
+            "enum": [
+              "linux",
+              "windows",
+              "macos",
+              "other"
+            ],
             "title": "Os",
             "type": "string"
           },
@@ -5068,13 +5565,24 @@
             "title": "Phrase",
             "type": "string"
           },
+          "profiles": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "default": {},
+            "title": "Profiles",
+            "type": "object"
+          },
           "tags": {
             "default": "",
             "title": "Tags",
             "type": "string"
           }
         },
-        "required": ["id", "label"],
+        "required": [
+          "id",
+          "label"
+        ],
         "title": "Term",
         "type": "object"
       },
@@ -5090,7 +5598,10 @@
             "type": "string"
           }
         },
-        "required": ["type", "text"],
+        "required": [
+          "type",
+          "text"
+        ],
         "title": "TextToken",
         "type": "object"
       },
@@ -5105,7 +5616,10 @@
             "type": "boolean"
           }
         },
-        "required": ["ffmpeg", "ffprobe"],
+        "required": [
+          "ffmpeg",
+          "ffprobe"
+        ],
         "title": "ToolStatus",
         "type": "object"
       },
@@ -5127,7 +5641,11 @@
             "type": "number"
           }
         },
-        "required": ["month", "providers", "total_cost_usd"],
+        "required": [
+          "month",
+          "providers",
+          "total_cost_usd"
+        ],
         "title": "UsageSummary",
         "type": "object"
       },
@@ -5163,7 +5681,11 @@
             "type": "string"
           }
         },
-        "required": ["loc", "msg", "type"],
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
         "title": "ValidationError",
         "type": "object"
       },
@@ -5173,7 +5695,13 @@
         "properties": {
           "accelerators": {
             "items": {
-              "enum": ["cuda", "rocm", "mps", "vulkan", "cpu"],
+              "enum": [
+                "cuda",
+                "rocm",
+                "mps",
+                "vulkan",
+                "cpu"
+              ],
               "type": "string"
             },
             "title": "Accelerators",
@@ -5188,14 +5716,24 @@
           },
           "engines": {
             "items": {
-              "enum": ["comfyui", "sdcpp", "python"],
+              "enum": [
+                "comfyui",
+                "sdcpp",
+                "python"
+              ],
               "type": "string"
             },
             "title": "Engines",
             "type": "array"
           },
           "format": {
-            "enum": ["fp32", "bf16", "fp16", "fp8", "gguf"],
+            "enum": [
+              "fp32",
+              "bf16",
+              "fp16",
+              "fp8",
+              "gguf"
+            ],
             "title": "Format",
             "type": "string"
           },
@@ -5241,7 +5779,15 @@
             "title": "Vram Recommended Gb"
           }
         },
-        "required": ["id", "format", "size_gb", "vram_min_gb", "ram_min_gb", "accelerators", "engines"],
+        "required": [
+          "id",
+          "format",
+          "size_gb",
+          "vram_min_gb",
+          "ram_min_gb",
+          "accelerators",
+          "engines"
+        ],
         "title": "Variant",
         "type": "object"
       },
@@ -5400,7 +5946,11 @@
             "schema": {
               "default": [],
               "items": {
-                "enum": ["image", "video", "audio"],
+                "enum": [
+                  "image",
+                  "video",
+                  "audio"
+                ],
                 "type": "string"
               },
               "title": "Kind",
@@ -5495,7 +6045,10 @@
             "schema": {
               "anyOf": [
                 {
-                  "enum": ["uploaded", "generated"],
+                  "enum": [
+                    "uploaded",
+                    "generated"
+                  ],
                   "type": "string"
                 },
                 {
@@ -5538,7 +6091,10 @@
             "required": false,
             "schema": {
               "default": "newest",
-              "enum": ["newest", "oldest"],
+              "enum": [
+                "newest",
+                "oldest"
+              ],
               "title": "Sort",
               "type": "string"
             }
@@ -5595,7 +6151,9 @@
           }
         },
         "summary": "List Assets",
-        "tags": ["assets"]
+        "tags": [
+          "assets"
+        ]
       }
     },
     "/api/assets/describe": {
@@ -5638,7 +6196,9 @@
           }
         },
         "summary": "Describe Assets",
-        "tags": ["assets"]
+        "tags": [
+          "assets"
+        ]
       }
     },
     "/api/assets/facets": {
@@ -5689,7 +6249,11 @@
             "schema": {
               "default": [],
               "items": {
-                "enum": ["image", "video", "audio"],
+                "enum": [
+                  "image",
+                  "video",
+                  "audio"
+                ],
                 "type": "string"
               },
               "title": "Kind",
@@ -5784,7 +6348,10 @@
             "schema": {
               "anyOf": [
                 {
-                  "enum": ["uploaded", "generated"],
+                  "enum": [
+                    "uploaded",
+                    "generated"
+                  ],
                   "type": "string"
                 },
                 {
@@ -5845,7 +6412,9 @@
           }
         },
         "summary": "Asset Facets",
-        "tags": ["assets"]
+        "tags": [
+          "assets"
+        ]
       }
     },
     "/api/assets/favorite": {
@@ -5884,7 +6453,9 @@
           }
         },
         "summary": "Favorite Assets",
-        "tags": ["assets"]
+        "tags": [
+          "assets"
+        ]
       }
     },
     "/api/assets/move": {
@@ -5926,7 +6497,9 @@
           }
         },
         "summary": "Move Assets",
-        "tags": ["assets"]
+        "tags": [
+          "assets"
+        ]
       }
     },
     "/api/assets/restore": {
@@ -5965,7 +6538,9 @@
           }
         },
         "summary": "Restore Assets",
-        "tags": ["trash"]
+        "tags": [
+          "trash"
+        ]
       }
     },
     "/api/assets/summary": {
@@ -6012,7 +6587,9 @@
           }
         },
         "summary": "Library Summary",
-        "tags": ["assets"]
+        "tags": [
+          "assets"
+        ]
       }
     },
     "/api/assets/trash": {
@@ -6051,7 +6628,9 @@
           }
         },
         "summary": "Trash Assets",
-        "tags": ["trash"]
+        "tags": [
+          "trash"
+        ]
       }
     },
     "/api/assets/upload": {
@@ -6098,7 +6677,9 @@
           }
         },
         "summary": "Upload Assets",
-        "tags": ["assets"]
+        "tags": [
+          "assets"
+        ]
       }
     },
     "/api/assets/{asset_id}": {
@@ -6141,7 +6722,9 @@
           }
         },
         "summary": "Get Asset",
-        "tags": ["assets"]
+        "tags": [
+          "assets"
+        ]
       },
       "patch": {
         "operationId": "patch_asset",
@@ -6192,7 +6775,9 @@
           }
         },
         "summary": "Patch Asset",
-        "tags": ["assets"]
+        "tags": [
+          "assets"
+        ]
       }
     },
     "/api/assets/{asset_id}/file": {
@@ -6242,7 +6827,9 @@
           }
         },
         "summary": "Asset File",
-        "tags": ["assets"]
+        "tags": [
+          "assets"
+        ]
       }
     },
     "/api/assets/{asset_id}/location": {
@@ -6286,7 +6873,9 @@
           }
         },
         "summary": "Asset Location",
-        "tags": ["assets"]
+        "tags": [
+          "assets"
+        ]
       }
     },
     "/api/assets/{asset_id}/name-suggestions": {
@@ -6330,7 +6919,9 @@
           }
         },
         "summary": "Name Suggestions",
-        "tags": ["assets"]
+        "tags": [
+          "assets"
+        ]
       }
     },
     "/api/assets/{asset_id}/poster": {
@@ -6369,7 +6960,9 @@
           }
         },
         "summary": "Asset Poster",
-        "tags": ["assets"]
+        "tags": [
+          "assets"
+        ]
       }
     },
     "/api/assets/{asset_id}/preview": {
@@ -6408,7 +7001,9 @@
           }
         },
         "summary": "Asset Preview",
-        "tags": ["assets"]
+        "tags": [
+          "assets"
+        ]
       }
     },
     "/api/assets/{asset_id}/thumb": {
@@ -6447,7 +7042,9 @@
           }
         },
         "summary": "Asset Thumb",
-        "tags": ["assets"]
+        "tags": [
+          "assets"
+        ]
       }
     },
     "/api/assets/{asset_id}/viewed": {
@@ -6480,7 +7077,9 @@
           }
         },
         "summary": "Asset Viewed",
-        "tags": ["assets"]
+        "tags": [
+          "assets"
+        ]
       }
     },
     "/api/auth/session": {
@@ -6492,7 +7091,9 @@
           }
         },
         "summary": "Delete Session",
-        "tags": ["auth"]
+        "tags": [
+          "auth"
+        ]
       },
       "post": {
         "operationId": "create_session",
@@ -6525,7 +7126,9 @@
           }
         },
         "summary": "Create Session",
-        "tags": ["auth"]
+        "tags": [
+          "auth"
+        ]
       }
     },
     "/api/catalog/fal/import": {
@@ -6569,7 +7172,9 @@
           }
         },
         "summary": "Import Fal Models",
-        "tags": ["models"]
+        "tags": [
+          "models"
+        ]
       }
     },
     "/api/catalog/fal/search": {
@@ -6632,7 +7237,9 @@
           }
         },
         "summary": "Search Fal Models",
-        "tags": ["models"]
+        "tags": [
+          "models"
+        ]
       }
     },
     "/api/cinema/adherence": {
@@ -6656,7 +7263,9 @@
           }
         },
         "summary": "Get Adherence",
-        "tags": ["cinema"]
+        "tags": [
+          "cinema"
+        ]
       }
     },
     "/api/cinema/adherence/estimate": {
@@ -6696,7 +7305,9 @@
           }
         },
         "summary": "Estimate Adherence",
-        "tags": ["cinema"]
+        "tags": [
+          "cinema"
+        ]
       }
     },
     "/api/cinema/adherence/runs": {
@@ -6739,7 +7350,9 @@
           }
         },
         "summary": "Start Adherence Run",
-        "tags": ["cinema"]
+        "tags": [
+          "cinema"
+        ]
       }
     },
     "/api/cinema/adherence/runs/{run_id}": {
@@ -6782,7 +7395,9 @@
           }
         },
         "summary": "Get Adherence Run",
-        "tags": ["cinema"]
+        "tags": [
+          "cinema"
+        ]
       }
     },
     "/api/cinema/previews/{family}/{name}": {
@@ -6833,7 +7448,9 @@
           }
         },
         "summary": "Get Preview",
-        "tags": ["cinema"]
+        "tags": [
+          "cinema"
+        ]
       }
     },
     "/api/cinema/profiles": {
@@ -6857,7 +7474,9 @@
           }
         },
         "summary": "Get Profiles",
-        "tags": ["cinema"]
+        "tags": [
+          "cinema"
+        ]
       }
     },
     "/api/cinema/vocab": {
@@ -6877,7 +7496,9 @@
           }
         },
         "summary": "Get Vocab",
-        "tags": ["cinema"]
+        "tags": [
+          "cinema"
+        ]
       }
     },
     "/api/connections": {
@@ -6900,7 +7521,9 @@
           }
         },
         "summary": "List Connections",
-        "tags": ["connections"]
+        "tags": [
+          "connections"
+        ]
       }
     },
     "/api/connections/{provider}": {
@@ -6934,7 +7557,9 @@
           }
         },
         "summary": "Remove Connection",
-        "tags": ["connections"]
+        "tags": [
+          "connections"
+        ]
       },
       "get": {
         "operationId": "get_connection",
@@ -6972,7 +7597,9 @@
           }
         },
         "summary": "Get Connection",
-        "tags": ["connections"]
+        "tags": [
+          "connections"
+        ]
       },
       "put": {
         "description": "Add or replace the key (checked with the provider first), turn the\nconnection on or off, or set its monthly cap.",
@@ -7021,7 +7648,9 @@
           }
         },
         "summary": "Update Connection",
-        "tags": ["connections"]
+        "tags": [
+          "connections"
+        ]
       }
     },
     "/api/connections/{provider}/check": {
@@ -7061,7 +7690,9 @@
           }
         },
         "summary": "Check Connection",
-        "tags": ["connections"]
+        "tags": [
+          "connections"
+        ]
       }
     },
     "/api/elements": {
@@ -7102,7 +7733,12 @@
             "schema": {
               "anyOf": [
                 {
-                  "enum": ["character", "location", "prop", "auto"],
+                  "enum": [
+                    "character",
+                    "location",
+                    "prop",
+                    "auto"
+                  ],
                   "type": "string"
                 },
                 {
@@ -7119,7 +7755,10 @@
             "schema": {
               "anyOf": [
                 {
-                  "enum": ["draft", "ready"],
+                  "enum": [
+                    "draft",
+                    "ready"
+                  ],
                   "type": "string"
                 },
                 {
@@ -7189,7 +7828,9 @@
           }
         },
         "summary": "List Elements",
-        "tags": ["elements"]
+        "tags": [
+          "elements"
+        ]
       },
       "post": {
         "operationId": "create_element",
@@ -7232,7 +7873,9 @@
           }
         },
         "summary": "Create Element",
-        "tags": ["elements"]
+        "tags": [
+          "elements"
+        ]
       }
     },
     "/api/elements/export": {
@@ -7262,7 +7905,10 @@
             "required": false,
             "schema": {
               "default": "zip",
-              "enum": ["csv", "zip"],
+              "enum": [
+                "csv",
+                "zip"
+              ],
               "title": "Format",
               "type": "string"
             }
@@ -7291,7 +7937,9 @@
           }
         },
         "summary": "Export Elements",
-        "tags": ["elements"]
+        "tags": [
+          "elements"
+        ]
       }
     },
     "/api/elements/folders": {
@@ -7342,7 +7990,9 @@
           }
         },
         "summary": "List Element Folders",
-        "tags": ["elements"]
+        "tags": [
+          "elements"
+        ]
       },
       "post": {
         "operationId": "create_element_folder",
@@ -7382,7 +8032,9 @@
           }
         },
         "summary": "Create Element Folder",
-        "tags": ["elements"]
+        "tags": [
+          "elements"
+        ]
       }
     },
     "/api/elements/folders/{folder_id}": {
@@ -7418,7 +8070,9 @@
           }
         },
         "summary": "Delete Element Folder",
-        "tags": ["elements"]
+        "tags": [
+          "elements"
+        ]
       },
       "patch": {
         "operationId": "patch_element_folder",
@@ -7462,7 +8116,9 @@
           }
         },
         "summary": "Patch Element Folder",
-        "tags": ["elements"]
+        "tags": [
+          "elements"
+        ]
       }
     },
     "/api/elements/import": {
@@ -7498,7 +8154,9 @@
           }
         },
         "summary": "Import Elements",
-        "tags": ["elements"]
+        "tags": [
+          "elements"
+        ]
       }
     },
     "/api/elements/recipes": {
@@ -7522,7 +8180,9 @@
           }
         },
         "summary": "List Element Recipes",
-        "tags": ["elements"]
+        "tags": [
+          "elements"
+        ]
       }
     },
     "/api/elements/{element_id}": {
@@ -7559,7 +8219,9 @@
           }
         },
         "summary": "Delete Element",
-        "tags": ["elements"]
+        "tags": [
+          "elements"
+        ]
       },
       "get": {
         "operationId": "get_element",
@@ -7600,7 +8262,9 @@
           }
         },
         "summary": "Get Element",
-        "tags": ["elements"]
+        "tags": [
+          "elements"
+        ]
       },
       "patch": {
         "operationId": "patch_element",
@@ -7654,7 +8318,9 @@
           }
         },
         "summary": "Patch Element",
-        "tags": ["elements"]
+        "tags": [
+          "elements"
+        ]
       }
     },
     "/api/elements/{element_id}/generate": {
@@ -7715,7 +8381,9 @@
           }
         },
         "summary": "Generate For Element",
-        "tags": ["elements"]
+        "tags": [
+          "elements"
+        ]
       }
     },
     "/api/elements/{element_id}/generate/estimate": {
@@ -7769,7 +8437,9 @@
           }
         },
         "summary": "Estimate Element Generation",
-        "tags": ["elements"]
+        "tags": [
+          "elements"
+        ]
       }
     },
     "/api/elements/{element_id}/media": {
@@ -7823,7 +8493,9 @@
           }
         },
         "summary": "Add Element Media",
-        "tags": ["elements"]
+        "tags": [
+          "elements"
+        ]
       },
       "put": {
         "description": "Set the media: reorder (the first becomes primary), attach or detach.",
@@ -7875,7 +8547,9 @@
           }
         },
         "summary": "Order Element Media",
-        "tags": ["elements"]
+        "tags": [
+          "elements"
+        ]
       }
     },
     "/api/events": {
@@ -7919,7 +8593,10 @@
           }
         },
         "summary": "Events",
-        "tags": ["jobs", "events"]
+        "tags": [
+          "jobs",
+          "events"
+        ]
       }
     },
     "/api/folders": {
@@ -7967,7 +8644,12 @@
             "required": false,
             "schema": {
               "default": "manual",
-              "enum": ["manual", "name", "count", "created"],
+              "enum": [
+                "manual",
+                "name",
+                "count",
+                "created"
+              ],
               "title": "Sort",
               "type": "string"
             }
@@ -8000,7 +8682,9 @@
           }
         },
         "summary": "List Folders",
-        "tags": ["folders"]
+        "tags": [
+          "folders"
+        ]
       },
       "post": {
         "operationId": "create_folder",
@@ -8040,7 +8724,9 @@
           }
         },
         "summary": "Create Folder",
-        "tags": ["folders"]
+        "tags": [
+          "folders"
+        ]
       }
     },
     "/api/folders/reorder": {
@@ -8072,7 +8758,9 @@
           }
         },
         "summary": "Reorder Folders",
-        "tags": ["folders"]
+        "tags": [
+          "folders"
+        ]
       }
     },
     "/api/folders/{folder_id}": {
@@ -8108,7 +8796,9 @@
           }
         },
         "summary": "Delete Folder",
-        "tags": ["folders"]
+        "tags": [
+          "folders"
+        ]
       },
       "patch": {
         "operationId": "patch_folder",
@@ -8159,7 +8849,9 @@
           }
         },
         "summary": "Patch Folder",
-        "tags": ["folders"]
+        "tags": [
+          "folders"
+        ]
       }
     },
     "/api/generations": {
@@ -8173,7 +8865,10 @@
             "schema": {
               "anyOf": [
                 {
-                  "enum": ["image", "video"],
+                  "enum": [
+                    "image",
+                    "video"
+                  ],
                   "type": "string"
                 },
                 {
@@ -8264,7 +8959,9 @@
           }
         },
         "summary": "List Generations",
-        "tags": ["generations"]
+        "tags": [
+          "generations"
+        ]
       },
       "post": {
         "description": "Queue one generation per batch item; each lands as an asset.",
@@ -8306,7 +9003,9 @@
           }
         },
         "summary": "Create Generation",
-        "tags": ["generations"]
+        "tags": [
+          "generations"
+        ]
       }
     },
     "/api/generations/estimate": {
@@ -8346,7 +9045,9 @@
           }
         },
         "summary": "Estimate Generation",
-        "tags": ["generations"]
+        "tags": [
+          "generations"
+        ]
       }
     },
     "/api/generations/preview": {
@@ -8386,7 +9087,9 @@
           }
         },
         "summary": "Preview Generation Request",
-        "tags": ["generations"]
+        "tags": [
+          "generations"
+        ]
       }
     },
     "/api/generations/{generation_id}": {
@@ -8426,7 +9129,9 @@
           }
         },
         "summary": "Get Generation",
-        "tags": ["generations"]
+        "tags": [
+          "generations"
+        ]
       }
     },
     "/api/generations/{generation_id}/cancel": {
@@ -8466,7 +9171,9 @@
           }
         },
         "summary": "Cancel Generation",
-        "tags": ["generations"]
+        "tags": [
+          "generations"
+        ]
       }
     },
     "/api/generations/{generation_id}/retry": {
@@ -8506,7 +9213,9 @@
           }
         },
         "summary": "Retry Generation",
-        "tags": ["generations"]
+        "tags": [
+          "generations"
+        ]
       }
     },
     "/api/health": {
@@ -8526,7 +9235,9 @@
           }
         },
         "summary": "Health",
-        "tags": ["system"]
+        "tags": [
+          "system"
+        ]
       }
     },
     "/api/jobs": {
@@ -8574,7 +9285,9 @@
           }
         },
         "summary": "List Jobs",
-        "tags": ["jobs"]
+        "tags": [
+          "jobs"
+        ]
       }
     },
     "/api/jobs/fake": {
@@ -8614,7 +9327,9 @@
           }
         },
         "summary": "Create Fake Job",
-        "tags": ["jobs"]
+        "tags": [
+          "jobs"
+        ]
       }
     },
     "/api/jobs/{job_id}": {
@@ -8654,7 +9369,9 @@
           }
         },
         "summary": "Get Job",
-        "tags": ["jobs"]
+        "tags": [
+          "jobs"
+        ]
       }
     },
     "/api/jobs/{job_id}/cancel": {
@@ -8694,7 +9411,9 @@
           }
         },
         "summary": "Cancel Job",
-        "tags": ["jobs"]
+        "tags": [
+          "jobs"
+        ]
       }
     },
     "/api/jobs/{job_id}/retry": {
@@ -8734,7 +9453,9 @@
           }
         },
         "summary": "Retry Job",
-        "tags": ["jobs"]
+        "tags": [
+          "jobs"
+        ]
       }
     },
     "/api/llm": {
@@ -8776,7 +9497,9 @@
           }
         },
         "summary": "Get Llm Overview",
-        "tags": ["llm"]
+        "tags": [
+          "llm"
+        ]
       }
     },
     "/api/llm/enhance": {
@@ -8816,7 +9539,9 @@
           }
         },
         "summary": "Enhance",
-        "tags": ["llm"]
+        "tags": [
+          "llm"
+        ]
       }
     },
     "/api/models": {
@@ -8840,7 +9565,9 @@
           }
         },
         "summary": "List Models",
-        "tags": ["models"]
+        "tags": [
+          "models"
+        ]
       }
     },
     "/api/models/{model_id}": {
@@ -8883,7 +9610,9 @@
           }
         },
         "summary": "Get Model",
-        "tags": ["models"]
+        "tags": [
+          "models"
+        ]
       }
     },
     "/api/projects": {
@@ -8913,7 +9642,11 @@
             "required": false,
             "schema": {
               "default": "updated",
-              "enum": ["updated", "created", "name"],
+              "enum": [
+                "updated",
+                "created",
+                "name"
+              ],
               "title": "Sort",
               "type": "string"
             }
@@ -8956,7 +9689,9 @@
           }
         },
         "summary": "List Projects",
-        "tags": ["projects"]
+        "tags": [
+          "projects"
+        ]
       },
       "post": {
         "operationId": "create_project",
@@ -8993,7 +9728,9 @@
           }
         },
         "summary": "Create Project",
-        "tags": ["projects"]
+        "tags": [
+          "projects"
+        ]
       }
     },
     "/api/projects/{project_id}": {
@@ -9036,7 +9773,9 @@
           }
         },
         "summary": "Get Project",
-        "tags": ["projects"]
+        "tags": [
+          "projects"
+        ]
       },
       "patch": {
         "operationId": "patch_project",
@@ -9087,7 +9826,9 @@
           }
         },
         "summary": "Patch Project",
-        "tags": ["projects"]
+        "tags": [
+          "projects"
+        ]
       }
     },
     "/api/projects/{project_id}/restore": {
@@ -9130,7 +9871,9 @@
           }
         },
         "summary": "Restore Project",
-        "tags": ["projects"]
+        "tags": [
+          "projects"
+        ]
       }
     },
     "/api/projects/{project_id}/trash": {
@@ -9173,7 +9916,9 @@
           }
         },
         "summary": "Trash Project",
-        "tags": ["projects"]
+        "tags": [
+          "projects"
+        ]
       }
     },
     "/api/prompts/parse": {
@@ -9213,7 +9958,9 @@
           }
         },
         "summary": "Parse Prompt",
-        "tags": ["prompts"]
+        "tags": [
+          "prompts"
+        ]
       }
     },
     "/api/route": {
@@ -9227,7 +9974,10 @@
             "required": false,
             "schema": {
               "default": "image",
-              "enum": ["image", "video"],
+              "enum": [
+                "image",
+                "video"
+              ],
               "title": "Mode",
               "type": "string"
             }
@@ -9288,7 +10038,9 @@
           }
         },
         "summary": "Route Model",
-        "tags": ["models"]
+        "tags": [
+          "models"
+        ]
       }
     },
     "/api/settings": {
@@ -9307,7 +10059,9 @@
           }
         },
         "summary": "Get Settings",
-        "tags": ["settings"]
+        "tags": [
+          "settings"
+        ]
       },
       "patch": {
         "operationId": "patch_settings",
@@ -9344,7 +10098,9 @@
           }
         },
         "summary": "Patch Settings",
-        "tags": ["settings"]
+        "tags": [
+          "settings"
+        ]
       }
     },
     "/api/storage": {
@@ -9363,7 +10119,9 @@
           }
         },
         "summary": "Storage",
-        "tags": ["library"]
+        "tags": [
+          "library"
+        ]
       }
     },
     "/api/system/info": {
@@ -9382,7 +10140,9 @@
           }
         },
         "summary": "System Info",
-        "tags": ["system"]
+        "tags": [
+          "system"
+        ]
       }
     },
     "/api/trash/empty": {
@@ -9402,7 +10162,9 @@
           }
         },
         "summary": "Empty Trash",
-        "tags": ["trash"]
+        "tags": [
+          "trash"
+        ]
       }
     },
     "/api/usage": {
@@ -9451,7 +10213,9 @@
           }
         },
         "summary": "Get Usage",
-        "tags": ["connections"]
+        "tags": [
+          "connections"
+        ]
       }
     }
   }

@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { cn } from "@/lib/utils";
 import { Carousel, type CarouselOption } from "./Carousel";
 import { Drum } from "./Drum";
+import { type MovesEditor, MovesPicker } from "./MovesPicker";
 import { PreviewArt } from "./PreviewArt";
 import {
   cameraSummary,
@@ -201,14 +202,18 @@ export function ShotChips({
   shot,
   onChange,
   video,
+  moves,
 }: {
   shot: ShotSpec | null | undefined;
   onChange: (shot: ShotSpec | null) => void;
   video: boolean;
+  /** The prompt's camera moves (video only, M5.3). */
+  moves?: MovesEditor;
 }) {
   const { t } = useTranslation();
   const { data: vocab } = useVocab();
-  const [open, setOpen] = useState<"film" | "camera" | null>(null);
+  const [open, setOpen] = useState<"film" | "camera" | "moves" | null>(null);
+  const moveLabel = (id: string) => vocab?.moves.find((m) => m.id === id)?.label ?? id;
   const chips = [
     {
       key: "film" as const,
@@ -222,6 +227,16 @@ export function ShotChips({
       values: cameraSummary(shot, vocab),
       clear: () => onChange(withCamera(shot, { body: null, lens: null, focal_length: null, aperture: null })),
     },
+    ...(video && moves
+      ? [
+          {
+            key: "moves" as const,
+            label: t("shot.moves"),
+            values: moves.list.length ? [moves.list.map(moveLabel).join(" → ")] : [],
+            clear: moves.clear,
+          },
+        ]
+      : []),
   ];
   return (
     <div className="flex flex-wrap items-center gap-1.5" data-testid="shot-chips">
@@ -266,6 +281,9 @@ export function ShotChips({
         onChange={onChange}
         video={video}
       />
+      {moves ? (
+        <MovesPicker open={open === "moves"} onOpenChange={(next) => !next && setOpen(null)} moves={moves} />
+      ) : null}
       <CameraPicker
         open={open === "camera"}
         onOpenChange={(next) => !next && setOpen(null)}

@@ -37,7 +37,7 @@ import {
   type Spread,
   TextNode,
 } from "lexical";
-import { MapPin, Package, Sparkles, UserRound } from "lucide-react";
+import { MapPin, Move, Package, Sparkles, UserRound } from "lucide-react";
 import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -91,7 +91,11 @@ export class TokenNode extends TextNode {
     const unknown = this.__kind === "element" && !this.__elementId;
     dom.className = cn(
       "rounded px-0.5 font-medium",
-      unknown ? "bg-danger/10 text-danger underline decoration-dotted" : "bg-tungsten/15 text-tungsten",
+      unknown
+        ? "bg-danger/10 text-danger underline decoration-dotted"
+        : this.__kind === "move"
+          ? "bg-daylight/15 text-daylight"
+          : "bg-tungsten/15 text-tungsten",
     );
     dom.dataset.testid = "prompt-token";
     dom.dataset.kind = this.__kind;
@@ -249,46 +253,54 @@ function BlurPlugin({ onBlur }: { onBlur?: () => void }) {
   return null;
 }
 
-const QUERY_AT_CARET = /(?:^|[\s(])@([A-Za-z0-9_-]*)$/;
+type Sigil = "@" | "#";
+const QUERY_AT_CARET: Record<Sigil, RegExp> = {
+  "@": /(?:^|[\s(])@([A-Za-z0-9_-]*)$/,
+  "#": /(?:^|[\s(])#([A-Za-z0-9_-]*)$/,
+};
 
-/** The "@query" typed just before the caret: its node and where it starts. */
-function $queryAtCaret(): { node: TextNode; start: number; end: number; query: string } | null {
+/** The "@query" (or "#query") typed just before the caret: its node and where it starts. */
+function $queryAtCaret(sigil: Sigil = "@"): { node: TextNode; start: number; end: number; query: string } | null {
   const selection = $getSelection();
   if (!$isRangeSelection(selection) || !selection.isCollapsed()) return null;
   const node = selection.anchor.getNode();
   if (!$isTextNode(node) || $isTokenNode(node)) return null;
   const end = selection.anchor.offset;
-  const found = QUERY_AT_CARET.exec(node.getTextContent().slice(0, end));
+  const found = QUERY_AT_CARET[sigil].exec(node.getTextContent().slice(0, end));
   if (!found) return null;
   const query = found[1] ?? "";
   return { node, start: end - query.length - 1, end, query: query.toLowerCase() };
 }
 
-/** Replace the "@query" just before the caret with the element's chip and a
- * space. False when there is no "@query" at the caret (yet). */
-function $replaceQuery(element: ElementOut): boolean {
-  const at = $queryAtCaret();
+/** Replace the query just before the caret with a chip and a space. False
+ * when there is no query at the caret (yet). */
+function $replaceQuery(sigil: Sigil, chip: () => TokenNode): boolean {
+  const at = $queryAtCaret(sigil);
   if (!at) return false;
   const parts = at.node.splitText(at.start, at.end);
   const typed = parts[at.start === 0 ? 0 : 1];
   if (!typed) return false;
-  const chip = $createTokenNode("element", element.handle, element.id);
-  typed.replace(chip);
+  const node = chip();
+  typed.replace(node);
   const space = $createTextNode(" ");
-  chip.insertAfter(space);
+  node.insertAfter(space);
   space.selectEnd();
   return true;
 }
 
-/** Put the element's chip in place of the "@query". Chrome inserts typed
- * characters before the editor's state catches up, so an Enter right after
- * fast typing can see an older caret: try again for a few frames. */
-function pickElement(editor: LexicalEditor, element: ElementOut, tries = 6): void {
+/** Put a chip in place of the query. Chrome inserts typed characters before
+ * the editor's state catches up, so an Enter right after fast typing can see
+ * an older caret: try again for a few frames. */
+function pickToken(editor: LexicalEditor, sigil: Sigil, chip: () => TokenNode, tries = 6): void {
   editor.update(() => {
-    if (!$replaceQuery(element) && tries > 0) {
-      setTimeout(() => pickElement(editor, element, tries - 1), 16);
+    if (!$replaceQuery(sigil, chip) && tries > 0) {
+      setTimeout(() => pickToken(editor, sigil, chip, tries - 1), 16);
     }
   });
+}
+
+function pickElement(editor: LexicalEditor, element: ElementOut): void {
+  pickToken(editor, "@", () => $createTokenNode("element", element.handle, element.id));
 }
 
 const matches = (element: ElementOut, query: string) =>
@@ -437,12 +449,115 @@ function MentionsPlugin({ projectId }: { projectId?: string }) {
   );
 }
 
+export interface MoveChoice {
+  id: string;
+  label: string;
+}
+
+class MoveOption extends MenuOption {
+  constructor(readonly move: MoveChoice) {
+    super(move.id);
+  }
+}
+
+const moveMatches = (move: MoveChoice, query: string) =>
+  move.id.includes(query) || move.label.toLowerCase().includes(query);
+
+/** Typing # suggests camera moves (M5.3); picking one puts its chip in the
+ * prompt. Moves are local data, so Enter can always pick at once. */
+function MovesPlugin({ moves }: { moves: MoveChoice[] }) {
+  const { t } = useTranslation();
+  const [editor] = useLexicalComposerContext();
+  const [query, setQuery] = useState<string | null>(null);
+  const trigger = useBasicTypeaheadTriggerMatch("#", { minLength: 0, maxLength: 48, punctuation: PUNCTUATION });
+  const options = useMemo(() => {
+    const q = (query ?? "").toLowerCase();
+    return moves
+      .filter((move) => moveMatches(move, q))
+      .slice(0, 8)
+      .map((move) => new MoveOption(move));
+  }, [moves, query]);
+  const pick = (move: MoveChoice) => pickToken(editor, "#", () => $createTokenNode("move", move.id));
+  const guard = useEffectEvent((): boolean => {
+    const at = editor.getEditorState().read(() => $queryAtCaret("#"));
+    const first = at && moves.find((move) => moveMatches(move, at.query));
+    if (!first) return false; // not a move (a colour such as #ff0000): Enter sends
+    pick(first);
+    return true;
+  });
+  useEffect(
+    () =>
+      editor.registerCommand(
+        KEY_ENTER_COMMAND,
+        (event: KeyboardEvent | null) => {
+          if (!event || event.shiftKey || event.isComposing) return false;
+          if (!guard()) return false;
+          event.preventDefault();
+          return true;
+        },
+        COMMAND_PRIORITY_HIGH,
+      ),
+    [editor],
+  );
+
+  return (
+    <LexicalTypeaheadMenuPlugin<MoveOption>
+      triggerFn={trigger}
+      commandPriority={COMMAND_PRIORITY_CRITICAL}
+      onQueryChange={setQuery}
+      options={options}
+      onSelectOption={(option, _node, closeMenu) => {
+        pick(option.move);
+        closeMenu();
+      }}
+      menuRenderFn={(anchor, { selectedIndex, selectOptionAndCleanUp, setHighlightedIndex }) =>
+        anchor.current && query !== null && options.length > 0
+          ? createPortal(
+              <div
+                className="absolute bottom-full left-0 z-50 mb-1 w-64 overflow-hidden rounded-xl border border-line bg-flat shadow-2xl"
+                data-testid="move-suggestions"
+              >
+                <ul role="listbox" aria-label={t("tokens.moves")}>
+                  {options.map((option, index) => (
+                    <li
+                      key={option.key}
+                      ref={(node) => option.setRefElement(node)}
+                      role="option"
+                      aria-selected={selectedIndex === index}
+                      tabIndex={-1}
+                      onMouseEnter={() => setHighlightedIndex(index)}
+                      onMouseDown={(event) => {
+                        event.preventDefault();
+                        selectOptionAndCleanUp(option);
+                      }}
+                      className={cn(
+                        "flex cursor-pointer items-center gap-2 px-3 py-1.5",
+                        selectedIndex === index && "bg-raised",
+                      )}
+                      data-move={option.move.id}
+                    >
+                      <Move className="size-3.5 shrink-0 text-daylight" aria-hidden />
+                      <span className="flex-1 truncate text-sm">{option.move.label}</span>
+                      <span className="font-mono text-[11px] text-daylight">#{option.move.id}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>,
+              anchor.current,
+            )
+          : null
+      }
+    />
+  );
+}
+
 export function PromptEditor({
   value,
   onChange,
   onSubmit,
   onBlur,
   projectId,
+  moves,
   label,
   placeholder,
   maxLength,
@@ -455,6 +570,8 @@ export function PromptEditor({
   onBlur?: () => void;
   /** Whose elements `@` suggests and pasted handles name (with the global ones). */
   projectId?: string;
+  /** Camera moves `#` suggests (video only, M5.3). */
+  moves?: MoveChoice[];
   label: string;
   placeholder: string;
   maxLength?: number | null;
@@ -496,6 +613,7 @@ export function PromptEditor({
         <PastePlugin projectId={projectId} />
         <BlurPlugin onBlur={onBlur} />
         <MentionsPlugin projectId={projectId} />
+        {moves?.length ? <MovesPlugin moves={moves} /> : null}
         {maxLength != null && length > maxLength * 0.8 ? (
           <span
             className={cn("absolute bottom-0 right-1 font-mono text-[11px]", over ? "text-danger" : "text-muted")}

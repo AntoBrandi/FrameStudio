@@ -2642,6 +2642,8 @@ export interface components {
       hex_codes?: boolean;
       /** Id */
       id: string;
+      /** Max Moves */
+      max_moves?: number | null;
       /**
        * Native
        * @default {}
@@ -3134,6 +3136,13 @@ export interface components {
        * @default
        */
       phrase?: string;
+      /**
+       * Profiles
+       * @default {}
+       */
+      profiles?: {
+        [key: string]: string;
+      };
       /**
        * Tags
        * @default

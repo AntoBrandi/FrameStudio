@@ -16,6 +16,8 @@ import { ParamControls, SeedField } from "./ParamControls";
 import { type Mode, type ModelOut, normalize, type Params, paramsFor } from "./params";
 import { PromptEditor } from "./PromptEditor";
 import { RequestPreview } from "./RequestPreview";
+import { addMove, clearMoves, movesIn, removeMove, swapMoves } from "@/features/cinema/moves";
+import { useVocab } from "@/features/cinema/shot";
 import { ShotChips } from "@/features/cinema/ShotPickers";
 import { ReferencePicker } from "./ReferencePicker";
 import { type Reference, ReferenceTray } from "./ReferenceTray";
@@ -203,6 +205,20 @@ export function Composer({ mode, projectId }: { mode: Mode; projectId?: string }
   );
   const warnings = preview?.warnings ?? [];
 
+  // Camera moves (M5.3): #move chips in the prompt, in order.
+  const { data: vocab } = useVocab();
+  const moveChoices = useMemo(() => (vocab?.moves ?? []).map((m) => ({ id: m.id, label: m.label })), [vocab]);
+  const movesEditor = useMemo(
+    () => ({
+      list: movesIn(draft),
+      add: (id: string) => setDraft(mode, addMove(draft, id)),
+      remove: (index: number) => setDraft(mode, removeMove(draft, index)),
+      swap: (a: number, b: number) => setDraft(mode, swapMoves(draft, a, b)),
+      clear: () => setDraft(mode, clearMoves(draft)),
+    }),
+    [draft, mode, setDraft],
+  );
+
   // The reference picker (M4.5): pictures and elements in one dialog.
   const [picker, setPicker] = useState<"recent" | "elements" | null>(null);
   const inPrompt = useMemo(
@@ -293,13 +309,19 @@ export function Composer({ mode, projectId }: { mode: Mode; projectId?: string }
           onClose={() => setEnhancement(null)}
         />
       ) : null}
-      <ShotChips shot={shot} onChange={(next) => store.setShot(mode, next)} video={mode === "video"} />
+      <ShotChips
+        shot={shot}
+        onChange={(next) => store.setShot(mode, next)}
+        video={mode === "video"}
+        moves={movesEditor}
+      />
       <PromptEditor
         value={draft}
         onChange={(tokens) => store.setDraft(mode, tokens)}
         onSubmit={submit}
         onBlur={tidy}
         projectId={projectId}
+        moves={mode === "video" ? moveChoices : undefined}
         label={t("composer.label")}
         placeholder={mode === "image" ? t("composer.placeholderImage") : t("composer.placeholderVideo")}
         maxLength={model?.limits.max_prompt_chars ?? 4000}

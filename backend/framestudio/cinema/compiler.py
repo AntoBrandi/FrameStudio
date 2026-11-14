@@ -42,6 +42,8 @@ class Profile(BaseModel):
     hex_codes: bool = False
     #: Control → (parameter, value), applied when the model has the parameter.
     native: dict[str, tuple[str, Any]] = {}
+    #: Camera moves a clip follows well; more get a note (None: no limit known).
+    max_moves: int | None = None
 
 
 _DROP: list[Family] = ["elements", "palette", "lighting", "film", "camera", "moves"]
@@ -63,6 +65,7 @@ PROFILES: dict[str, Profile] = {
             drop_order=_DROP,
             negatives="drop",
             native={"moves:static": ("camera_fixed", True)},
+            max_moves=2,
         ),
         Profile(
             id="diffusion",
@@ -127,8 +130,16 @@ def _cinema_sections(
         if tags:
             text = ", ".join(t.tags for t in terms if t)
         else:
-            text = _sentence("Camera movement", ", then ".join(t.phrase for t in terms if t))
-        out.append(Section(family="moves", controls=["moves"], text=text))
+            text = _sentence(
+                "Camera movement", ", then ".join(t.phrase_for(profile.id) for t in terms if t)
+            )
+        section = Section(family="moves", controls=["moves"], text=text)
+        if profile.max_moves and len(moves) > profile.max_moves:
+            section.note = (
+                f"This model follows {profile.max_moves} camera moves per clip best; "
+                "the later ones may be ignored."
+            )
+        out.append(section)
 
     # Camera body, lens, focal length, aperture.
     camera, parts, controls = shot.camera, [], []

@@ -606,7 +606,8 @@
   "tokens": {
     "suggestions": "Elements",
     "noElements": "No element matches “{{query}}”. Make one on the Elements page.",
-    "global": "Global"
+    "global": "Global",
+    "moves": "Camera moves"
   },
   "preview": {
     "button": "Preview",
@@ -733,6 +734,15 @@
     "reset": "Reset all",
     "done": "Done",
     "close": "Close",
-    "clear": "Clear {{name}}"
+    "clear": "Clear {{name}}",
+    "moves": "Moves",
+    "movesHint": "Camera moves happen in the order they are in the prompt. Pick to add one; type # in the prompt to add one there.",
+    "inShot": "In this shot",
+    "noMoves": "No moves yet.",
+    "earlier": "Move {{name}} earlier",
+    "later": "Move {{name}} later",
+    "removeMove": "Remove {{name}}",
+    "searchMoves": "Search moves",
+    "addMove": "Add {{name}}"
   }
 }

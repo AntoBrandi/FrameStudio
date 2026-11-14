@@ -6,6 +6,10 @@
 #   tags:   for models that read comma-separated tags (diffusion models).
 #   negative: optional words for a negative prompt (where a model takes one).
 #
+#   profiles: wording for one compiler profile instead of the phrase. Seedance's
+#           uses the camera verbs BytePlus's Seedance prompt guide lists (push,
+#           pull, pan, move, orbit, follow, rise, descend, zoom).
+#
 # Moves are also prompt tokens (#dolly-in), so their ids use lowercase letters,
 # digits and hyphens. Wording avoids the test stand-ins' steering words
 # ("slow", "blocked", "inactive", "flaky", "expired"); a test checks this.
@@ -60,36 +64,36 @@ apertures: ["f/1.2", "f/1.4", "f/2", "f/2.8", "f/4", "f/5.6", "f/8", "f/11", "f/
 focal_lengths: [14, 18, 24, 35, 50, 85, 105, 135, 200]
 
 moves:
-  - { id: static, label: Static, phrase: "the camera is locked off and does not move", tags: "static camera, locked-off shot" }
-  - { id: dolly-in, label: Dolly in, phrase: "the camera dollies in toward the subject", tags: "dolly in" }
-  - { id: dolly-out, label: Dolly out, phrase: "the camera dollies back, away from the subject", tags: "dolly out" }
-  - { id: truck-left, label: Truck left, phrase: "the camera trucks left alongside the action", tags: "truck left" }
-  - { id: truck-right, label: Truck right, phrase: "the camera trucks right alongside the action", tags: "truck right" }
-  - { id: pedestal-up, label: Pedestal up, phrase: "the camera rises straight up", tags: "pedestal up" }
-  - { id: pedestal-down, label: Pedestal down, phrase: "the camera lowers straight down", tags: "pedestal down" }
-  - { id: pan-left, label: Pan left, phrase: "the camera pans left", tags: "pan left" }
-  - { id: pan-right, label: Pan right, phrase: "the camera pans right", tags: "pan right" }
-  - { id: tilt-up, label: Tilt up, phrase: "the camera tilts up", tags: "tilt up" }
-  - { id: tilt-down, label: Tilt down, phrase: "the camera tilts down", tags: "tilt down" }
-  - { id: crane-up, label: Crane up, phrase: "the camera cranes up and over the scene", tags: "crane up, rising shot" }
-  - { id: crane-down, label: Crane down, phrase: "the camera cranes down into the scene", tags: "crane down" }
-  - { id: arc, label: Arc, phrase: "the camera arcs halfway around the subject", tags: "arc shot" }
-  - { id: orbit, label: Drone orbit, phrase: "the camera orbits a full circle around the subject", tags: "orbit shot, 360 degrees" }
-  - { id: dolly-zoom, label: Dolly zoom, phrase: "a dolly zoom, the camera moving in while the lens zooms out so the background warps", tags: "dolly zoom, vertigo effect" }
-  - { id: whip-pan, label: Whip pan, phrase: "a whip pan blurs across to the next view", tags: "whip pan, motion blur" }
-  - { id: crash-zoom, label: Crash zoom, phrase: "a sudden crash zoom onto the subject", tags: "crash zoom" }
-  - { id: creep-zoom, label: Creeping zoom, phrase: "a gradual, creeping zoom in", tags: "creeping zoom in" }
-  - { id: zoom-out, label: Zoom out, phrase: "the lens zooms out", tags: "zoom out" }
-  - { id: handheld, label: Handheld, phrase: "handheld camera with a natural, breathing shake", tags: "handheld camera, camera shake" }
-  - { id: tracking, label: Tracking, phrase: "the camera tracks behind the subject as it moves", tags: "tracking shot, following" }
-  - { id: side-tracking, label: Side tracking, phrase: "the camera tracks alongside the subject", tags: "side tracking shot" }
-  - { id: pov, label: POV, phrase: "a point-of-view shot through the subject's eyes", tags: "POV shot, first person" }
-  - { id: snorricam, label: Snorricam, phrase: "a body-mounted snorricam shot, the subject fixed in frame while the world moves", tags: "snorricam, body-mounted camera" }
-  - { id: robot-arm, label: Robot arm, phrase: "a fast, precise robotic-arm move sweeping past the subject", tags: "motion control robot arm, sweeping move" }
-  - { id: rack-focus, label: Rack focus, phrase: "the focus racks from the foreground to the background", tags: "rack focus" }
-  - { id: bullet-time, label: Bullet time, phrase: "bullet time, the action frozen while the camera sweeps around it", tags: "bullet time, frozen moment" }
-  - { id: aerial-pullback, label: Aerial pull-back, phrase: "an aerial pull-back rising away to reveal the surroundings", tags: "aerial pullback, reveal" }
-  - { id: fpv-drone, label: FPV drone, phrase: "an FPV drone shot diving through the space", tags: "FPV drone shot, diving" }
+  - { id: static, label: Static, phrase: "the camera is locked off and does not move", tags: "static camera, locked-off shot", profiles: { seedance: "the camera stays still" } }
+  - { id: dolly-in, label: Dolly in, phrase: "the camera dollies in toward the subject", tags: "dolly in", profiles: { seedance: "the camera pushes in toward the subject" } }
+  - { id: dolly-out, label: Dolly out, phrase: "the camera dollies back, away from the subject", tags: "dolly out", profiles: { seedance: "the camera pulls back from the subject" } }
+  - { id: truck-left, label: Truck left, phrase: "the camera trucks left alongside the action", tags: "truck left", profiles: { seedance: "the camera moves left" } }
+  - { id: truck-right, label: Truck right, phrase: "the camera trucks right alongside the action", tags: "truck right", profiles: { seedance: "the camera moves right" } }
+  - { id: pedestal-up, label: Pedestal up, phrase: "the camera rises straight up", tags: "pedestal up", profiles: { seedance: "the camera rises" } }
+  - { id: pedestal-down, label: Pedestal down, phrase: "the camera lowers straight down", tags: "pedestal down", profiles: { seedance: "the camera descends" } }
+  - { id: pan-left, label: Pan left, phrase: "the camera pans left", tags: "pan left", profiles: { seedance: "the camera pans left" } }
+  - { id: pan-right, label: Pan right, phrase: "the camera pans right", tags: "pan right", profiles: { seedance: "the camera pans right" } }
+  - { id: tilt-up, label: Tilt up, phrase: "the camera tilts up", tags: "tilt up", profiles: { seedance: "the camera tilts up" } }
+  - { id: tilt-down, label: Tilt down, phrase: "the camera tilts down", tags: "tilt down", profiles: { seedance: "the camera tilts down" } }
+  - { id: crane-up, label: Crane up, phrase: "the camera cranes up and over the scene", tags: "crane up, rising shot", profiles: { seedance: "the camera rises up over the scene" } }
+  - { id: crane-down, label: Crane down, phrase: "the camera cranes down into the scene", tags: "crane down", profiles: { seedance: "the camera descends into the scene" } }
+  - { id: arc, label: Arc, phrase: "the camera arcs halfway around the subject", tags: "arc shot", profiles: { seedance: "the camera orbits halfway around the subject" } }
+  - { id: orbit, label: Drone orbit, phrase: "the camera orbits a full circle around the subject", tags: "orbit shot, 360 degrees", profiles: { seedance: "the camera orbits around the subject" } }
+  - { id: dolly-zoom, label: Dolly zoom, phrase: "a dolly zoom, the camera moving in while the lens zooms out so the background warps", tags: "dolly zoom, vertigo effect", profiles: { seedance: "the camera pushes in while the lens zooms out" } }
+  - { id: whip-pan, label: Whip pan, phrase: "a whip pan blurs across to the next view", tags: "whip pan, motion blur", profiles: { seedance: "the camera pans fast to the side, blurring" } }
+  - { id: crash-zoom, label: Crash zoom, phrase: "a sudden crash zoom onto the subject", tags: "crash zoom", profiles: { seedance: "the camera zooms in fast on the subject" } }
+  - { id: creep-zoom, label: Creeping zoom, phrase: "a gradual, creeping zoom in", tags: "creeping zoom in", profiles: { seedance: "the camera zooms in gradually" } }
+  - { id: zoom-out, label: Zoom out, phrase: "the lens zooms out", tags: "zoom out", profiles: { seedance: "the camera zooms out" } }
+  - { id: handheld, label: Handheld, phrase: "handheld camera with a natural, breathing shake", tags: "handheld camera, camera shake", profiles: { seedance: "handheld camera with natural shake" } }
+  - { id: tracking, label: Tracking, phrase: "the camera tracks behind the subject as it moves", tags: "tracking shot, following", profiles: { seedance: "the camera follows behind the subject" } }
+  - { id: side-tracking, label: Side tracking, phrase: "the camera tracks alongside the subject", tags: "side tracking shot", profiles: { seedance: "the camera follows alongside the subject" } }
+  - { id: pov, label: POV, phrase: "a point-of-view shot through the subject's eyes", tags: "POV shot, first person", profiles: { seedance: "first-person view through the subject's eyes" } }
+  - { id: snorricam, label: Snorricam, phrase: "a body-mounted snorricam shot, the subject fixed in frame while the world moves", tags: "snorricam, body-mounted camera", profiles: { seedance: "the camera is fixed to the subject's body, the world moving around them" } }
+  - { id: robot-arm, label: Robot arm, phrase: "a fast, precise robotic-arm move sweeping past the subject", tags: "motion control robot arm, sweeping move", profiles: { seedance: "the camera moves fast past the subject in one precise sweep" } }
+  - { id: rack-focus, label: Rack focus, phrase: "the focus racks from the foreground to the background", tags: "rack focus", profiles: { seedance: "the focus shifts from the foreground to the background" } }
+  - { id: bullet-time, label: Bullet time, phrase: "bullet time, the action frozen while the camera sweeps around it", tags: "bullet time, frozen moment", profiles: { seedance: "the action freezes while the camera orbits around it" } }
+  - { id: aerial-pullback, label: Aerial pull-back, phrase: "an aerial pull-back rising away to reveal the surroundings", tags: "aerial pullback, reveal", profiles: { seedance: "aerial shot: the camera rises and pulls back to reveal the surroundings" } }
+  - { id: fpv-drone, label: FPV drone, phrase: "an FPV drone shot diving through the space", tags: "FPV drone shot, diving", profiles: { seedance: "FPV drone shot, the camera moving fast through the space" } }
 
 lighting:
   - { id: silhouette, label: Silhouette, phrase: "lit from behind so the subject reads as a dark silhouette against a bright background", tags: "silhouette, strong backlight" }

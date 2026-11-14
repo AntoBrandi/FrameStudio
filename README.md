@@ -103,6 +103,9 @@ scripts/   dev, start and setup commands (plain Node, any OS)
   measured with fixed-seed A/B pairs (hosted models are measured with your keys, within a budget).
   Film and Camera chips above the prompt open the pickers: carousels for genre, era and pace,
   dials for camera body, lens, focal length and aperture, all usable from the keyboard.
+  Camera moves (about thirty, from dolly in to bullet time) go into the prompt as ordered chips,
+  from the Moves picker or by typing `#`, and are worded per model (Seedance gets its own camera
+  verbs).
 - **Test doubles ship with the product** (D8): the mock engine, a hosted "Mock cloud" model,
   fake local and remote jobs, a scripted fake LLM, and offline key checks
   (`FRAMESTUDIO_FAKE_PROVIDERS=1`, where keys starting `fs-test-ok` pass).
