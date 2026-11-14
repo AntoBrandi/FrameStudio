@@ -33,6 +33,7 @@ license:
 tags: [google, nano-banana]
 # Auto prefers lower ranks (test doubles last, so Auto always works offline).
 auto_rank: 20
+prompt_profile: gemini
 fixtures:
   - mode: image
     params: { aspect: "1:1" }

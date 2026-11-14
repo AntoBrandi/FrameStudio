@@ -2,6 +2,7 @@ import { Eye } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { Schemas } from "@/api/client";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/misc";
+import { cn } from "@/lib/utils";
 
 export type Resolved = Schemas["Resolved"];
 
@@ -10,6 +11,7 @@ export type Resolved = Schemas["Resolved"];
  * prompt uses. */
 export function RequestPreview({ resolved, modelName }: { resolved: Resolved | undefined; modelName?: string }) {
   const { t } = useTranslation();
+  const sections = resolved?.sections ?? [];
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -49,6 +51,47 @@ export function RequestPreview({ resolved, modelName }: { resolved: Resolved | u
                   {resolved.prompt || t("preview.noPrompt")}
                 </p>
               </section>
+              {resolved.negative_prompt ? (
+                <section className="flex flex-col gap-1">
+                  <span className="text-xs font-medium uppercase tracking-wide text-muted">
+                    {t("preview.negative")}
+                  </span>
+                  <p className="rounded-lg bg-stage p-2 text-sm" data-testid="request-negative">
+                    {resolved.negative_prompt}
+                  </p>
+                </section>
+              ) : null}
+              {sections.length > 1 ? (
+                <section className="flex flex-col gap-1">
+                  <span className="text-xs font-medium uppercase tracking-wide text-muted">
+                    {t("preview.sections")}
+                  </span>
+                  <ul className="flex max-h-48 flex-col gap-1 overflow-y-auto" data-testid="request-sections">
+                    {sections.map((section, index) => (
+                      <li
+                        key={index}
+                        className={cn("flex flex-col gap-0.5 text-xs", !section.included && "opacity-60")}
+                        data-family={section.family}
+                        data-included={section.included}
+                      >
+                        <span className="flex gap-2">
+                          <span className="w-24 shrink-0 font-mono text-[10px] uppercase text-muted">
+                            {t(`preview.families.${section.family}`)}
+                          </span>
+                          <span className={cn("min-w-0 flex-1", !section.included && "line-through")}>
+                            {section.text}
+                          </span>
+                        </span>
+                        {section.note ? (
+                          <span className="pl-26 text-[11px] text-tungsten" data-testid="section-note">
+                            {section.note}
+                          </span>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ) : null}
               <section className="flex flex-col gap-1">
                 <span className="text-xs font-medium uppercase tracking-wide text-muted">
                   {t("preview.pictures", { count: resolved.references.length })}

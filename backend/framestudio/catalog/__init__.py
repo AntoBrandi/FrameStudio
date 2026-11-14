@@ -20,7 +20,9 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_valida
 
 CATALOG_DIR = Path(__file__).resolve().parent / "models"
 #: FrameStudio inputs a provider_inputs map can name ("reference": one input image).
-INPUT_KEYS = frozenset({"prompt", "start_frame", "end_frame", "references", "reference", "seed"})
+INPUT_KEYS = frozenset(
+    {"prompt", "negative_prompt", "start_frame", "end_frame", "references", "reference", "seed"}
+)
 
 Mode = Literal["image", "video"]
 Capability = Literal[
@@ -171,6 +173,9 @@ class ModelSpec(_Strict):
     #: Auto picks the lowest-ranked model that fits and can run; models
     #: without a rank are never picked automatically (M2.9).
     auto_rank: int | None = Field(default=None, ge=0, le=1000)
+    #: How the prompt compiler writes for this model (M5.1): gemini, seedance,
+    #: diffusion or generic. Default: by provider.
+    prompt_profile: Literal["gemini", "seedance", "diffusion", "generic"] | None = None
     fixtures: list[Fixture] = Field(min_length=1)
 
     @field_validator("id")

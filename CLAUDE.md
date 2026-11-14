@@ -107,6 +107,16 @@ Test media: `backend/tests/fixtures/media` (regenerate with `make_corpus.py`).
   (atomic version bump first). `/api/elements/recipes`, `/api/elements/{id}/generate[/estimate]`;
   UI `features/elements/GenerateViews.tsx`. Stand-in gotcha: a prompt containing "slow" stays
   queued forever in `FakeBytePlus` (likewise "blocked"/"inactive" fail).
+- Cinema controls (M5): `framestudio/cinema/` — `vocab.yaml` (every picker choice with its
+  sentence `phrase` and diffusion `tags`; move ids are `#move` prompt tokens), `ShotSpec` in
+  `__init__.py` (film, camera, ordered moves, palette, lighting; stored as `generations.shot`),
+  `compiler.py` (profiles per model family: gemini, seedance, diffusion, generic, chosen by the
+  catalog's `prompt_profile` or provider; section order, drop order at the length limit, negatives
+  inline/param/drop, native params). The resolver (M4.4) calls the compiler, so Preview shows the
+  prompt by section. `adherence.py` measures which controls each model follows (fixed-seed A/B,
+  picture metrics or a vision-model judge asked twice with the pictures swapped); built-in results
+  in `adherence.yaml`, runs saved to `<data>/adherence.json`; ignored controls are flagged.
+  Compiler goldens: `tests/golden/compiler/` (`FRAMESTUDIO_UPDATE_GOLDEN=1`).
 - LLM contract fixtures: `backend/tests/contracts/fixtures/llm/<provider>/<case>.json`, synthetic
   until recorded (`uv run python -m tests.contracts.llm_wire` rewrites synthetic ones). Live runs:
   `LIVE_API=1 FRAMESTUDIO_LIVE_<PROVIDER>_KEY=… uv run pytest tests/contracts` (paid);

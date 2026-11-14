@@ -68,6 +68,8 @@ class Generation(Base):
     #: What the model was given (M4.4): the prompt it saw, the pictures with
     #: their labels and the element versions (``references.Resolved``).
     resolved: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    #: The cinema controls (M5.1): a ``cinema.ShotSpec``.
+    shot: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
     #: An element that gets the result as a picture (M4.6 element generators),
     #: and the role it gets there.
     attach_element_id: Mapped[str | None] = mapped_column(

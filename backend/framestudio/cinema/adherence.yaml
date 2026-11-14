@@ -1,0 +1,61 @@
+# Which cinema controls each model follows (plan step M5.1), as measured by
+# framestudio.cinema.adherence: model id → control → result. Runs made with an
+# install are saved in its data folder (adherence.json) and take precedence.
+#
+# The offline test models were measured here with the harness (no network):
+# they paint the same picture whatever the shot says, so every control a
+# metric measures comes out ignored; judged controls need a vision model.
+# Hosted models stay "untested" until measured with real keys (paid runs).
+mock:
+  era:
+    checked_at: '2026-11-14'
+    method: metric
+    score: 0.7
+    status: ignored
+  lighting:
+    checked_at: '2026-11-14'
+    method: metric
+    score: 0.39
+    status: ignored
+  moves:
+    checked_at: '2026-11-14'
+    method: metric
+    score: 0.0
+    status: ignored
+  palette:
+    checked_at: '2026-11-14'
+    method: metric
+    score: 0.06
+    status: ignored
+  tempo:
+    checked_at: '2026-11-14'
+    method: metric
+    score: 0.0
+    status: ignored
+mock-cloud:
+  era:
+    checked_at: '2026-11-14'
+    method: metric
+    score: 0.7
+    status: ignored
+  lighting:
+    checked_at: '2026-11-14'
+    method: metric
+    score: 0.39
+    status: ignored
+  moves:
+    checked_at: '2026-11-14'
+    method: metric
+    score: 0.0
+    status: ignored
+  palette:
+    checked_at: '2026-11-14'
+    method: metric
+    score: 0.06
+    status: ignored
+  tempo:
+    checked_at: '2026-11-14'
+    method: metric
+    score: 0.0
+    status: ignored
+

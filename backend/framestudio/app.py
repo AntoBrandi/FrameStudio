@@ -18,6 +18,7 @@ from framestudio import __version__
 from framestudio.api import (
     auth,
     catalog_api,
+    cinema_api,
     connections_api,
     elements_api,
     jobs,
@@ -217,6 +218,7 @@ def create_app(
         llm_api.router,
         elements_api.router,
         prompts_api.router,
+        cinema_api.router,
     ):
         app.include_router(router)
     mount_ui(app, config.resolved_ui_dist())

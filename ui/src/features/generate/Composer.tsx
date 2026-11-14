@@ -95,6 +95,7 @@ export function Composer({ mode, projectId }: { mode: Mode; projectId?: string }
   const create = $api.useMutation("post", "/api/generations");
   const store = useComposerStore();
   const draft = store.drafts[mode] ?? NO_TOKENS;
+  const shot = store.shots[mode];
   const prompt = useMemo(() => renderTokens(draft), [draft]);
   const [enhancement, setEnhancement] = useState<Enhancement | null>(null);
   // The tokens before Enhance rewrote them, for Undo.
@@ -169,6 +170,7 @@ export function Composer({ mode, projectId }: { mode: Mode; projectId?: string }
             model: model.id,
             prompt: prompt.trim(),
             prompt_tokens: trimTokens(draft),
+            ...(shot ? { shot } : {}),
             ...(projectId ? { project_id: projectId } : {}),
             batch,
             params,
@@ -178,7 +180,7 @@ export function Composer({ mode, projectId }: { mode: Mode; projectId?: string }
             ...(store.seed != null ? { seed: store.seed } : {}),
           }
         : null,
-    [model, mode, prompt, draft, projectId, batch, params, usedRefs, start, end, store.seed],
+    [model, mode, prompt, draft, shot, projectId, batch, params, usedRefs, start, end, store.seed],
   );
   // The estimate follows the settings, not every keystroke of the prompt.
   const estimateBody = useDeferredValue(body ? { ...body, prompt: "", prompt_tokens: NO_TOKENS } : null);

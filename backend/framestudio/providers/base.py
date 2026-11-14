@@ -154,6 +154,8 @@ class GenerationRequest:
     #: Image to video: the clip starts on this picture (and ends on the other).
     start_frame: Path | None = None
     end_frame: Path | None = None
+    #: Words to keep out, for models with a negative-prompt input (M5.1).
+    negative_prompt: str | None = None
 
 
 @dataclass(frozen=True)

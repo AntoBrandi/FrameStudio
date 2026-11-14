@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 
 from framestudio import prompts
 from framestudio.catalog import ParamError, estimate_cost, validate_params
+from framestudio.cinema import ShotSpec
 from framestudio.db.base import utcnow
 from framestudio.db.models import Asset, Element, ElementMedia, ElementUse, Generation, Job
 from framestudio.jobs.base import JobContext, JobError, JobKind, JobSnapshot, PollResult
@@ -80,6 +81,8 @@ class GenerationCreate(BaseModel):
     #: the global library when both are omitted.
     project_id: str | None = None
     folder_id: str | None = None
+    #: Cinema controls (M5.1): film, camera, moves, palette and lighting.
+    shot: ShotSpec | None = None
     #: Send the pictures of the elements named in the prompt (M4.4). Element
     #: generators turn it off and attach the pictures they start from.
     element_pictures: bool = True
@@ -97,6 +100,7 @@ class GenerationOut(BaseModel):
     provider: str
     prompt: str
     prompt_tokens: list[Token]
+    shot: ShotSpec | None = None
     #: What the model was given (M4.4); None for older generations.
     resolved: Resolved | None
     params: dict[str, Any]
@@ -142,6 +146,7 @@ def generation_out(session: Session, generation: Generation) -> GenerationOut:
         provider=generation.provider,
         prompt=generation.prompt,
         prompt_tokens=stored_tokens(generation),
+        shot=ShotSpec.model_validate(generation.shot) if generation.shot else None,
         resolved=Resolved.model_validate(generation.resolved) if generation.resolved else None,
         params=generation.params or {},
         references=list(generation.reference_ids or []),
@@ -513,6 +518,7 @@ def _load_request(services: Services, generation_id: str) -> tuple[GenerationReq
         request = GenerationRequest(
             mode=generation.mode,  # type: ignore[arg-type]
             prompt=resolved.get("prompt", generation.prompt),
+            negative_prompt=resolved.get("negative_prompt"),
             seed=generation.seed if generation.seed is not None else 0,
             params=dict(generation.params or {}),
             model=generation.model_id,
@@ -744,8 +750,11 @@ def tokens_for(
 def resolve_for(
     services: Services, spec: Any, request: GenerationCreate, tokens: list[Token]
 ) -> Resolved:
-    """What ``spec`` is given for this request (M4.4)."""
+    """What ``spec`` is given for this request (M4.4, M5.1)."""
+    from framestudio.cinema.adherence import ignored_controls
+
     frames = request.start_frame is not None or request.end_frame is not None
+    ignored = ignored_controls(services, spec.id)
     with services.db.session() as session:
         return resolve(
             session,
@@ -754,6 +763,9 @@ def resolve_for(
             list(request.references),
             frames=frames,
             element_pictures=request.element_pictures,
+            mode=request.mode,
+            shot=request.shot,
+            ignored=ignored,
         )
 
 
@@ -827,7 +839,14 @@ async def create_generations(
     resolved = await asyncio.to_thread(resolve_for, services, spec, request, tokens)
     if resolved.problems:
         raise ParamError(resolved.problems)
+    if resolved.native:  # parameters the shot sets (the request's own win)
+        params = validate_params(spec, request.mode, {**resolved.native, **request.params})
     resolved_json = resolved.model_dump(mode="json")
+    shot_json = (
+        request.shot.model_dump(mode="json", exclude_defaults=True)
+        if request.shot and not request.shot.is_empty()
+        else None
+    )
     stored = [t.model_dump(mode="json") for t in tokens]
     used = prompts.element_ids(tokens)
     base_seed = request.seed if request.seed is not None else secrets.randbelow(MAX_SEED)
@@ -852,6 +871,7 @@ async def create_generations(
                 prompt=request.prompt,
                 prompt_tokens=stored,
                 resolved=resolved_json,
+                shot=shot_json,
                 params=params,
                 reference_ids=list(request.references),
                 start_frame_id=request.start_frame,

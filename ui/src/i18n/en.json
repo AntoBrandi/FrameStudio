@@ -222,7 +222,8 @@
     "inTrash": "In the trash",
     "connections": "Connections",
     "usage": "Spending this month",
-    "languageModels": "Language models"
+    "languageModels": "Language models",
+    "cinema": "Cinema controls"
   },
   "library": {
     "allAssets": "All assets",
@@ -621,7 +622,19 @@
     "pictures_other": "{{count}} pictures",
     "noPictures": "No pictures.",
     "attached": "attached",
-    "empty": "Write a prompt to see what is sent."
+    "empty": "Write a prompt to see what is sent.",
+    "sections": "By section",
+    "families": {
+      "subject": "Prompt",
+      "moves": "Camera movement",
+      "camera": "Camera",
+      "film": "Look",
+      "lighting": "Lighting",
+      "palette": "Palette",
+      "elements": "Element",
+      "negative": "Avoid"
+    },
+    "negative": "Negative prompt"
   },
   "refPicker": {
     "title": "Add references",
@@ -678,5 +691,29 @@
     "start": "Generate",
     "started_one": "Making {{count}} view of @{{handle}}; it is added to the element when done.",
     "started_other": "Making {{count}} views of @{{handle}}; they are added to the element as they finish."
+  },
+  "adherence": {
+    "hint": "Which cinema controls each model follows, measured with pairs of pictures made with the same seed and one control set two ways. Controls a model ignores are flagged in Preview.",
+    "model": "Model",
+    "controls": {
+      "genre": "Genre",
+      "era": "Era",
+      "tempo": "Pace",
+      "body": "Camera",
+      "lens": "Lens",
+      "focal_length": "Focal",
+      "aperture": "Aperture",
+      "moves": "Moves",
+      "lighting": "Light",
+      "palette": "Palette"
+    },
+    "status": {
+      "followed": "Followed",
+      "weak": "Partly followed",
+      "ignored": "Ignored",
+      "untested": "Not measured yet"
+    },
+    "checked": "measured {{date}}",
+    "legend": "✓ followed · ~ partly · ✕ ignored · · not measured yet (hosted models are measured with your keys, within a budget) · – does not apply"
   }
 }

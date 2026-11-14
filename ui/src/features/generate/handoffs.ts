@@ -1,7 +1,7 @@
 import type { AssetOut } from "@/api/client";
 import type { Mode, Params } from "./params";
 import { type Reference, toReference } from "./ReferenceTray";
-import { AUTO, NO_ATTACHMENTS, paramsKey, useComposerStore } from "./store";
+import { AUTO, NO_ATTACHMENTS, paramsKey, type ShotSpec, useComposerStore } from "./store";
 import { type Token, tokensFromText } from "./tokens";
 
 type Spec = NonNullable<AssetOut["generation"]>;
@@ -28,6 +28,7 @@ export function recreate(asset: AssetOut): Mode | null {
   store.setParams(spec.model_id, mode, spec.params as Params);
   store.setSeed(spec.seed ?? null);
   store.setDraft(mode, promptOf(spec));
+  store.setShot(mode, (spec.shot as ShotSpec | null | undefined) ?? null);
   store.setAttachments(mode, {
     references: (spec.references ?? []).map(thumbOf),
     start: spec.start_frame ? thumbOf(spec.start_frame) : null,

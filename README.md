@@ -95,6 +95,12 @@ scripts/   dev, start and setup commands (plain Node, any OS)
   real limit.
   From one photo, an element can generate its own character sheet, location set, prop turnaround or
   turntable clip; the results are added to it as they finish.
+- **Cinema controls** (M5, under way): a shot description (film genre, era and pace; camera body,
+  lens, focal length and aperture; ordered camera moves, also typed as `#dolly-in`; palette;
+  lighting) is compiled into each model family's own prompt: plain sentences for Nano Banana,
+  camera movement first for Seedance, tags and a negative prompt for diffusion models. Preview
+  shows the result by section, and Settings shows which controls each model actually follows,
+  measured with fixed-seed A/B pairs (hosted models are measured with your keys, within a budget).
 - **Test doubles ship with the product** (D8): the mock engine, a hosted "Mock cloud" model,
   fake local and remote jobs, a scripted fake LLM, and offline key checks
   (`FRAMESTUDIO_FAKE_PROVIDERS=1`, where keys starting `fs-test-ok` pass).

@@ -58,6 +58,7 @@ license:
 tags: [byteplus, seedance]
 # Auto prefers lower ranks (test doubles last, so Auto always works offline).
 auto_rank: 15
+prompt_profile: seedance
 fixtures:
   - mode: video
     params: { duration: 4, resolution: "480p", audio: true }

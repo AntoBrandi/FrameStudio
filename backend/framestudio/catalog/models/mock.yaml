@@ -62,6 +62,7 @@ license:
 tags: [test, offline]
 # Auto prefers lower ranks (test doubles last, so Auto always works offline).
 auto_rank: 900
+prompt_profile: generic
 fixtures:
   - mode: image
     params: { aspect: "16:9" }

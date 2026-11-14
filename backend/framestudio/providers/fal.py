@@ -145,6 +145,8 @@ class FalProvider:
             body[inputs["references"]] = [_data_uri(path) for path in request.references]
         elif request.references and "reference" in inputs:  # one input image
             body[inputs["reference"]] = _data_uri(request.references[0])
+        if request.negative_prompt and "negative_prompt" in inputs:
+            body[inputs["negative_prompt"]] = request.negative_prompt
         if "seed" in inputs:
             body[inputs["seed"]] = request.seed
         for name, value in request.params.items():

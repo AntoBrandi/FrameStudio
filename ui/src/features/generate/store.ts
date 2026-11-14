@@ -3,6 +3,9 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import type { Mode, Params } from "./params";
 import type { Reference } from "./ReferenceTray";
 import type { Token } from "./tokens";
+import type { Schemas } from "@/api/client";
+
+export type ShotSpec = Schemas["ShotSpec"];
 
 /** What a generation is given besides the prompt (not remembered across restarts). */
 export interface Attachments {
@@ -27,12 +30,15 @@ interface ComposerState {
   /** The prompt being written, as tokens, per mode (not remembered across restarts). */
   drafts: Partial<Record<Mode, Token[]>>;
   attachments: Partial<Record<Mode, Attachments>>;
+  /** Cinema controls per mode (M5): film, camera, moves, palette, lighting. */
+  shots: Partial<Record<Mode, ShotSpec>>;
   setModel: (mode: Mode, model: string) => void;
   setParams: (model: string, mode: Mode, params: Params) => void;
   setBatch: (batch: number) => void;
   setSeed: (seed: number | null) => void;
   setDraft: (mode: Mode, tokens: Token[]) => void;
   setAttachments: (mode: Mode, patch: Partial<Attachments>) => void;
+  setShot: (mode: Mode, shot: ShotSpec | null) => void;
 }
 
 export const paramsKey = (model: string, mode: Mode) => `${model}|${mode}`;
@@ -47,11 +53,19 @@ export const useComposerStore = create<ComposerState>()(
       seed: null,
       drafts: {},
       attachments: {},
+      shots: {},
       setModel: (mode, model) => set((s) => ({ models: { ...s.models, [mode]: model } })),
       setParams: (model, mode, params) => set((s) => ({ params: { ...s.params, [paramsKey(model, mode)]: params } })),
       setBatch: (batch) => set({ batch }),
       setSeed: (seed) => set({ seed }),
       setDraft: (mode, tokens) => set((s) => ({ drafts: { ...s.drafts, [mode]: tokens } })),
+      setShot: (mode, shot) =>
+        set((s) => {
+          const shots = { ...s.shots };
+          if (shot) shots[mode] = shot;
+          else delete shots[mode];
+          return { shots };
+        }),
       setAttachments: (mode, patch) =>
         set((s) => ({
           attachments: { ...s.attachments, [mode]: { ...NO_ATTACHMENTS, ...s.attachments[mode], ...patch } },
@@ -60,7 +74,7 @@ export const useComposerStore = create<ComposerState>()(
     {
       name: "framestudio.composer",
       storage: createJSONStorage(() => localStorage),
-      partialize: ({ models, params, batch, seed }) => ({ models, params, batch, seed }),
+      partialize: ({ models, params, batch, seed, shots }) => ({ models, params, batch, seed, shots }),
     },
   ),
 );

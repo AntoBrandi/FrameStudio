@@ -49,6 +49,7 @@ FIELDS: dict[str, tuple[str, ...]] = {
     ),
     "references": ("image_urls", "reference_image_urls", "reference_images", "input_image_urls"),
     "seed": ("seed",),
+    "negative_prompt": ("negative_prompt",),
 }
 #: A single input image of an image model (image-to-image endpoints).
 SINGLE_IMAGE = ("image_url", "input_image_url", "image")
@@ -61,7 +62,7 @@ PARAMS: dict[str, tuple[str, ...]] = {
     "resolution": ("resolution",),
     "audio": ("generate_audio", "enable_audio", "with_audio", "audio"),
 }
-_SKIP = ("url", "webhook", "sync_mode", "num_images", "output_format", "negative_prompt")
+_SKIP = ("url", "webhook", "sync_mode", "num_images", "output_format")
 
 
 class FalImportError(ValueError):
@@ -276,6 +277,7 @@ def spec_from_fal(model: dict[str, Any], price: dict[str, Any] | None) -> ModelS
         },
         "tags": ["fal", str(category)],
         "auto_rank": 50,  # after native providers, before test doubles
+        "prompt_profile": "diffusion",
         "fixtures": [{"mode": mode, "params": {}}],
     }
     try:

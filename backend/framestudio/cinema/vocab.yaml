@@ -1,0 +1,108 @@
+# Cinema controls (plan step M5.1): every choice the film, camera, move,
+# lighting and palette pickers offer, with the words it becomes in a prompt.
+#
+#   phrase: for models that read sentences (Nano Banana, Seedance, most LLM-
+#           based image models); joined into sentences by the compiler.
+#   tags:   for models that read comma-separated tags (diffusion models).
+#   negative: optional words for a negative prompt (where a model takes one).
+#
+# Moves are also prompt tokens (#dolly-in), so their ids use lowercase letters,
+# digits and hyphens. Wording avoids the test stand-ins' steering words
+# ("slow", "blocked", "inactive", "flaky", "expired"); a test checks this.
+
+genres:
+  - { id: noir, label: Noir, phrase: "film noir, with hard low-key light, deep shadows and high contrast", tags: "film noir, low-key lighting, high contrast, deep shadows" }
+  - { id: thriller, label: Thriller, phrase: "a tense thriller mood with cool tones and restrained light", tags: "thriller, tense atmosphere, cool tones" }
+  - { id: horror, label: Horror, phrase: "a horror mood, with dread and darkness gathering at the edges of the frame", tags: "horror film, dread, dark vignette" }
+  - { id: sci-fi, label: Sci-fi, phrase: "a science-fiction look with clean lines and cool artificial light", tags: "science fiction, futuristic, cool artificial light" }
+  - { id: western, label: Western, phrase: "a western look, with dusty air, sun-bleached colour and wide open land", tags: "western, dusty, sun-bleached" }
+  - { id: romance, label: Romance, phrase: "a romantic mood with soft warm light and gentle contrast", tags: "romantic, soft warm light" }
+  - { id: fantasy, label: Fantasy, phrase: "a fantasy look, with luminous air and rich, saturated colour", tags: "fantasy, luminous, rich colour" }
+  - { id: action, label: Action, phrase: "an action-film look, with dynamic framing and punchy contrast", tags: "action film, dynamic framing, punchy contrast" }
+  - { id: documentary, label: Documentary, phrase: "a documentary look, with natural available light and observational framing", tags: "documentary, natural light, observational", negative: "stylised lighting" }
+  - { id: drama, label: Drama, phrase: "a quiet drama with naturalistic light and colour", tags: "drama, naturalistic" }
+
+eras:
+  - { id: 1920s, label: 1920s, phrase: "styled as a 1920s silent film, in black and white with a soft vignette and flickering exposure", tags: "1920s silent film, black and white, vignette", negative: "colour" }
+  - { id: 1950s, label: 1950s, phrase: "styled as a 1950s film in rich Technicolor", tags: "1950s Technicolor, saturated" }
+  - { id: 1970s, label: 1970s, phrase: "styled as a 1970s film, on warm, grainy film stock with muted earthy colours", tags: "1970s film, film grain, muted earthy colours" }
+  - { id: 1980s, label: 1980s, phrase: "styled as a 1980s film, with neon highlights and soft diffusion", tags: "1980s film, neon highlights, soft diffusion" }
+  - { id: 1990s, label: 1990s, phrase: "styled as a 1990s film, slightly desaturated with cool fluorescent tones", tags: "1990s film, desaturated, cool tones" }
+  - { id: 2000s, label: 2000s, phrase: "styled as a 2000s film, with bleach-bypass contrast and a teal-and-orange grade", tags: "2000s film, bleach bypass, teal and orange" }
+  - { id: modern, label: Modern, phrase: "a modern digital-cinema look, clean and sharp with a wide dynamic range", tags: "modern cinema, clean digital, sharp" }
+
+tempos:
+  - { id: calm, label: Calm, phrase: "calm and unhurried", tags: "calm pace" }
+  - { id: steady, label: Steady, phrase: "steady and even", tags: "steady pace" }
+  - { id: brisk, label: Brisk, phrase: "brisk, with quick movement", tags: "brisk pace, quick movement" }
+  - { id: frantic, label: Frantic, phrase: "frantic, with fast movement and nervous energy", tags: "frantic pace, fast motion" }
+
+bodies:
+  - { id: film-35, label: 35mm film, phrase: "shot on 35mm film", tags: "35mm film" }
+  - { id: film-16, label: 16mm film, phrase: "shot on 16mm film with visible grain", tags: "16mm film, film grain" }
+  - { id: imax, label: IMAX 65mm, phrase: "shot on IMAX 65mm film, immense detail", tags: "IMAX 65mm, immense detail" }
+  - { id: digital, label: Digital cinema, phrase: "shot on a digital cinema camera", tags: "digital cinema camera" }
+  - { id: medium-format, label: Medium format, phrase: "shot on medium-format film with gentle focus fall-off", tags: "medium format film" }
+  - { id: vhs, label: VHS camcorder, phrase: "shot on a VHS camcorder, with soft, smeared colour and scan lines", tags: "VHS camcorder, scan lines, smeared colour" }
+  - { id: phone, label: Smartphone, phrase: "shot on a smartphone", tags: "smartphone footage" }
+
+lenses:
+  - { id: spherical, label: Spherical prime, phrase: "a spherical prime lens", tags: "prime lens" }
+  - { id: anamorphic, label: Anamorphic, phrase: "an anamorphic lens with oval bokeh and horizontal flares", tags: "anamorphic lens, oval bokeh, horizontal lens flare" }
+  - { id: vintage, label: Vintage, phrase: "a vintage lens with soft edges and low contrast", tags: "vintage lens, soft edges, low contrast" }
+  - { id: macro, label: Macro, phrase: "a macro lens for extreme close detail", tags: "macro lens, extreme close-up detail" }
+  - { id: fisheye, label: Fisheye, phrase: "a fisheye lens with strong barrel distortion", tags: "fisheye lens, barrel distortion" }
+  - { id: tilt-shift, label: Tilt-shift, phrase: "a tilt-shift lens that makes the scene look miniature", tags: "tilt-shift, miniature effect" }
+
+# f-numbers offered by the aperture drum; the compiler words the depth of field.
+apertures: ["f/1.2", "f/1.4", "f/2", "f/2.8", "f/4", "f/5.6", "f/8", "f/11", "f/16"]
+# Focal lengths offered by the lens drum (mm).
+focal_lengths: [14, 18, 24, 35, 50, 85, 105, 135, 200]
+
+moves:
+  - { id: static, label: Static, phrase: "the camera is locked off and does not move", tags: "static camera, locked-off shot" }
+  - { id: dolly-in, label: Dolly in, phrase: "the camera dollies in toward the subject", tags: "dolly in" }
+  - { id: dolly-out, label: Dolly out, phrase: "the camera dollies back, away from the subject", tags: "dolly out" }
+  - { id: truck-left, label: Truck left, phrase: "the camera trucks left alongside the action", tags: "truck left" }
+  - { id: truck-right, label: Truck right, phrase: "the camera trucks right alongside the action", tags: "truck right" }
+  - { id: pedestal-up, label: Pedestal up, phrase: "the camera rises straight up", tags: "pedestal up" }
+  - { id: pedestal-down, label: Pedestal down, phrase: "the camera lowers straight down", tags: "pedestal down" }
+  - { id: pan-left, label: Pan left, phrase: "the camera pans left", tags: "pan left" }
+  - { id: pan-right, label: Pan right, phrase: "the camera pans right", tags: "pan right" }
+  - { id: tilt-up, label: Tilt up, phrase: "the camera tilts up", tags: "tilt up" }
+  - { id: tilt-down, label: Tilt down, phrase: "the camera tilts down", tags: "tilt down" }
+  - { id: crane-up, label: Crane up, phrase: "the camera cranes up and over the scene", tags: "crane up, rising shot" }
+  - { id: crane-down, label: Crane down, phrase: "the camera cranes down into the scene", tags: "crane down" }
+  - { id: arc, label: Arc, phrase: "the camera arcs halfway around the subject", tags: "arc shot" }
+  - { id: orbit, label: Drone orbit, phrase: "the camera orbits a full circle around the subject", tags: "orbit shot, 360 degrees" }
+  - { id: dolly-zoom, label: Dolly zoom, phrase: "a dolly zoom, the camera moving in while the lens zooms out so the background warps", tags: "dolly zoom, vertigo effect" }
+  - { id: whip-pan, label: Whip pan, phrase: "a whip pan blurs across to the next view", tags: "whip pan, motion blur" }
+  - { id: crash-zoom, label: Crash zoom, phrase: "a sudden crash zoom onto the subject", tags: "crash zoom" }
+  - { id: creep-zoom, label: Creeping zoom, phrase: "a gradual, creeping zoom in", tags: "creeping zoom in" }
+  - { id: zoom-out, label: Zoom out, phrase: "the lens zooms out", tags: "zoom out" }
+  - { id: handheld, label: Handheld, phrase: "handheld camera with a natural, breathing shake", tags: "handheld camera, camera shake" }
+  - { id: tracking, label: Tracking, phrase: "the camera tracks behind the subject as it moves", tags: "tracking shot, following" }
+  - { id: side-tracking, label: Side tracking, phrase: "the camera tracks alongside the subject", tags: "side tracking shot" }
+  - { id: pov, label: POV, phrase: "a point-of-view shot through the subject's eyes", tags: "POV shot, first person" }
+  - { id: snorricam, label: Snorricam, phrase: "a body-mounted snorricam shot, the subject fixed in frame while the world moves", tags: "snorricam, body-mounted camera" }
+  - { id: robot-arm, label: Robot arm, phrase: "a fast, precise robotic-arm move sweeping past the subject", tags: "motion control robot arm, sweeping move" }
+  - { id: rack-focus, label: Rack focus, phrase: "the focus racks from the foreground to the background", tags: "rack focus" }
+  - { id: bullet-time, label: Bullet time, phrase: "bullet time, the action frozen while the camera sweeps around it", tags: "bullet time, frozen moment" }
+  - { id: aerial-pullback, label: Aerial pull-back, phrase: "an aerial pull-back rising away to reveal the surroundings", tags: "aerial pullback, reveal" }
+  - { id: fpv-drone, label: FPV drone, phrase: "an FPV drone shot diving through the space", tags: "FPV drone shot, diving" }
+
+lighting:
+  - { id: silhouette, label: Silhouette, phrase: "lit from behind so the subject reads as a dark silhouette against a bright background", tags: "silhouette, strong backlight" }
+  - { id: practicals, label: Practicals, phrase: "lit by practical lights in the scene, lamps and signs casting warm pools of light", tags: "practical lighting, warm lamp light" }
+  - { id: window, label: Window, phrase: "soft directional window light from one side", tags: "window light, soft side light" }
+  - { id: overhead-fall, label: Overhead fall, phrase: "a hard pool of overhead light falling off into darkness", tags: "overhead light, pool of light, falloff" }
+  - { id: contre-jour, label: Contre-jour, phrase: "contre-jour backlight, with a rim of light around the subject and flare toward the lens", tags: "contre-jour, rim light, lens flare" }
+  - { id: soft-cross, label: Soft cross, phrase: "soft cross lighting from two sides, gentle and even", tags: "soft cross lighting, even light" }
+
+palettes:
+  - { id: teal-night, label: Teal night, words: "deep teal and blue night tones with warm amber accents", swatches: ["#0B1D26", "#12404D", "#1F6F78", "#8FB8C2", "#F2A65A", "#D9E4E8"] }
+  - { id: golden-hour, label: Golden hour, words: "warm golden-hour amber and honey tones", swatches: ["#3B1F0E", "#8C4A1E", "#C9702F", "#E0913A", "#F5C46B", "#FBE6B8"] }
+  - { id: bleach-bypass, label: Bleach bypass, words: "desaturated bleach-bypass greys with crushed contrast", swatches: ["#1A1C1C", "#33383A", "#4A4F4F", "#8A8F8C", "#C9CBC4", "#E8E6DC"] }
+  - { id: neon-noir, label: Neon noir, words: "neon magenta and cyan against near-black", swatches: ["#0A0614", "#2B0B3F", "#8E1F7A", "#F04D8A", "#19C3E6", "#B8F3FF"] }
+  - { id: pastel, label: Pastel, words: "soft pastel pinks, mint and sky blue", swatches: ["#F6D6D6", "#F6F7C4", "#A1EEBD", "#7BD3EA", "#C9B6E4", "#FFFFFF"] }
+  - { id: monochrome, label: Monochrome, words: "black and white, a full range of greys", swatches: ["#000000", "#333333", "#666666", "#999999", "#CCCCCC", "#FFFFFF"], negative: "colour" }

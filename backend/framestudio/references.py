@@ -25,14 +25,17 @@ pictures and the element versions) and shown in the composer before Generate.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from framestudio.catalog import ModelSpec
+from framestudio.cinema import ShotSpec
+from framestudio.cinema.compiler import Section, compile_prompt
 from framestudio.db.models import Asset, Element, ElementMedia
 from framestudio.prompts import ElementToken, MoveToken, TextToken, Token, element_ids, warnings
 
@@ -69,6 +72,11 @@ class Resolved(BaseModel):
     references: list[ResolvedReference]
     elements: list[ResolvedElement]
     warnings: list[str]
+    #: The prompt by section, for the compiled preview (M5.1).
+    sections: list[Section] = []
+    negative_prompt: str | None = None
+    #: Parameters the shot sets on this model (M5.1).
+    native: dict[str, Any] = {}
     #: What stops the generation (an edit model with no picture).
     problems: list[str] = []
 
@@ -117,6 +125,9 @@ def resolve(
     *,
     frames: bool = False,
     element_pictures: bool = True,
+    mode: str = "image",
+    shot: ShotSpec | None = None,
+    ignored: set[str] | None = None,
 ) -> Resolved:
     strategy = strategy_for(spec, frames)
     kinds = list(spec.limits.reference_kinds)
@@ -162,9 +173,11 @@ def resolve(
             "elements are described in words."
         )
 
-    # The prompt: elements by name (with their pictures), then their descriptions.
+    # The subject: the prompt with elements by name (and their pictures);
+    # #move tokens become the camera-movement section instead.
     by_id = {item.row.id: item for item in elements}
     parts: list[str] = []
+    token_moves: list[str] = []
     for token in tokens:
         if isinstance(token, TextToken):
             parts.append(token.text)
@@ -179,23 +192,33 @@ def resolve(
             else:
                 parts.append(f"{item.row.name} ({_labels([numbers[a] for a in item.given])})")
         elif isinstance(token, MoveToken):
-            parts.append(f"#{token.name}")
+            token_moves.append(token.name)
         else:
             parts.append(f"/{token.name}")
-    prompt = "".join(parts).strip()
+    subject = re.sub(r"[ \t]{2,}", " ", "".join(parts)).strip()
     described = [item for item in elements if item.row.description.strip()]
-    lines = [f"{item.row.name}: {' '.join(item.row.description.split())}" for item in described]
-    limit = spec.limits.max_prompt_chars
-    while lines and limit and len(prompt) + 2 + len("\n".join(lines)) > limit:
-        dropped = described.pop()
-        lines.pop()
-        notes.append(
-            f"The description of @{dropped.row.handle} was left out to fit "
-            f"{spec.name}'s {limit}-character prompt."
+    compiled = compile_prompt(
+        spec,
+        mode,
+        subject,
+        shot=shot,
+        token_moves=token_moves,
+        descriptions=[
+            (item.row.handle, f"{item.row.name}: {' '.join(item.row.description.split())}")
+            for item in described
+        ],
+        ignored=ignored,
+    )
+    prompt = compiled.prompt
+    notes.extend(compiled.warnings)
+    kept = {
+        item.row.id
+        for item in described
+        if any(
+            s.family == "elements" and s.included and s.controls == [item.row.handle]
+            for s in compiled.sections
         )
-    if lines:
-        prompt = f"{prompt}\n\n" + "\n".join(lines) if prompt else "\n".join(lines)
-    kept = {item.row.id for item in described}
+    }
 
     references = [
         ResolvedReference(
@@ -226,6 +249,9 @@ def resolve(
             for item in elements
         ],
         warnings=list(dict.fromkeys(notes)),
+        sections=compiled.sections,
+        negative_prompt=compiled.negative_prompt,
+        native=compiled.native,
         problems=(
             [f"{spec.name} changes a picture: attach one or name an element that has pictures."]
             if spec_needs_picture(spec) and not chosen

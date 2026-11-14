@@ -378,6 +378,124 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/cinema/adherence": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get Adherence
+     * @description Which controls each model follows: measured, or untested.
+     */
+    get: operations["get_adherence"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/cinema/adherence/estimate": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Estimate Adherence
+     * @description What measuring would cost: two generations per control.
+     */
+    post: operations["estimate_adherence"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/cinema/adherence/runs": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Start Adherence Run
+     * @description Measure controls on a model with real generations (paid on hosted
+     *     models; refused when the estimate is over ``budget_usd``).
+     */
+    post: operations["start_adherence_run"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/cinema/adherence/runs/{run_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Adherence Run */
+    get: operations["get_adherence_run"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/cinema/profiles": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get Profiles
+     * @description How the compiler writes for each model family.
+     */
+    get: operations["get_profiles"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/cinema/vocab": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get Vocab
+     * @description Every choice the film, camera, move, palette and lighting pickers offer.
+     */
+    get: operations["get_vocab"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/connections": {
     parameters: {
       query?: never;
@@ -1232,6 +1350,17 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    /** AdherenceRow */
+    AdherenceRow: {
+      /** Controls */
+      controls: {
+        [key: string]: components["schemas"]["Measurement"];
+      };
+      /** Model */
+      model: string;
+      /** Name */
+      name: string;
+    };
     /**
      * AppSettings
      * @description Every user-changeable setting with its default.
@@ -1462,6 +1591,17 @@ export interface components {
     BulkResult: {
       /** Updated */
       updated: number;
+    };
+    /** CameraSpec */
+    CameraSpec: {
+      /** Aperture */
+      aperture?: string | null;
+      /** Body */
+      body?: string | null;
+      /** Focal Length */
+      focal_length?: number | null;
+      /** Lens */
+      lens?: string | null;
     };
     /** ConnectionOut */
     ConnectionOut: {
@@ -1797,6 +1937,15 @@ export interface components {
       /** Favorite */
       favorite: boolean;
     };
+    /** FilmSpec */
+    FilmSpec: {
+      /** Era */
+      era?: string | null;
+      /** Genre */
+      genre?: string | null;
+      /** Tempo */
+      tempo?: string | null;
+    };
     /** FolderCreate */
     FolderCreate: {
       /**
@@ -1908,6 +2057,7 @@ export interface components {
       references?: string[];
       /** Seed */
       seed?: number | null;
+      shot?: components["schemas"]["ShotSpec"] | null;
       /** Start Frame */
       start_frame?: string | null;
     };
@@ -1988,6 +2138,7 @@ export interface components {
       resolved: components["schemas"]["Resolved"] | null;
       /** Seed */
       seed: number | null;
+      shot?: components["schemas"]["ShotSpec"] | null;
       /** Start Frame */
       start_frame: string | null;
       /** Started At */
@@ -2032,6 +2183,7 @@ export interface components {
       references?: string[];
       /** Seed */
       seed: number | null;
+      shot?: components["schemas"]["ShotSpec"] | null;
       /** Start Frame */
       start_frame?: string | null;
     };
@@ -2232,6 +2384,13 @@ export interface components {
       /** Source Url */
       source_url: string;
     };
+    /** LightingSpec */
+    LightingSpec: {
+      /** Description */
+      description?: string | null;
+      /** Preset */
+      preset?: string | null;
+    };
     /** Limits */
     Limits: {
       /**
@@ -2248,6 +2407,22 @@ export interface components {
       max_references?: number;
       /** Reference Kinds */
       reference_kinds?: ("image" | "video" | "audio")[];
+    };
+    /** Measurement */
+    Measurement: {
+      /** Checked At */
+      checked_at?: string | null;
+      /** Method */
+      method?: ("metric" | "judge") | null;
+      /** Note */
+      note?: string | null;
+      /** Score */
+      score?: number | null;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "followed" | "weak" | "ignored" | "untested";
     };
     /** MediaOrder */
     MediaOrder: {
@@ -2341,6 +2516,33 @@ export interface components {
       /** Names */
       names: string[];
     };
+    /**
+     * PaletteSpec
+     * @description A preset palette by id, or a custom one (M5.4: extracted from a still).
+     */
+    PaletteSpec: {
+      /** Id */
+      id?: string | null;
+      /** Label */
+      label?: string | null;
+      /** Swatches */
+      swatches?: string[];
+      /** Words */
+      words?: string | null;
+    };
+    /** PaletteTerm */
+    PaletteTerm: {
+      /** Id */
+      id: string;
+      /** Label */
+      label: string;
+      /** Negative */
+      negative?: string | null;
+      /** Swatches */
+      swatches: string[];
+      /** Words */
+      words: string;
+    };
     /** ParamSpec */
     ParamSpec: {
       /**
@@ -2400,6 +2602,37 @@ export interface components {
       unit: "image" | "video_second" | "request";
       /** Usd */
       usd: number;
+    };
+    /** Profile */
+    Profile: {
+      /** Drop Order */
+      drop_order: ("subject" | "moves" | "camera" | "film" | "lighting" | "palette" | "elements" | "negative")[];
+      /**
+       * Hex Codes
+       * @default false
+       */
+      hex_codes?: boolean;
+      /** Id */
+      id: string;
+      /**
+       * Native
+       * @default {}
+       */
+      native?: {
+        [key: string]: [string, unknown];
+      };
+      /**
+       * Negatives
+       * @enum {string}
+       */
+      negatives: "inline" | "param" | "drop";
+      /** Order */
+      order: ("subject" | "moves" | "camera" | "film" | "lighting" | "palette" | "elements" | "negative")[];
+      /**
+       * Style
+       * @enum {string}
+       */
+      style: "sentences" | "tags";
     };
     /** ProjectCreate */
     ProjectCreate: {
@@ -2579,6 +2812,15 @@ export interface components {
       /** Model */
       model: string;
       /**
+       * Native
+       * @default {}
+       */
+      native?: {
+        [key: string]: unknown;
+      };
+      /** Negative Prompt */
+      negative_prompt?: string | null;
+      /**
        * Problems
        * @default []
        */
@@ -2587,6 +2829,11 @@ export interface components {
       prompt: string;
       /** References */
       references: components["schemas"]["ResolvedReference"][];
+      /**
+       * Sections
+       * @default []
+       */
+      sections?: components["schemas"]["Section"][];
       /**
        * Strategy
        * @enum {string}
@@ -2669,10 +2916,97 @@ export interface components {
         [key: string]: unknown;
       };
     };
+    /** RunEstimate */
+    RunEstimate: {
+      /** Controls */
+      controls: string[];
+      /** Cost Usd */
+      cost_usd: number;
+      /** Generations */
+      generations: number;
+      /** Model */
+      model: string;
+      /** Within Budget */
+      within_budget: boolean;
+    };
+    /** RunRequest */
+    RunRequest: {
+      /**
+       * Budget Usd
+       * @default 1
+       */
+      budget_usd?: number;
+      /** Controls */
+      controls?: string[] | null;
+      /** Model */
+      model: string;
+      /**
+       * Seed
+       * @default 7
+       */
+      seed?: number;
+    };
+    /** RunState */
+    RunState: {
+      /** Error */
+      error?: string | null;
+      /** Id */
+      id: string;
+      /** Model */
+      model: string;
+      /**
+       * Results
+       * @default {}
+       */
+      results?: {
+        [key: string]: components["schemas"]["Measurement"];
+      };
+      /**
+       * State
+       * @enum {string}
+       */
+      state: "running" | "done" | "failed";
+    };
+    /** Section */
+    Section: {
+      /**
+       * Controls
+       * @default []
+       */
+      controls?: string[];
+      /**
+       * Family
+       * @enum {string}
+       */
+      family: "subject" | "moves" | "camera" | "film" | "lighting" | "palette" | "elements" | "negative";
+      /**
+       * Included
+       * @default true
+       */
+      included?: boolean;
+      /** Note */
+      note?: string | null;
+      /** Text */
+      text: string;
+    };
     /** SessionCreate */
     SessionCreate: {
       /** Token */
       token: string;
+    };
+    /**
+     * ShotSpec
+     * @description The cinema controls of one shot (M5.1). The prompt's tokens, its
+     *     elements and the model's own parameters (aspect, duration, audio) travel
+     *     beside it in the generation request.
+     */
+    ShotSpec: {
+      camera?: components["schemas"]["CameraSpec"];
+      film?: components["schemas"]["FilmSpec"];
+      lighting?: components["schemas"]["LightingSpec"] | null;
+      /** Moves */
+      moves?: string[];
+      palette?: components["schemas"]["PaletteSpec"] | null;
     };
     /** SkillToken */
     SkillToken: {
@@ -2756,6 +3090,28 @@ export interface components {
       /** Version */
       version: string;
     };
+    /**
+     * Term
+     * @description One choice: what the picker shows and what it becomes in a prompt.
+     */
+    Term: {
+      /** Id */
+      id: string;
+      /** Label */
+      label: string;
+      /** Negative */
+      negative?: string | null;
+      /**
+       * Phrase
+       * @default
+       */
+      phrase?: string;
+      /**
+       * Tags
+       * @default
+       */
+      tags?: string;
+    };
     /** TextToken */
     TextToken: {
       /** Text */
@@ -2823,6 +3179,29 @@ export interface components {
       vram_min_gb: number;
       /** Vram Recommended Gb */
       vram_recommended_gb?: number | null;
+    };
+    /** Vocab */
+    Vocab: {
+      /** Apertures */
+      apertures: string[];
+      /** Bodies */
+      bodies: components["schemas"]["Term"][];
+      /** Eras */
+      eras: components["schemas"]["Term"][];
+      /** Focal Lengths */
+      focal_lengths: number[];
+      /** Genres */
+      genres: components["schemas"]["Term"][];
+      /** Lenses */
+      lenses: components["schemas"]["Term"][];
+      /** Lighting */
+      lighting: components["schemas"]["Term"][];
+      /** Moves */
+      moves: components["schemas"]["Term"][];
+      /** Palettes */
+      palettes: components["schemas"]["PaletteTerm"][];
+      /** Tempos */
+      tempos: components["schemas"]["Term"][];
     };
   };
   responses: never;
@@ -3630,6 +4009,177 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  get_adherence: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AdherenceRow"][];
+        };
+      };
+    };
+  };
+  estimate_adherence: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["RunRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RunEstimate"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  start_adherence_run: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["RunRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      202: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RunState"];
+        };
+      };
+      /** @description Over the budget */
+      402: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  get_adherence_run: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        run_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RunState"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  get_profiles: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Profile"][];
+        };
+      };
+    };
+  };
+  get_vocab: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Vocab"];
         };
       };
     };

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Field, inputClass } from "@/components/ui/misc";
 import { useAuthStore } from "@/features/auth/store";
 import { ConnectionsSection, UsageSection } from "@/features/connections/ConnectionsSection";
+import { AdherenceSection } from "@/features/cinema/AdherenceSection";
 import { LanguageModelsSection } from "@/features/llm/LanguageModelsSection";
 import { StorageSection } from "@/features/library/StorageSection";
 import { LANGUAGES } from "@/i18n";
@@ -106,6 +107,9 @@ export function SettingsPage() {
       </Section>
       <Section title={t("settings.languageModels")}>
         <LanguageModelsSection />
+      </Section>
+      <Section title={t("settings.cinema")}>
+        <AdherenceSection />
       </Section>
       <Section title={t("settings.usage")}>
         <UsageSection />

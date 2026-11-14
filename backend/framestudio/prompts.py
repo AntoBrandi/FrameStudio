@@ -88,7 +88,9 @@ def load_vocabulary(session: Session, project_id: str | None) -> Vocabulary:
     rows = session.execute(
         select(Element.id, Element.handle, Element.scope_key).where(Element.scope_key.in_(scopes))
     ).all()
-    vocabulary = Vocabulary()
+    from framestudio.cinema import vocab
+
+    vocabulary = Vocabulary(moves=vocab().move_ids)
     # Global first, so the project's elements overwrite a shared handle.
     for element_id, handle, _scope in sorted(rows, key=lambda r: r[2] != "global"):
         vocabulary.elements[handle] = element_id
