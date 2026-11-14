@@ -14,6 +14,13 @@ engine; real models arrive with M2 (hosted) and M3 (local). What works today:
   waveforms. Damaged and unsupported files are refused with a reason.
 - **Projects and folders:** projects with a cover, a brief and their own folders; coloured global
   folders; move assets in bulk or by dragging them onto a folder; trash with restore.
+- **Studio** (M5.6): the Studio home has a large composer (Generate there starts a project named
+  after the prompt, or adds to the one you pick) above your projects. A project opens as a
+  workspace: its pages (assets, brief, settings, elements), tools (Storyboard, Canvas, Director),
+  folders and trash on the left; the asset grid with takes in progress and a floating composer
+  (Image and Video in one, with the cinema chips) in the middle; the Director's panel on the right.
+  Export downloads the project as a zip: a folder named by its slug, a subfolder per folder, and
+  the brief.
 - **Gallery:** masonry or square grid, card size, split by date, filters (type, model, dates, liked,
   downloaded), range selection; virtualized, so 10,000 assets scroll smoothly.
 - **Search:** full text over prompts, file names, captions and notes (accent-insensitive, works for

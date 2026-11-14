@@ -1302,6 +1302,27 @@ export interface paths {
     patch: operations["patch_project"];
     trace?: never;
   };
+  "/api/projects/{project_id}/export": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Export Project
+     * @description The project's media as a zip (M5.6): one directory named by the
+     *     project's slug, a subdirectory per folder, and the brief.
+     */
+    get: operations["export_project"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/projects/{project_id}/restore": {
     parameters: {
       query?: never;
@@ -6341,6 +6362,47 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["ProjectDetail"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  export_project: {
+    parameters: {
+      query?: {
+        /** @description Only this folder */
+        folder_id?: string | null;
+      };
+      header?: never;
+      path: {
+        project_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/zip": unknown;
         };
       };
       /** @description Not found */

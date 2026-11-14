@@ -148,6 +148,17 @@ Test media: `backend/tests/fixtures/media` (regenerate with `make_corpus.py`).
   `LightSphere.tsx` (three.js, lazy-loaded; drag markers on the guide sphere), falling back to an
   SVG diagram without WebGL (jsdom). The picker is a modal: the chips behind it are hidden from the
   accessibility tree while it is open.
+- Studio (M5.6): `features/studio/` — `StudioHome` (`/studio`: hero `Composer` with a "Save to"
+  target; `prepare` creates a project named by `projectNameFrom` before the generation is sent,
+  then the page opens it; `MyProjects` grid), `Workspace.tsx` (`/studio/$projectId`, search
+  `tab` = assets | brief | settings | elements | trash | storyboard | canvas, `director` for the
+  right panel; assets get `InProgress` (the project's running or recently failed takes) and the
+  floating composer, hidden while a selection shows the bulk bar), `Brief.tsx`. The project's
+  sidebar is `ProjectNav` in `features/library/Sidebar.tsx`. The composer's `onMode` switches
+  Image/Video in place (store `studioMode`); in a workspace the viewer's hand-offs stay there.
+  Cached generation lists are matched by mode and project (`listsGeneration`/`insertGenerations`
+  in `api/events.ts`). Export: `GET /api/projects/{id}/export[?folder_id=]` (zip written to the
+  media tmp dir, stored uncompressed, deleted after sending; `<slug>/<folder>/<name>`).
 - LLM contract fixtures: `backend/tests/contracts/fixtures/llm/<provider>/<case>.json`, synthetic
   until recorded (`uv run python -m tests.contracts.llm_wire` rewrites synthetic ones). Live runs:
   `LIVE_API=1 FRAMESTUDIO_LIVE_<PROVIDER>_KEY=… uv run pytest tests/contracts` (paid);

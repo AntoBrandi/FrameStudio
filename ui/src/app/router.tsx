@@ -4,7 +4,8 @@ import { CreatePage } from "@/features/generate/CreatePage";
 import { HomePage } from "@/pages/HomePage";
 import { AssetsPage, type LibrarySearch, TrashPage } from "@/pages/LibraryPages";
 import { PlaceholderPage } from "@/pages/PlaceholderPage";
-import { ProjectPage, ProjectsPage, type ProjectSearch } from "@/pages/ProjectPages";
+import { StudioHome } from "@/features/studio/StudioHome";
+import { type ProjectSearch, ProjectWorkspace, WORKSPACE_TABS, type WorkspaceTab } from "@/features/studio/Workspace";
 import { SettingsPage } from "@/pages/SettingsPage";
 import { AppShell } from "./AppShell";
 
@@ -23,12 +24,14 @@ function clean<T extends object>(value: T): T {
 const validateView = (search: Record<string, unknown>): ViewSearch => clean({ view: text(search.view) });
 const validateLibrary = (search: Record<string, unknown>): LibrarySearch =>
   clean({ folder: text(search.folder), view: text(search.view), q: text(search.q), liked: truthy(search.liked) });
+const TABS = new Set<string>(WORKSPACE_TABS);
 const validateProject = (search: Record<string, unknown>): ProjectSearch =>
   clean({
-    tab: search.tab === "brief" ? "brief" : undefined,
+    tab: TABS.has(search.tab as string) && search.tab !== "assets" ? (search.tab as WorkspaceTab) : undefined,
     folder: text(search.folder),
     view: text(search.view),
     q: text(search.q),
+    director: truthy(search.director),
   });
 
 const CATEGORY = new Set(["character", "location", "prop", "auto"]);
@@ -97,7 +100,7 @@ const trashRoute = createRoute({
   },
 });
 
-const studioRoute = createRoute({ getParentRoute: () => rootRoute, path: "/studio", component: ProjectsPage });
+const studioRoute = createRoute({ getParentRoute: () => rootRoute, path: "/studio", component: StudioHome });
 
 const projectRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -108,7 +111,7 @@ const projectRoute = createRoute({
     const search = projectRoute.useSearch();
     const navigate = useNavigate();
     return (
-      <ProjectPage
+      <ProjectWorkspace
         key={projectId}
         projectId={projectId}
         search={search}

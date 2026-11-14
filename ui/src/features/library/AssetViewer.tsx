@@ -34,6 +34,7 @@ import { cn, formatBytes } from "@/lib/utils";
 import { addAsReference, pageOf, recreate, turnToVideo } from "@/features/generate/handoffs";
 import { GradeDialog } from "@/features/cinema/PalettePicker";
 import { useComposerStore } from "@/features/generate/store";
+import type { Mode } from "@/features/generate/params";
 import { DescribeActions } from "./Describe";
 import { assetName, type MoveTarget, useLibraryActions } from "./api";
 import { formatDuration } from "./AssetCard";
@@ -266,22 +267,33 @@ export function AssetViewer({ asset, items, projectId, onNavigate, onClose, onSe
   const imageModel = useComposerStore((state) => state.models.image);
   const [grading, setGrading] = useState(false);
 
-  // Hand-offs (M2.9): fill a composer and go to its page.
+  // Hand-offs (M2.9): fill a composer and go to its page; in a project's
+  // workspace (M5.6) its own composer switches mode and the viewer closes.
+  function goTo(mode: Mode) {
+    if (projectId) {
+      useComposerStore.getState().setStudioMode(mode);
+      void navigate({
+        to: "/studio/$projectId",
+        params: { projectId },
+        search: (prev) => ({ ...prev, view: undefined, tab: undefined }),
+      });
+    } else void navigate({ to: pageOf(mode) });
+  }
   function handOff(kind: "recreate" | "reference" | "video") {
     if (!asset) return;
     if (kind === "recreate") {
       const mode = recreate(asset);
       if (!mode) return;
       toast.success(t("viewer.recreated"));
-      void navigate({ to: pageOf(mode) });
+      goTo(mode);
     } else if (kind === "reference") {
       const takesReferences = (models.find((m) => m.id === imageModel)?.limits.max_references ?? 0) > 0;
       addAsReference(asset, takesReferences);
       toast.success(t("viewer.referenceAdded"));
-      void navigate({ to: "/image" });
+      goTo("image");
     } else {
       turnToVideo(asset);
-      void navigate({ to: "/video" });
+      goTo("video");
     }
   }
   const [tab, setTab] = useState<"info" | "notes">("info");

@@ -1,11 +1,11 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { AtSign, Minus, Plus, SlidersHorizontal, Sparkles } from "lucide-react";
-import { type FormEvent, useCallback, useDeferredValue, useMemo, useRef, useState } from "react";
+import { type FormEvent, type ReactNode, useCallback, useDeferredValue, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { $api, errorMessage, type GenerationOut, type Schemas } from "@/api/client";
-import { GENERATIONS_KEY, upsertById } from "@/api/events";
+import { insertGenerations } from "@/api/events";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/misc";
 import { cn } from "@/lib/utils";
@@ -42,23 +42,40 @@ function fallbackModel(models: ModelOut[], mode: Mode): ModelOut | undefined {
   return offered.find((m) => m.runtime === "local") ?? offered[0];
 }
 
-function ModeToggle({ mode }: { mode: Mode }) {
+/** Image or Video: links to the two pages, or (in the Studio, M5.6) a
+ * switch in place when the composer is given `onMode`. */
+function ModeToggle({ mode, onMode }: { mode: Mode; onMode?: (mode: Mode) => void }) {
   const { t } = useTranslation();
+  const pill = (value: Mode) =>
+    cn(
+      "rounded-full px-2.5 py-0.5 text-xs",
+      value === mode ? "bg-raised font-medium text-ink" : "text-muted hover:text-ink",
+    );
   return (
     <div role="group" aria-label={t("composer.mode")} className="flex rounded-full border border-line p-0.5">
-      {(["image", "video"] as const).map((value) => (
-        <Link
-          key={value}
-          to={value === "image" ? "/image" : "/video"}
-          aria-current={value === mode ? "page" : undefined}
-          className={cn(
-            "rounded-full px-2.5 py-0.5 text-xs",
-            value === mode ? "bg-raised font-medium text-ink" : "text-muted hover:text-ink",
-          )}
-        >
-          {t(`composer.${value}`)}
-        </Link>
-      ))}
+      {(["image", "video"] as const).map((value) =>
+        onMode ? (
+          <button
+            key={value}
+            type="button"
+            aria-pressed={value === mode}
+            onClick={() => onMode(value)}
+            className={pill(value)}
+            data-testid={`composer-mode-${value}`}
+          >
+            {t(`composer.${value}`)}
+          </button>
+        ) : (
+          <Link
+            key={value}
+            to={value === "image" ? "/image" : "/video"}
+            aria-current={value === mode ? "page" : undefined}
+            className={pill(value)}
+          >
+            {t(`composer.${value}`)}
+          </Link>
+        ),
+      )}
     </div>
   );
 }
@@ -91,7 +108,24 @@ const NO_TOKENS: Token[] = [];
 /** Whether a prompt names anything the backend should check. */
 const hasTokens = (tokens: Token[]) => tokens.some((token) => token.type !== "text" || mayHoldTokens(token.text));
 
-export function Composer({ mode, projectId }: { mode: Mode; projectId?: string }) {
+export interface ComposerProps {
+  mode: Mode;
+  /** Where results land; absent for the global library. */
+  projectId?: string;
+  /** A folder (of that project) the results go into. */
+  folderId?: string;
+  /** Switch modes in place instead of moving between the Image and Video pages. */
+  onMode?: (mode: Mode) => void;
+  /** Runs before a generation is sent and may give the project it goes to
+   * (the Studio home makes one); null cancels. */
+  prepare?: () => Promise<{ projectId?: string } | null>;
+  /** After the generations were created. */
+  onCreated?: (generations: GenerationOut[], projectId: string | undefined) => void;
+  /** Extra controls at the start of the bottom row. */
+  leading?: ReactNode;
+}
+
+export function Composer({ mode, projectId, folderId, onMode, prepare, onCreated, leading }: ComposerProps) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { data: models = [] } = $api.useQuery("get", "/api/models");
@@ -175,6 +209,7 @@ export function Composer({ mode, projectId }: { mode: Mode; projectId?: string }
             prompt_tokens: trimTokens(draft),
             ...(shot ? { shot } : {}),
             ...(projectId ? { project_id: projectId } : {}),
+            ...(folderId ? { folder_id: folderId } : {}),
             batch,
             params,
             references: usedRefs.map((r) => r.id),
@@ -183,7 +218,7 @@ export function Composer({ mode, projectId }: { mode: Mode; projectId?: string }
             ...(store.seed != null ? { seed: store.seed } : {}),
           }
         : null,
-    [model, mode, prompt, draft, shot, projectId, batch, params, usedRefs, start, end, store.seed],
+    [model, mode, prompt, draft, shot, projectId, folderId, batch, params, usedRefs, start, end, store.seed],
   );
   // The estimate follows the settings, not every keystroke of the prompt.
   const estimateBody = useDeferredValue(body ? { ...body, prompt: "", prompt_tokens: NO_TOKENS } : null);
@@ -243,30 +278,44 @@ export function Composer({ mode, projectId }: { mode: Mode; projectId?: string }
     [mode, setDraft],
   );
 
+  const [preparing, setPreparing] = useState(false);
   const submit = useCallback(
-    (event?: FormEvent) => {
+    async (event?: FormEvent) => {
       event?.preventDefault();
-      if (!body || create.isPending) return;
+      if (!body || create.isPending || preparing) return;
       if (estimate && !estimate.ok) {
         toast.error(estimate.problems[0] ?? t("composer.failed", { error: "" }));
         return;
       }
+      let target = projectId;
+      if (prepare) {
+        setPreparing(true);
+        try {
+          const prepared = await prepare();
+          if (!prepared) return;
+          target = prepared.projectId ?? target;
+        } catch (error) {
+          toast.error(t("composer.failed", { error: errorMessage(error) }));
+          return;
+        } finally {
+          setPreparing(false);
+        }
+      }
       create.mutate(
-        { body },
+        { body: target ? { ...body, project_id: target } : body },
         {
           onSuccess: (created) => {
-            for (const generation of [...created].reverse()) {
-              queryClient.setQueriesData<GenerationOut[]>({ queryKey: GENERATIONS_KEY }, (list) =>
-                upsertById(list, generation),
-              );
-            }
+            insertGenerations(queryClient, created);
+            onCreated?.(created, target);
           },
           onError: (error) => toast.error(t("composer.failed", { error: errorMessage(error) })),
         },
       );
     },
-    [body, create, estimate, queryClient, t],
+    [body, create, estimate, preparing, prepare, projectId, onCreated, queryClient, t],
   );
+
+  const submitNow = useCallback(() => void submit(), [submit]);
 
   const advanced = model ? paramsFor(model, mode).filter(([, p]) => p.advanced) : [];
   const blocked =
@@ -277,7 +326,7 @@ export function Composer({ mode, projectId }: { mode: Mode; projectId?: string }
         : (preview?.problems ?? []);
   return (
     <form
-      onSubmit={submit}
+      onSubmit={(event) => void submit(event)}
       aria-label={t("composer.label")}
       className="flex flex-col gap-2 rounded-2xl border border-ink/25 bg-flat/95 p-3 shadow-[0_10px_40px_rgba(0,0,0,0.35)] backdrop-blur"
       data-testid="composer"
@@ -318,7 +367,7 @@ export function Composer({ mode, projectId }: { mode: Mode; projectId?: string }
       <PromptEditor
         value={draft}
         onChange={(tokens) => store.setDraft(mode, tokens)}
-        onSubmit={submit}
+        onSubmit={submitNow}
         onBlur={tidy}
         projectId={projectId}
         moves={mode === "video" ? moveChoices : undefined}
@@ -327,7 +376,8 @@ export function Composer({ mode, projectId }: { mode: Mode; projectId?: string }
         maxLength={model?.limits.max_prompt_chars ?? 4000}
       />
       <div className="flex flex-wrap items-center gap-1.5">
-        <ModeToggle mode={mode} />
+        {leading}
+        <ModeToggle mode={mode} onMode={onMode} />
         <ModelPicker
           models={models}
           mode={mode}
@@ -408,7 +458,7 @@ export function Composer({ mode, projectId }: { mode: Mode; projectId?: string }
           type="submit"
           variant="primary"
           className="ml-auto uppercase tracking-wide"
-          disabled={create.isPending || !model || blocked.length > 0}
+          disabled={create.isPending || preparing || !model || blocked.length > 0}
           data-testid="generate-button"
         >
           <Sparkles />

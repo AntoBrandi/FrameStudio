@@ -217,7 +217,7 @@ test("M1.2: create a project, set its cover, write its brief, move it to the tra
   await app.getByLabel("Name").fill("Night Diner");
   await app.getByLabel("Description").fill("A short noir about a 3 a.m. diner");
   await app.getByRole("button", { name: "Create project" }).click();
-  await expect(app.getByTestId("project-name")).toHaveValue("Night Diner");
+  await expect(app.getByTestId("ws-project-name")).toHaveText("Night Diner");
 
   // Import into the project, then make it the cover from the viewer.
   await app.getByTestId("import-input").setInputFiles(path.join(CORPUS, "alpha.webp"));
@@ -228,7 +228,7 @@ test("M1.2: create a project, set its cover, write its brief, move it to the tra
   await app.keyboard.press("Escape");
 
   // The brief autosaves and survives a reload.
-  await app.getByRole("tab", { name: "Brief" }).click();
+  await app.getByTestId("ws-brief").click();
   await app.getByRole("textbox", { name: /Context/ }).fill("A diner at 3 a.m.; one waitress, one stranger.");
   await expect(app.getByTestId("brief-state")).toHaveText("Saved");
   await app.reload();
@@ -238,6 +238,8 @@ test("M1.2: create a project, set its cover, write its brief, move it to the tra
 
   const [project] = (await (await lib.api("/api/projects")).json()) as { cover_url: string | null }[];
   expect(project?.cover_url).toMatch(/\/thumb$/);
+  await app.getByTestId("ws-settings").click();
+  await expect(app.getByTestId("project-name")).toHaveValue("Night Diner");
   await app.getByTestId("trash-project").click();
   await expect(app.getByText("Moved Night Diner to the trash")).toBeVisible();
   await expect(app.getByTestId("project-card")).toHaveCount(0);

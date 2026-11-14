@@ -88,7 +88,7 @@ test("M2.6: describe an image and find it by what it shows", async ({ page, back
   const project = await (
     await backend.api("/api/projects", { method: "POST", body: JSON.stringify({ name: "Coast" }) })
   ).json();
-  await page.goto(`${backend.url}/studio/${project.id}`);
+  await page.goto(`${backend.url}/studio/${project.id}?tab=settings`);
   const toggle = page.getByTestId("project-describe");
   await expect(toggle).toHaveAttribute("aria-pressed", "false");
   await toggle.click();

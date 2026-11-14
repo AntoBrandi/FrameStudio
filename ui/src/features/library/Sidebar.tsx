@@ -2,14 +2,19 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   ArrowLeft,
+  Bot,
   FileText,
   Folder,
   FolderOpen,
+  LayoutPanelTop,
   MoreHorizontal,
   Plus,
+  Settings2,
   SquareKanban,
   Star,
   Trash2,
+  UsersRound,
+  Workflow,
 } from "lucide-react";
 import { type DragEvent, type FormEvent, type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -280,57 +285,113 @@ function NewFolder({ projectId }: { projectId?: string }) {
   );
 }
 
+/** The project workspace's own navigation (M5.6): the project's pages, its
+ * tools, its folders and its trash. */
+function ProjectNav({ projectId, search }: { projectId: string; search: { tab?: string; director?: boolean } }) {
+  const { t } = useTranslation();
+  const actions = useLibraryActions();
+  const { data: summary } = useSummary(projectId);
+  const { data: project } = $api.useQuery("get", "/api/projects/{project_id}", {
+    params: { path: { project_id: projectId } },
+  });
+  const tab = search.tab ?? "assets";
+  const page = (key: string, icon: ReactNode, label: string, extra?: Partial<Parameters<typeof DropLink>[0]>) => (
+    <DropLink
+      key={key}
+      to="/studio/$projectId"
+      params={{ projectId }}
+      // The Director panel stays open from page to page.
+      search={{ ...(key === "assets" ? {} : { tab: key }), ...(search.director ? { director: true } : {}) }}
+      active={tab === key && !(key === "assets" && (search as { folder?: string }).folder)}
+      icon={icon}
+      label={label}
+      testId={`ws-${key}`}
+      {...extra}
+    />
+  );
+  return (
+    <>
+      <Link to="/studio" className={itemClass}>
+        <ArrowLeft aria-hidden />
+        {t("shell.backToProjects")}
+      </Link>
+      <Section title={t("studio.project")}>
+        <div className="flex items-center gap-2 px-2 pb-1">
+          {project?.cover_url ? (
+            <img src={project.cover_url} alt="" className="size-7 shrink-0 rounded object-cover" />
+          ) : null}
+          <span className="truncate font-medium" data-testid="ws-project-name">
+            {project?.name}
+          </span>
+        </div>
+        {page("assets", <FolderOpen aria-hidden />, t("library.allAssets"), {
+          count: summary?.total,
+          onDropIds: (ids) => void actions.move(ids, { project_id: projectId, folder_id: null }),
+        })}
+        {page("brief", <FileText aria-hidden />, t("shell.brief"))}
+        {page("settings", <Settings2 aria-hidden />, t("studio.settings"))}
+        {page("elements", <UsersRound aria-hidden />, t("nav.elements"))}
+      </Section>
+      <Section title={t("studio.tools")}>
+        {page("storyboard", <LayoutPanelTop aria-hidden />, t("studio.storyboard"))}
+        {page("canvas", <Workflow aria-hidden />, t("nav.canvas"))}
+        <Link
+          to="/studio/$projectId"
+          params={{ projectId }}
+          search={(prev: Record<string, unknown>) => ({ ...prev, director: prev.director ? undefined : true })}
+          aria-pressed={Boolean(search.director)}
+          className={cn(itemClass, search.director && activeClass)}
+          data-testid="ws-director"
+        >
+          <Bot aria-hidden />
+          <span className="truncate">{t("studio.director")}</span>
+        </Link>
+      </Section>
+    </>
+  );
+}
+
+function TrashLink({ projectId, active, director }: { projectId: string; active: boolean; director?: boolean }) {
+  const { t } = useTranslation();
+  const actions = useLibraryActions();
+  const { data: summary } = useSummary(projectId);
+  return (
+    <div className="mt-auto pt-4">
+      <DropLink
+        to="/studio/$projectId"
+        params={{ projectId }}
+        search={{ tab: "trash", ...(director ? { director: true } : {}) }}
+        active={active}
+        icon={<Trash2 aria-hidden />}
+        label={t("library.trash")}
+        count={summary?.trashed}
+        onDropIds={(ids) => void actions.trash(ids)}
+        testId="ws-trash"
+      />
+    </div>
+  );
+}
+
 export function LibrarySidebar() {
   const { t } = useTranslation();
   const location = useRouterState({ select: (s) => s.location });
   const projectId = /^\/studio\/([^/]+)/.exec(location.pathname)?.[1];
-  const search = location.search as { folder?: string; liked?: boolean; tab?: string };
+  const search = location.search as { folder?: string; liked?: boolean; tab?: string; director?: boolean };
   const actions = useLibraryActions();
   const { data: summary } = useSummary(projectId);
   const { data: folders = [] } = useFolders(projectId);
   const { data: projects = [] } = useProjects({ sort: "updated" });
-  const { data: project } = $api.useQuery(
-    "get",
-    "/api/projects/{project_id}",
-    { params: { path: { project_id: projectId ?? "" } } },
-    { enabled: Boolean(projectId) },
-  );
   const move = (target: MoveTarget) => (ids: string[]) => void actions.move(ids, target);
   const onAssets = location.pathname === "/assets";
 
   return (
     <aside
-      aria-label={t("shell.library")}
+      aria-label={projectId ? t("studio.workspace") : t("shell.library")}
       className="relative flex w-60 shrink-0 flex-col overflow-y-auto border-r border-line bg-flat p-3"
       data-testid="sidebar"
     >
       {projectId ? (
-        <>
-          <Link to="/studio" className={itemClass}>
-            <ArrowLeft aria-hidden />
-            {t("shell.backToProjects")}
-          </Link>
-          <Section title={project?.name ?? ""}>
-            <DropLink
-              to="/studio/$projectId"
-              params={{ projectId }}
-              search={{}}
-              active={!search.folder && search.tab !== "brief"}
-              icon={<FolderOpen aria-hidden />}
-              label={t("library.allAssets")}
-              count={summary?.total}
-              onDropIds={move({ project_id: projectId })}
-            />
-            <DropLink
-              to="/studio/$projectId"
-              params={{ projectId }}
-              search={{ tab: "brief" }}
-              active={search.tab === "brief"}
-              icon={<FileText aria-hidden />}
-              label={t("shell.brief")}
-            />
-          </Section>
-        </>
+        <ProjectNav projectId={projectId} search={search} />
       ) : (
         <Section title={t("shell.library")}>
           <DropLink
@@ -372,13 +433,15 @@ export function LibrarySidebar() {
               key={folder.id}
               folder={folder}
               projectId={projectId}
-              active={search.folder === folder.id}
+              active={search.folder === folder.id && (search.tab ?? "assets") === "assets"}
               onDropIds={move({ folder_id: folder.id })}
             />
           ))}
         </Section>
       </div>
-      {projectId ? null : (
+      {projectId ? (
+        <TrashLink projectId={projectId} active={search.tab === "trash"} director={search.director} />
+      ) : (
         <Section title={t("shell.projects")}>
           {projects.length === 0 ? <p className="px-2 text-xs text-muted">{t("shell.noProjects")}</p> : null}
           {projects.slice(0, 6).map((p) => (

@@ -1,7 +1,7 @@
-import { LayoutGrid, Search, SlidersHorizontal, Upload, X } from "lucide-react";
+import { Download, LayoutGrid, Search, SlidersHorizontal, Upload, X } from "lucide-react";
 import { type ChangeEvent, type ReactNode, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { inputClass, Popover, PopoverContent, PopoverTrigger } from "@/components/ui/misc";
 import { cn } from "@/lib/utils";
 import type { Kind } from "./api";
@@ -83,6 +83,8 @@ export interface FilterBarProps {
   onView: (patch: Partial<ViewPrefs>) => void;
   models: string[];
   onImport?: (files: File[]) => void;
+  /** A download link for everything here (a project's export zip, M5.6). */
+  exportHref?: string;
   /** Hide the liked toggle (the Favorites view is liked by definition). */
   hideLiked?: boolean;
 }
@@ -159,6 +161,17 @@ export function FilterBar(props: FilterBarProps) {
               {t("library.import")}
             </Button>
           </>
+        ) : null}
+        {props.exportHref ? (
+          <a
+            href={props.exportHref}
+            download
+            className={buttonVariants({ variant: "outline", size: "sm" })}
+            data-testid="export-project"
+          >
+            <Download />
+            {t("library.export")}
+          </a>
         ) : null}
       </div>
       <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label={t("library.filters")}>

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Upload } from "lucide-react";
-import { type MouseEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { type MouseEvent, type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { type AssetOut, fetchClient } from "@/api/client";
 import { AssetCard, type Badge } from "./AssetCard";
@@ -32,6 +32,14 @@ export interface LibraryViewProps {
   view?: string;
   onView: (id: string | undefined) => void;
   onSetCover?: (asset: AssetOut) => void;
+  /** A download link for everything in this scope (a project's export). */
+  exportHref?: string;
+  /** Shown between the filter bar and the grid (the Studio's generations in progress). */
+  banner?: ReactNode;
+  /** Room kept below the grid, e.g. for a floating composer. */
+  bottomSpace?: number;
+  /** Told when a selection starts or ends (the bulk bar takes the bottom edge). */
+  onSelecting?: (selecting: boolean) => void;
 }
 
 const DAY = 86_400_000;
@@ -41,7 +49,20 @@ function toLayout(asset: AssetOut): LayoutItem {
   return { id: asset.id, aspect, date: new Date(asset.created_at) };
 }
 
-export function LibraryView({ title, pageKey, scope, query, onQuery, view, onView, onSetCover }: LibraryViewProps) {
+export function LibraryView({
+  title,
+  pageKey,
+  scope,
+  query,
+  onQuery,
+  view,
+  onView,
+  onSetCover,
+  exportHref,
+  banner,
+  bottomSpace = 24,
+  onSelecting,
+}: LibraryViewProps) {
   const { t } = useTranslation();
   const prefs = usePagePrefs(pageKey);
   const actions = useLibraryActions();
@@ -92,6 +113,7 @@ export function LibraryView({ title, pageKey, scope, query, onQuery, view, onVie
   const viewing = loaded ?? (view ? (single.data ?? undefined) : undefined);
 
   const selecting = selection.selected.size > 0;
+  useEffect(() => onSelecting?.(selecting), [onSelecting, selecting]);
   const badgeFor = useCallback(
     (asset: AssetOut): Badge | undefined => {
       if (summary?.last_viewed_id === asset.id) return "lastViewed";
@@ -150,8 +172,10 @@ export function LibraryView({ title, pageKey, scope, query, onQuery, view, onVie
         onView={prefs.setView}
         models={summary?.models ?? []}
         onImport={canImport ? (files) => void upload(files) : undefined}
+        exportHref={exportHref}
         hideLiked={scope.liked}
       />
+      {banner}
       <Gallery
         items={items}
         toLayout={toLayout}
@@ -160,7 +184,7 @@ export function LibraryView({ title, pageKey, scope, query, onQuery, view, onVie
         hasMore={pages.hasNextPage}
         loadingMore={pages.isFetchingNextPage}
         onLoadMore={() => void pages.fetchNextPage()}
-        bottomPadding={selecting ? 96 : 24}
+        bottomPadding={Math.max(bottomSpace, selecting ? 96 : 24)}
         containerRef={setDropTarget}
         empty={
           pages.isPending

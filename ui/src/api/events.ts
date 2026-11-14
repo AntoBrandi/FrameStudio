@@ -43,10 +43,35 @@ export function applyProgress(list: JobOut[] | undefined, update: JobProgress): 
   );
 }
 
+interface GenerationFilters {
+  mode?: string;
+  project_id?: string;
+  hide_failed?: boolean;
+}
+
 /** The filters a generations query was made with. */
-function queryFilters(queryKey: QueryKey): { mode?: string; hide_failed?: boolean } {
-  const init = queryKey[2] as { params?: { query?: { mode?: string; hide_failed?: boolean } } } | undefined;
+function queryFilters(queryKey: QueryKey): GenerationFilters {
+  const init = queryKey[2] as { params?: { query?: GenerationFilters } } | undefined;
   return init?.params?.query ?? {};
+}
+
+/** Whether a generations query (by its key) lists this generation: its mode
+ * and project ("none" for the global library) must match. */
+export function listsGeneration(queryKey: QueryKey, generation: Pick<GenerationOut, "mode" | "project_id">): boolean {
+  const filters = queryFilters(queryKey);
+  if (filters.mode !== undefined && filters.mode !== generation.mode) return false;
+  if (filters.project_id === undefined) return true;
+  return filters.project_id === "none" ? generation.project_id == null : filters.project_id === generation.project_id;
+}
+
+/** Put new generations into every cached list that shows them. */
+export function insertGenerations(queryClient: QueryClient, generations: GenerationOut[]): void {
+  for (const generation of [...generations].reverse()) {
+    for (const query of queryClient.getQueryCache().findAll({ queryKey: GENERATIONS_KEY })) {
+      if (!listsGeneration(query.queryKey, generation)) continue;
+      queryClient.setQueryData<GenerationOut[]>(query.queryKey, (list) => upsertById(list, generation));
+    }
+  }
 }
 
 /**
@@ -112,7 +137,7 @@ export function connectEvents(queryClient: QueryClient, handlers: EventHandlers 
           list?.filter((entry) => entry.id !== generation.id),
         );
       } else {
-        const matches = filters.mode === undefined || filters.mode === generation.mode;
+        const matches = listsGeneration(query.queryKey, generation);
         queryClient.setQueryData<GenerationOut[]>(query.queryKey, (list) => upsertById(list, generation, matches));
       }
       // Data set during a fetch is what a cancel restores, so this keeps the

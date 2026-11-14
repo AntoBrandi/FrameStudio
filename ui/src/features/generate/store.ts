@@ -32,6 +32,8 @@ interface ComposerState {
   attachments: Partial<Record<Mode, Attachments>>;
   /** Cinema controls per mode (M5): film, camera, moves, palette, lighting. */
   shots: Partial<Record<Mode, ShotSpec>>;
+  /** The mode of the Studio's composer (M5.6), which switches in place. */
+  studioMode: Mode;
   setModel: (mode: Mode, model: string) => void;
   setParams: (model: string, mode: Mode, params: Params) => void;
   setBatch: (batch: number) => void;
@@ -39,6 +41,7 @@ interface ComposerState {
   setDraft: (mode: Mode, tokens: Token[]) => void;
   setAttachments: (mode: Mode, patch: Partial<Attachments>) => void;
   setShot: (mode: Mode, shot: ShotSpec | null) => void;
+  setStudioMode: (mode: Mode) => void;
 }
 
 export const paramsKey = (model: string, mode: Mode) => `${model}|${mode}`;
@@ -54,6 +57,8 @@ export const useComposerStore = create<ComposerState>()(
       drafts: {},
       attachments: {},
       shots: {},
+      studioMode: "image",
+      setStudioMode: (studioMode) => set({ studioMode }),
       setModel: (mode, model) => set((s) => ({ models: { ...s.models, [mode]: model } })),
       setParams: (model, mode, params) => set((s) => ({ params: { ...s.params, [paramsKey(model, mode)]: params } })),
       setBatch: (batch) => set({ batch }),
@@ -74,7 +79,14 @@ export const useComposerStore = create<ComposerState>()(
     {
       name: "framestudio.composer",
       storage: createJSONStorage(() => localStorage),
-      partialize: ({ models, params, batch, seed, shots }) => ({ models, params, batch, seed, shots }),
+      partialize: ({ models, params, batch, seed, shots, studioMode }) => ({
+        models,
+        params,
+        batch,
+        seed,
+        shots,
+        studioMode,
+      }),
     },
   ),
 );

@@ -44,8 +44,10 @@ function useEventsBridge() {
       onJobFinished: (job: JobOut) => {
         const ok = job.state === "succeeded";
         const message = t(ok ? "jobs.finished" : "jobs.failed", { title: job.title });
-        // On the Image and Video pages the feed already shows how a generation ended.
-        const feedVisible = job.kind === "generate" && /^\/(image|video)\b/.test(window.location.pathname);
+        // On the Image and Video pages, and in a project's workspace, the feed
+        // or the in-progress strip already shows how a generation ended.
+        const feedVisible =
+          job.kind.startsWith("generate") && /^\/(image|video|studio\/[^/]+)(\/|$)/.test(window.location.pathname);
         if (!feedVisible && job.state !== "cancelled") {
           if (ok) toast.success(message);
           else toast.error(message, { description: job.error_message ?? undefined });

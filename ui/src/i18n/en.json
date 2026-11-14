@@ -288,7 +288,8 @@
     "projectRoot": "Project (no folder)",
     "thisProject": "This project",
     "projects": "Projects",
-    "untitled": "Untitled"
+    "untitled": "Untitled",
+    "export": "Export"
   },
   "trash": {
     "title": "Trash",
@@ -806,5 +807,34 @@
     "saved": "Saved {{name}}.",
     "deleted": "Deleted {{name}}.",
     "delete": "Delete {{name}}"
+  },
+  "studio": {
+    "eyebrow": "Cinema studio",
+    "title": "What are we shooting?",
+    "lede": "Describe a shot and press Generate: it starts a project for it, or adds to the one you pick. A project keeps its brief, elements, folders and every take.",
+    "target": "Save to",
+    "newProject": "New project",
+    "untitled": "Untitled project",
+    "myProjects": "My projects",
+    "project": "Project",
+    "workspace": "Project workspace",
+    "settings": "Settings",
+    "tools": "Tools",
+    "storyboard": "Storyboard",
+    "storyboardSoon": "Scenes and shots, each with its keyframe and clip, arrive with the Director's script-to-storyboard step (M6.5).",
+    "canvas": "Canvas",
+    "canvasSoon": "Node workflows on an infinite canvas come after v1 (M9). Until then every tool is in the composer and the viewer.",
+    "director": "Director",
+    "directorSoon": "The AI Director arrives with M6. It will read this project's brief and elements, propose shots with their cinema settings, ask when it needs a decision, and run generations within a budget you approve.",
+    "directorReady": "What it will read is already here:",
+    "inProgress": "In progress",
+    "dismissFailed_one": "Dismiss {{count}} failed",
+    "dismissFailed_other": "Dismiss {{count}} failed",
+    "slugHint": "Lowercase letters, digits and hyphens. Exports are named after it.",
+    "cover": "Cover",
+    "coverHint": "Open any picture in this project and choose Set as cover. Until then the newest asset is the cover.",
+    "exportAll": "Export project",
+    "exportHint": "A zip with a {{slug}}/ folder: the brief, each folder as a subfolder, and every asset that is not in the trash.",
+    "trashHint": "The project and its assets go to the trash; restore them from there until it is emptied."
   }
 }

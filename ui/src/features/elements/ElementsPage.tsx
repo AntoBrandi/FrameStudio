@@ -137,9 +137,12 @@ function NewFolder({ onCreate }: { onCreate: (name: string) => void }) {
 export function ElementsPage({
   search,
   setSearch,
+  fixedScope = false,
 }: {
   search: ElementsSearch;
   setSearch: (patch: Partial<ElementsSearch>) => void;
+  /** Inside a project's workspace (M5.6): no scope picker. */
+  fixedScope?: boolean;
 }) {
   const { t } = useTranslation();
   const actions = useElementActions();
@@ -163,20 +166,22 @@ export function ElementsPage({
     <div className="flex h-full min-h-0 flex-col" data-testid="elements-page">
       <header className="flex flex-wrap items-center gap-2 border-b border-line px-4 py-3">
         <h1 className="mr-2 font-display text-2xl font-bold uppercase tracking-wide">{t("nav.elements")}</h1>
-        <select
-          aria-label={t("elements.scope")}
-          value={projectId ?? ""}
-          onChange={(e) => setSearch({ scope: e.target.value || undefined, folder: undefined })}
-          className={cn(inputClass, "max-w-56")}
-          data-testid="elements-scope"
-        >
-          <option value="">{t("elements.global")}</option>
-          {projects.map((project) => (
-            <option key={project.id} value={project.id}>
-              {project.name}
-            </option>
-          ))}
-        </select>
+        {fixedScope ? null : (
+          <select
+            aria-label={t("elements.scope")}
+            value={projectId ?? ""}
+            onChange={(e) => setSearch({ scope: e.target.value || undefined, folder: undefined })}
+            className={cn(inputClass, "max-w-56")}
+            data-testid="elements-scope"
+          >
+            <option value="">{t("elements.global")}</option>
+            {projects.map((project) => (
+              <option key={project.id} value={project.id}>
+                {project.name}
+              </option>
+            ))}
+          </select>
+        )}
         <label className={cn(inputClass, "flex min-w-40 flex-1 items-center gap-2 sm:max-w-72")}>
           <Search className="size-4 shrink-0 text-muted" aria-hidden />
           <input

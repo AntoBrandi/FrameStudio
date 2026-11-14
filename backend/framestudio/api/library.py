@@ -20,6 +20,7 @@ from fastapi import (
 )
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
+from starlette.background import BackgroundTask
 
 from framestudio.api.deps import ServicesDep
 from framestudio.api.llm_errors import http_error
@@ -272,14 +273,6 @@ def _send(
     )
 
 
-def _download_name(asset: Asset) -> str:
-    ext = Path(asset.path).suffix
-    if asset.original_name:
-        stem = Path(asset.original_name).stem
-        return f"{stem}{ext}"
-    return f"framestudio-{asset.id[:8]}{ext}"
-
-
 @router.get(
     "/assets/{asset_id}/file",
     tags=["assets"],
@@ -293,7 +286,7 @@ def asset_file(asset_id: str, services: ServicesDep, download: bool = False) -> 
         asset = session.get(Asset, asset_id)
         if asset is None:
             raise _404("Asset")
-        rel, mime, name = asset.path, asset.mime, _download_name(asset)
+        rel, mime, name = asset.path, asset.mime, proj.download_name(asset)
     if download:
         response = _send(services, rel, mime, filename=name)  # 404s before anything is recorded
         lib.mark(services, asset_id, "downloaded")
@@ -410,6 +403,32 @@ def trash_project(project_id: str, services: ServicesDep) -> proj.ProjectDetail:
     if out is None:
         raise _404("Project")
     return out
+
+
+@router.get(
+    "/projects/{project_id}/export",
+    tags=["projects"],
+    response_class=FileResponse,
+    responses={200: {"content": {"application/zip": {}}}, **NOT_FOUND},
+)
+async def export_project(
+    project_id: str,
+    services: ServicesDep,
+    folder_id: Annotated[str | None, Query(description="Only this folder")] = None,
+) -> FileResponse:
+    """The project's media as a zip (M5.6): one directory named by the
+    project's slug, a subdirectory per folder, and the brief."""
+    made = await asyncio.to_thread(proj.export_project, services, project_id, folder_id)
+    if made is None:
+        raise _404("Project or folder")
+    path, name = made
+    return FileResponse(
+        path,
+        media_type="application/zip",
+        filename=name,
+        headers={"Cache-Control": "no-store"},
+        background=BackgroundTask(path.unlink, missing_ok=True),
+    )
 
 
 @router.post("/projects/{project_id}/restore", tags=["projects"], responses=NOT_FOUND)
