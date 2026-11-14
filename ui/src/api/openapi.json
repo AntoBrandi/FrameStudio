@@ -1202,6 +1202,137 @@
         "title": "ElementFolderPatch",
         "type": "object"
       },
+      "ElementGenerate": {
+        "properties": {
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "recipe": {
+            "enum": [
+              "character_sheet",
+              "location_set",
+              "prop_turnaround",
+              "turntable"
+            ],
+            "title": "Recipe",
+            "type": "string"
+          },
+          "seed": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seed"
+          },
+          "views": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 8,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Views"
+          }
+        },
+        "required": [
+          "recipe"
+        ],
+        "title": "ElementGenerate",
+        "type": "object"
+      },
+      "ElementGenerateEstimate": {
+        "properties": {
+          "cost_usd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Usd"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "model_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Name"
+          },
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "problems": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Problems",
+            "type": "array"
+          },
+          "seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seconds"
+          },
+          "views": {
+            "title": "Views",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "ok",
+          "problems",
+          "model",
+          "model_name",
+          "views",
+          "cost_usd",
+          "seconds"
+        ],
+        "title": "ElementGenerateEstimate",
+        "type": "object"
+      },
       "ElementMediaChange": {
         "properties": {
           "asset_ids": {
@@ -1893,12 +2024,38 @@
       "GenerationCreate": {
         "additionalProperties": false,
         "properties": {
+          "attach_element_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attach Element Id"
+          },
+          "attach_role": {
+            "default": "sheet",
+            "enum": [
+              "sheet",
+              "angle",
+              "turntable"
+            ],
+            "title": "Attach Role",
+            "type": "string"
+          },
           "batch": {
             "default": 1,
             "maximum": 4.0,
             "minimum": 1.0,
             "title": "Batch",
             "type": "integer"
+          },
+          "element_pictures": {
+            "default": true,
+            "title": "Element Pictures",
+            "type": "boolean"
           },
           "end_frame": {
             "anyOf": [
@@ -2122,6 +2279,17 @@
                 "type": "null"
               }
             ]
+          },
+          "attach_element_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attach Element Id"
           },
           "batch_id": {
             "title": "Batch Id",
@@ -4071,6 +4239,97 @@
           "cap_usd"
         ],
         "title": "ProviderUsage",
+        "type": "object"
+      },
+      "RecipeOut": {
+        "properties": {
+          "categories": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Categories",
+            "type": "array"
+          },
+          "id": {
+            "enum": [
+              "character_sheet",
+              "location_set",
+              "prop_turnaround",
+              "turntable"
+            ],
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "image",
+              "video"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "model_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Name"
+          },
+          "views": {
+            "items": {
+              "$ref": "#/components/schemas/RecipeViewOut"
+            },
+            "title": "Views",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "mode",
+          "categories",
+          "views",
+          "model",
+          "model_name"
+        ],
+        "title": "RecipeOut",
+        "type": "object"
+      },
+      "RecipeViewOut": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "label"
+        ],
+        "title": "RecipeViewOut",
         "type": "object"
       },
       "Resolved": {
@@ -6782,6 +7041,32 @@
         ]
       }
     },
+    "/api/elements/recipes": {
+      "get": {
+        "description": "Element generators (M4.6): character sheets, location sets, prop\nturnarounds and turntable clips, with the model each would use now.",
+        "operationId": "list_element_recipes",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RecipeOut"
+                  },
+                  "title": "Response List Element Recipes",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Element Recipes",
+        "tags": [
+          "elements"
+        ]
+      }
+    },
     "/api/elements/{element_id}": {
       "delete": {
         "description": "Delete the element; its pictures and clips stay in the library.",
@@ -6915,6 +7200,125 @@
           }
         },
         "summary": "Patch Element",
+        "tags": [
+          "elements"
+        ]
+      }
+    },
+    "/api/elements/{element_id}/generate": {
+      "post": {
+        "description": "Queue a recipe's views; each result is added to the element as it\nfinishes (M4.6).",
+        "operationId": "generate_for_element",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "element_id",
+            "required": true,
+            "schema": {
+              "title": "Element Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ElementGenerate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/GenerationOut"
+                  },
+                  "title": "Response Generate For Element",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "402": {
+            "description": "Over the monthly spending cap"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Generate For Element",
+        "tags": [
+          "elements"
+        ]
+      }
+    },
+    "/api/elements/{element_id}/generate/estimate": {
+      "post": {
+        "description": "What a recipe would cost and how long it would take, before running it.",
+        "operationId": "estimate_element_generation",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "element_id",
+            "required": true,
+            "schema": {
+              "title": "Element Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ElementGenerate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ElementGenerateEstimate"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Estimate Element Generation",
         "tags": [
           "elements"
         ]

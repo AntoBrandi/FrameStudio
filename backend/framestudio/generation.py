@@ -10,13 +10,13 @@ from pathlib import Path
 from typing import Any, ClassVar, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
-from sqlalchemy import and_, exists, not_, select
+from sqlalchemy import and_, exists, func, not_, select, update
 from sqlalchemy.orm import Session
 
 from framestudio import prompts
 from framestudio.catalog import ParamError, estimate_cost, validate_params
 from framestudio.db.base import utcnow
-from framestudio.db.models import Asset, ElementUse, Generation, Job
+from framestudio.db.models import Asset, Element, ElementMedia, ElementUse, Generation, Job
 from framestudio.jobs.base import JobContext, JobError, JobKind, JobSnapshot, PollResult
 from framestudio.library.assets import (
     AssetOut,
@@ -80,6 +80,12 @@ class GenerationCreate(BaseModel):
     #: the global library when both are omitted.
     project_id: str | None = None
     folder_id: str | None = None
+    #: Send the pictures of the elements named in the prompt (M4.4). Element
+    #: generators turn it off and attach the pictures they start from.
+    element_pictures: bool = True
+    #: Add the result to this element's pictures, with this role (M4.6).
+    attach_element_id: str | None = None
+    attach_role: Literal["sheet", "angle", "turntable"] = "sheet"
 
 
 class GenerationOut(BaseModel):
@@ -105,6 +111,8 @@ class GenerationOut(BaseModel):
     parent_asset_id: str | None
     project_id: str | None
     folder_id: str | None
+    #: The element the result is added to (M4.6), if any.
+    attach_element_id: str | None = None
     asset: AssetOut | None
     created_at: datetime
     started_at: datetime | None
@@ -147,6 +155,7 @@ def generation_out(session: Session, generation: Generation) -> GenerationOut:
         parent_asset_id=generation.parent_asset_id,
         project_id=generation.project_id,
         folder_id=generation.folder_id,
+        attach_element_id=generation.attach_element_id,
         asset=asset_out(asset, generation) if asset else None,
         created_at=generation.created_at,
         started_at=generation.started_at,
@@ -547,7 +556,39 @@ def _store_output(services: Services, generation_id: str, output: GenerationOutp
         raise JobError(
             "bad_output", f"The engine produced an unreadable file: {exc.message}"
         ) from exc
+    _attach_to_element(services, generation_id, asset.id)
     return asset.id
+
+
+def _attach_to_element(services: Services, generation_id: str, asset_id: str) -> None:
+    """Add a result to the element its generation was made for (M4.6)."""
+    with services.db.session() as session:
+        generation = session.get(Generation, generation_id)
+        if generation is None or generation.attach_element_id is None:
+            return
+        element_id = generation.attach_element_id
+        # Several views finish at once: bump the version in one statement
+        # first, which also takes SQLite's write lock, so the position below
+        # is read inside it.
+        bumped = session.execute(
+            update(Element)
+            .where(Element.id == element_id)
+            .values(version=Element.version + 1, updated_at=utcnow())
+        )
+        if not bumped.rowcount:  # type: ignore[attr-defined]
+            return
+        last = session.scalar(
+            select(func.max(ElementMedia.position)).where(ElementMedia.element_id == element_id)
+        )
+        session.add(
+            ElementMedia(
+                element_id=element_id,
+                asset_id=asset_id,
+                role=generation.attach_role or "sheet",
+                position=0 if last is None else last + 1,
+            )
+        )
+    services.events.publish("library.changed", {"scope": "elements", "id": element_id})
 
 
 class GenerationEstimate(BaseModel):
@@ -706,7 +747,14 @@ def resolve_for(
     """What ``spec`` is given for this request (M4.4)."""
     frames = request.start_frame is not None or request.end_frame is not None
     with services.db.session() as session:
-        return resolve(session, spec, tokens, list(request.references), frames=frames)
+        return resolve(
+            session,
+            spec,
+            tokens,
+            list(request.references),
+            frames=frames,
+            element_pictures=request.element_pictures,
+        )
 
 
 async def preview_generation(services: Services, request: GenerationCreate) -> Resolved:
@@ -762,6 +810,14 @@ async def create_generations(
             return resolve_placement(session, request.project_id, request.folder_id)
 
     placement = await asyncio.to_thread(place)  # LookupError when the target is gone
+    if request.attach_element_id is not None:
+
+        def element_exists() -> bool:
+            with services.db.session() as session:
+                return session.get(Element, request.attach_element_id) is not None
+
+        if not await asyncio.to_thread(element_exists):
+            raise LookupError("element")
     tokens, prompt_text = await asyncio.to_thread(
         tokens_for, services, request, placement.project_id
     )
@@ -807,6 +863,8 @@ async def create_generations(
                 parent_asset_id=request.parent_asset_id,
                 project_id=placement.project_id,
                 folder_id=placement.folder_id,
+                attach_element_id=request.attach_element_id,
+                attach_role=request.attach_role if request.attach_element_id else None,
             )
             session.add(generation)
             session.flush()

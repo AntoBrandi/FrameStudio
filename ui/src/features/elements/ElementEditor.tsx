@@ -1,4 +1,4 @@
-import { ImagePlus, Play, Plus, RefreshCw, Star, Trash2, Upload, X } from "lucide-react";
+import { ImagePlus, Play, Plus, RefreshCw, Sparkles, Star, Trash2, Upload, X } from "lucide-react";
 import { type FormEvent, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -16,6 +16,7 @@ import {
   useElementActions,
   useElementFolders,
 } from "./api";
+import { GenerateViews } from "./GenerateViews";
 
 /** The handle a name would get (the backend adds a suffix when it is taken). */
 export function slugify(name: string): string {
@@ -92,6 +93,7 @@ export function ElementEditor({
   const [busy, setBusy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [picking, setPicking] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const descriptionId = useId();
   const creating = !element;
@@ -304,6 +306,17 @@ export function ElementEditor({
           <section className="flex flex-col gap-2" aria-label={t("elements.media")}>
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="flex-1 text-sm font-medium">{t("elements.media")}</h3>
+              {element ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setGenerating(true)}
+                  data-testid="element-generate"
+                >
+                  <Sparkles /> {t("generators.button")}
+                </Button>
+              ) : null}
               <Button type="button" size="sm" variant="outline" onClick={() => setPicking(true)}>
                 <ImagePlus /> {t("elements.fromLibrary")}
               </Button>
@@ -465,6 +478,9 @@ export function ElementEditor({
             </Button>
           </div>
         </form>
+        {element && generating ? (
+          <GenerateViews element={element} open onOpenChange={setGenerating} onStarted={() => onOpenChange(false)} />
+        ) : null}
         <ReferencePicker
           open={picking}
           onOpenChange={setPicking}

@@ -99,6 +99,14 @@ Test media: `backend/tests/fixtures/media` (regenerate with `make_corpus.py`).
   `elements`. The composer hosts it; picked elements become chips in the prompt. Its counter is
   attached + one per element with pictures against the model's limit (elements are unlimited when
   the model takes no pictures). E2E tests sharing a backend use unique names per run.
+- Element generators (M4.6): `library/element_generators.py` (recipes character_sheet,
+  location_set, prop_turnaround, turntable; one generation per view, prompt = text + element token +
+  text; Nano Banana / Seedance first, else the router). Views are pinned to the element's pictures
+  at start (`references` + `element_pictures=False`), so early results do not feed later views.
+  Generations with `attach_element_id` add their result to the element in `_store_output`
+  (atomic version bump first). `/api/elements/recipes`, `/api/elements/{id}/generate[/estimate]`;
+  UI `features/elements/GenerateViews.tsx`. Stand-in gotcha: a prompt containing "slow" stays
+  queued forever in `FakeBytePlus` (likewise "blocked"/"inactive" fail).
 - LLM contract fixtures: `backend/tests/contracts/fixtures/llm/<provider>/<case>.json`, synthetic
   until recorded (`uv run python -m tests.contracts.llm_wire` rewrites synthetic ones). Live runs:
   `LIVE_API=1 FRAMESTUDIO_LIVE_<PROVIDER>_KEY=… uv run pytest tests/contracts` (paid);

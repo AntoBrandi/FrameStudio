@@ -539,6 +539,27 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/elements/recipes": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List Element Recipes
+     * @description Element generators (M4.6): character sheets, location sets, prop
+     *     turnarounds and turntable clips, with the model each would use now.
+     */
+    get: operations["list_element_recipes"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/elements/{element_id}": {
     parameters: {
       query?: never;
@@ -559,6 +580,47 @@ export interface paths {
     head?: never;
     /** Patch Element */
     patch: operations["patch_element"];
+    trace?: never;
+  };
+  "/api/elements/{element_id}/generate": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Generate For Element
+     * @description Queue a recipe's views; each result is added to the element as it
+     *     finishes (M4.6).
+     */
+    post: operations["generate_for_element"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/elements/{element_id}/generate/estimate": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Estimate Element Generation
+     * @description What a recipe would cost and how long it would take, before running it.
+     */
+    post: operations["estimate_element_generation"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
     trace?: never;
   };
   "/api/elements/{element_id}/media": {
@@ -1521,6 +1583,37 @@ export interface components {
       /** Name */
       name?: string | null;
     };
+    /** ElementGenerate */
+    ElementGenerate: {
+      /** Model */
+      model?: string | null;
+      /**
+       * Recipe
+       * @enum {string}
+       */
+      recipe: "character_sheet" | "location_set" | "prop_turnaround" | "turntable";
+      /** Seed */
+      seed?: number | null;
+      /** Views */
+      views?: string[] | null;
+    };
+    /** ElementGenerateEstimate */
+    ElementGenerateEstimate: {
+      /** Cost Usd */
+      cost_usd: number | null;
+      /** Model */
+      model: string | null;
+      /** Model Name */
+      model_name: string | null;
+      /** Ok */
+      ok: boolean;
+      /** Problems */
+      problems: string[];
+      /** Seconds */
+      seconds: number | null;
+      /** Views */
+      views: number;
+    };
     /** ElementMediaChange */
     ElementMediaChange: {
       /** Asset Ids */
@@ -1756,11 +1849,24 @@ export interface components {
     };
     /** GenerationCreate */
     GenerationCreate: {
+      /** Attach Element Id */
+      attach_element_id?: string | null;
+      /**
+       * Attach Role
+       * @default sheet
+       * @enum {string}
+       */
+      attach_role?: "sheet" | "angle" | "turntable";
       /**
        * Batch
        * @default 1
        */
       batch?: number;
+      /**
+       * Element Pictures
+       * @default true
+       */
+      element_pictures?: boolean;
       /** End Frame */
       end_frame?: string | null;
       /** Folder Id */
@@ -1826,6 +1932,8 @@ export interface components {
     /** GenerationOut */
     GenerationOut: {
       asset: components["schemas"]["AssetOut"] | null;
+      /** Attach Element Id */
+      attach_element_id?: string | null;
       /** Batch Id */
       batch_id: string;
       /** Batch Index */
@@ -2433,6 +2541,36 @@ export interface components {
       requests: number;
       /** Video Seconds */
       video_seconds: number;
+    };
+    /** RecipeOut */
+    RecipeOut: {
+      /** Categories */
+      categories: string[];
+      /**
+       * Id
+       * @enum {string}
+       */
+      id: "character_sheet" | "location_set" | "prop_turnaround" | "turntable";
+      /** Label */
+      label: string;
+      /**
+       * Mode
+       * @enum {string}
+       */
+      mode: "image" | "video";
+      /** Model */
+      model: string | null;
+      /** Model Name */
+      model_name: string | null;
+      /** Views */
+      views: components["schemas"]["RecipeViewOut"][];
+    };
+    /** RecipeViewOut */
+    RecipeViewOut: {
+      /** Id */
+      id: string;
+      /** Label */
+      label: string;
     };
     /** Resolved */
     Resolved: {
@@ -3950,6 +4088,26 @@ export interface operations {
       };
     };
   };
+  list_element_recipes: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RecipeOut"][];
+        };
+      };
+    };
+  };
   get_element: {
     parameters: {
       query?: never;
@@ -4057,6 +4215,97 @@ export interface operations {
       };
       /** @description Handle already taken */
       409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  generate_for_element: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        element_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ElementGenerate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GenerationOut"][];
+        };
+      };
+      /** @description Over the monthly spending cap */
+      402: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  estimate_element_generation: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        element_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ElementGenerate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ElementGenerateEstimate"];
+        };
+      };
+      /** @description Not found */
+      404: {
         headers: {
           [name: string]: unknown;
         };

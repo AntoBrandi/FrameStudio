@@ -10,8 +10,12 @@ from fastapi import APIRouter, File, Form, HTTPException, Query, Response, Uploa
 from pydantic import BaseModel, Field
 
 from framestudio.api.deps import ServicesDep
+from framestudio.catalog import ParamError
 from framestudio.db.models import Project
+from framestudio.generation import GenerationOut, UnknownModelError
+from framestudio.library import element_generators as gen
 from framestudio.library import elements as el
+from framestudio.providers.base import ProviderError
 
 router = APIRouter(prefix="/api", tags=["elements"])
 
@@ -161,6 +165,13 @@ def import_elements(
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc)) from None
 
 
+@router.get("/elements/recipes")
+def list_element_recipes(services: ServicesDep) -> list[gen.RecipeOut]:
+    """Element generators (M4.6): character sheets, location sets, prop
+    turnarounds and turntable clips, with the model each would use now."""
+    return gen.recipes_for(services)
+
+
 @router.get("/elements/{element_id}", responses=NOT_FOUND)
 def get_element(element_id: str, services: ServicesDep) -> el.ElementOut:
     element = el.get_element(services, element_id)
@@ -221,3 +232,38 @@ def order_element_media(element_id: str, body: MediaOrder, services: ServicesDep
     if element is None:
         raise _404("Element")
     return element
+
+
+@router.post("/elements/{element_id}/generate/estimate", responses=NOT_FOUND)
+async def estimate_element_generation(
+    element_id: str, body: gen.ElementGenerate, services: ServicesDep
+) -> gen.ElementGenerateEstimate:
+    """What a recipe would cost and how long it would take, before running it."""
+    try:
+        return await gen.estimate_element_generation(services, element_id, body)
+    except LookupError as exc:
+        raise _lookup(exc) from None
+    except gen.GeneratorError as exc:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc)) from None
+
+
+@router.post(
+    "/elements/{element_id}/generate",
+    status_code=status.HTTP_201_CREATED,
+    responses={**NOT_FOUND, 402: {"description": "Over the monthly spending cap"}},
+)
+async def generate_for_element(
+    element_id: str, body: gen.ElementGenerate, services: ServicesDep
+) -> list[GenerationOut]:
+    """Queue a recipe's views; each result is added to the element as it
+    finishes (M4.6)."""
+    try:
+        return await gen.generate_for_element(services, element_id, body)
+    except LookupError as exc:
+        raise _lookup(exc) from None
+    except (gen.GeneratorError, UnknownModelError) as exc:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc)) from None
+    except ParamError as exc:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, exc.problems) from None
+    except ProviderError as exc:
+        raise HTTPException(status.HTTP_402_PAYMENT_REQUIRED, exc.message) from None

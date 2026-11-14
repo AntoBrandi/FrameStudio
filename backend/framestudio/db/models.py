@@ -68,6 +68,12 @@ class Generation(Base):
     #: What the model was given (M4.4): the prompt it saw, the pictures with
     #: their labels and the element versions (``references.Resolved``).
     resolved: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    #: An element that gets the result as a picture (M4.6 element generators),
+    #: and the role it gets there.
+    attach_element_id: Mapped[str | None] = mapped_column(
+        ForeignKey("elements.id", ondelete="SET NULL"), nullable=True
+    )
+    attach_role: Mapped[str | None] = mapped_column(String(16), nullable=True)
     params: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
     #: Library assets given to the model as references (M2.5), in order.
     reference_ids: Mapped[list[str]] = mapped_column(JSON, default=list)

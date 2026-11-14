@@ -116,6 +116,7 @@ def resolve(
     attached: list[str],
     *,
     frames: bool = False,
+    element_pictures: bool = True,
 ) -> Resolved:
     strategy = strategy_for(spec, frames)
     kinds = list(spec.limits.reference_kinds)
@@ -136,6 +137,9 @@ def resolve(
             chosen.append(asset_id)
         item.given.append(asset_id)
 
+    if not element_pictures:  # named and described only (element generators)
+        for item in elements:
+            item.pictures = []
     for item in elements:  # the primary picture of each, in order of use
         if item.pictures and len(chosen) < capacity:
             give(item, item.pictures[0])

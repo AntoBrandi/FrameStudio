@@ -93,6 +93,8 @@ scripts/   dev, start and setup commands (plain Node, any OS)
   exactly what will be sent. One picker adds references from recent work, uploads, generations,
   liked pictures or elements (or a new element made on the spot), counting against the model's
   real limit.
+  From one photo, an element can generate its own character sheet, location set, prop turnaround or
+  turntable clip; the results are added to it as they finish.
 - **Test doubles ship with the product** (D8): the mock engine, a hosted "Mock cloud" model,
   fake local and remote jobs, a scripted fake LLM, and offline key checks
   (`FRAMESTUDIO_FAKE_PROVIDERS=1`, where keys starting `fs-test-ok` pass).

@@ -656,5 +656,27 @@
     "wordsOnly": "this model takes no pictures; elements go in words",
     "add_one": "Add {{count}}",
     "add_other": "Add {{count}}"
+  },
+  "generators": {
+    "button": "Generate views",
+    "title": "Generate views of {{name}}",
+    "hint": "Each view starts from the element's pictures and is added to it when it is done.",
+    "recipe": "Recipe",
+    "recipes": {
+      "character_sheet": "Character sheet",
+      "location_set": "Location set",
+      "prop_turnaround": "Prop turnaround",
+      "turntable": "Turntable clip"
+    },
+    "views": "Views",
+    "model": "Model",
+    "noModel": "No connected model can make these",
+    "from": "From",
+    "noPictures": "No pictures: from the description only",
+    "count_one": "{{count}} view",
+    "count_other": "{{count}} views",
+    "start": "Generate",
+    "started_one": "Making {{count}} view of @{{handle}}; it is added to the element when done.",
+    "started_other": "Making {{count}} views of @{{handle}}; they are added to the element as they finish."
   }
 }
