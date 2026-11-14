@@ -111,7 +111,7 @@ def index_assets(session: Session, asset_ids: list[str]) -> None:
     rows = session.execute(
         text(
             "SELECT a.id, coalesce(g.prompt, ''), coalesce(a.original_name, ''), "
-            "coalesce(a.caption, ''), coalesce(a.notes, '') "
+            "coalesce(a.caption, '') || ' ' || coalesce(a.tags, ''), coalesce(a.notes, '') "
             "FROM assets a LEFT JOIN generations g ON g.id = a.source_generation_id "
             "WHERE a.id IN (SELECT value FROM json_each(:ids))"
         ),

@@ -89,12 +89,19 @@ async def events(
     """Server-Sent Events: ``job.updated``, ``job.progress``,
     ``generation.updated``, ``asset.created``, ``settings.updated``, ``resync``."""
 
+    # Subscribe before the response starts, so nothing published after the
+    # client sees the stream open can be missed.
+    subscription = services.events.open(last_event_id)
+
     async def stream() -> AsyncIterator[str]:
-        yield "retry: 2000\n\n"
-        async for event in services.events.subscribe(last_event_id):
-            if await request.is_disconnected():
-                return
-            yield ": keep-alive\n\n" if event is None else event.to_sse()
+        try:
+            yield "retry: 2000\n\n"
+            async for event in subscription.events():
+                if await request.is_disconnected():
+                    return
+                yield ": keep-alive\n\n" if event is None else event.to_sse()
+        finally:
+            subscription.close()
 
     return StreamingResponse(
         stream(),

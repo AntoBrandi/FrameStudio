@@ -2,13 +2,17 @@
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 
 from framestudio.db.models import Setting
 from framestudio.db.session import Database
+
+#: A language model as "provider/model-id"; empty means automatic (or, for a
+#: task, the default model).
+ModelChoice = Annotated[str, Field(max_length=160, pattern=r"^$|^[a-z0-9-]+/[A-Za-z0-9._:/-]+$")]
 
 
 class AppSettings(BaseModel):
@@ -26,6 +30,13 @@ class AppSettings(BaseModel):
     #: Mock engine knobs (test double that ships with the product, D8).
     mock_latency_seconds: float = Field(default=2.0, ge=0, le=120)
     mock_failure_rate: float = Field(default=0.0, ge=0, le=1)
+    #: Language models (framestudio.llm.registry).
+    llm_default: ModelChoice = ""
+    llm_prompt_help: ModelChoice = ""
+    llm_captions: ModelChoice = ""
+    llm_director: ModelChoice = ""
+    #: Describe new images outside projects with the captions model (M2.6).
+    describe_library: bool = False
 
 
 class AppSettingsPatch(BaseModel):
@@ -39,6 +50,11 @@ class AppSettingsPatch(BaseModel):
     notify_on_job_finish: bool | None = None
     mock_latency_seconds: float | None = Field(default=None, ge=0, le=120)
     mock_failure_rate: float | None = Field(default=None, ge=0, le=1)
+    llm_default: ModelChoice | None = None
+    llm_prompt_help: ModelChoice | None = None
+    llm_captions: ModelChoice | None = None
+    llm_director: ModelChoice | None = None
+    describe_library: bool | None = None
 
 
 class SettingsStore:

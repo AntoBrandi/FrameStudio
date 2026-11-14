@@ -1,0 +1,65 @@
+# Seedance 2.5 on BytePlus ModelArk (Seedance), run as an asynchronous paid task
+# (framestudio.providers.seedance). Seedance 2.x must be activated on the
+# account (a balance of at least $30). Prices are BytePlus's own per-second
+# examples for 16:9 clips without video input; other ratios differ slightly.
+id: seedance-2-5
+name: Seedance 2.5
+description: "ByteDance's newest video model on BytePlus: clips up to 30 s with sound, start and end frames, up to 30 reference images."
+provider: byteplus
+runtime: api
+provider_model: dreamina-seedance-2-5-260628
+modes: [video]
+capabilities: [text_to_video, image_to_video, start_end_frames, multi_reference, native_audio]
+params:
+  aspect:
+    type: enum
+    label: Aspect ratio
+    values: ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9", "adaptive"]
+    default: "16:9"
+    control: pills
+    help: Adaptive follows the start frame.
+  resolution:
+    type: enum
+    label: Resolution
+    values: ["480p", "720p", "1080p"]
+    default: "720p"
+    control: pills
+  duration:
+    type: integer
+    label: Duration
+    unit: s
+    min: 4
+    max: 30
+    default: 5
+    control: stepper
+  audio:
+    type: boolean
+    label: Audio
+    default: true
+    control: toggle
+limits:
+  max_references: 30
+  reference_kinds: [image]
+  max_batch: 4
+pricing:
+  unit: video_second
+  usd: 0.231
+  by: resolution
+  table: { "480p": 0.103, "720p": 0.231, "1080p": 0.569 }
+  source_url: https://ai.byteplus.com/ark/region:ap-southeast-1/docs/model-pricing
+  checked_at: "2026-11-14"
+license:
+  kind: hosted_service
+  name: BytePlus ModelArk service terms
+  commercial_use: unknown
+  credit: ByteDance Seed, via BytePlus
+  source_url: https://docs.byteplus.com/en/docs/legal/docs-terms-of-service
+  notes: Check BytePlus's terms for how generated clips may be used. Uploaded images of real faces are refused.
+tags: [byteplus, seedance]
+# Auto prefers lower ranks (test doubles last, so Auto always works offline).
+auto_rank: 15
+fixtures:
+  - mode: video
+    params: { duration: 4, resolution: "480p", audio: true }
+  - mode: video
+    params: { duration: 5, aspect: "9:16", resolution: "480p", audio: false }

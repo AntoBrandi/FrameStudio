@@ -130,6 +130,19 @@ def cmd_openapi(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_catalog(args: argparse.Namespace) -> int:
+    from framestudio.catalog import CatalogError, load_catalog
+
+    try:
+        catalog = load_catalog(Path(args.dir)) if args.dir else load_catalog()
+    except CatalogError as exc:
+        print(exc, file=sys.stderr)
+        return 1
+    for model in catalog.all():
+        print(f"{model.id:24} {model.runtime:5} {', '.join(model.modes):12} {model.license.name}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     logging.getLogger("alembic").setLevel(logging.WARNING)
@@ -161,6 +174,10 @@ def main(argv: list[str] | None = None) -> int:
     openapi = sub.add_parser("openapi", help="write the OpenAPI schema")
     openapi.add_argument("--out", help="output file (default stdout)")
     openapi.set_defaults(func=cmd_openapi)
+
+    check = sub.add_parser("catalog", help="check the model catalog and list it")
+    check.add_argument("--dir", help="catalog directory (default: the built-in one)")
+    check.set_defaults(func=cmd_catalog)
 
     args = parser.parse_args(argv)
     return int(args.func(args))

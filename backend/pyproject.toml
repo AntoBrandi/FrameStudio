@@ -15,6 +15,15 @@ dependencies = [
     "platformdirs>=4.3",
     "pillow>=11.3",
     "python-multipart>=0.0.20",
+    "pyyaml>=6.0.2",
+    # Outbound HTTP; the OpenAI, Anthropic and Google SDKs use it too, so one
+    # guarded client (framestudio.net) serves every provider.
+    "httpx2>=2.16.0",
+    "keyring>=25.7",
+    "cryptography>=50.0",
+    "anthropic>=2.8",
+    "openai>=3.50",
+    "google-genai>=3.3",
 ]
 
 [project.scripts]
@@ -22,7 +31,7 @@ framestudio = "framestudio.cli:main"
 
 [dependency-groups]
 dev = [
-    "httpx2>=2.16.0",
+    "jsonschema>=4.25",
     "pytest>=8.4",
     "ruff>=0.12",
 ]

@@ -6,7 +6,8 @@
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { app, BrowserWindow, Menu, session, shell } from "electron";
+import { existsSync } from "node:fs";
+import { app, BrowserWindow, ipcMain, Menu, session, shell } from "electron";
 import { attachBackend, type BackendHandle, readToken, spawnBackend, waitForHealth } from "./backend";
 import {
   ALLOWED_PERMISSIONS,
@@ -14,6 +15,8 @@ import {
   COOKIE_NAME,
   isAppNavigation,
   isExternalLink,
+  isLocalBackend,
+  isRevealable,
   resolveShellConfig,
 } from "./config";
 
@@ -62,6 +65,7 @@ function createWindow(): BrowserWindow {
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(here, "preload.cjs"),
+      additionalArguments: isLocalBackend(config) ? ["--framestudio-local-backend"] : [],
       contextIsolation: true,
       sandbox: true,
       nodeIntegration: false,
@@ -139,6 +143,14 @@ if (!app.requestSingleInstanceLock()) {
 
   app.on("web-contents-created", (_event, contents) => {
     contents.on("will-attach-webview", (event) => event.preventDefault());
+  });
+
+  ipcMain.handle("framestudio:reveal", (event, target: unknown) => {
+    const origin = event.senderFrame ? new URL(event.senderFrame.url).origin : "";
+    if (origin !== appOrigin || !isLocalBackend(config) || !isRevealable(target, config.dataDir)) return false;
+    if (!existsSync(target as string)) return false;
+    shell.showItemInFolder(target as string);
+    return true;
   });
 
   void app.whenReady().then(() => {

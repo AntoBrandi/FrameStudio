@@ -64,6 +64,11 @@ class Generation(Base):
     provider: Mapped[str] = mapped_column(String(64))
     prompt: Mapped[str] = mapped_column(Text, default="")
     params: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    #: Library assets given to the model as references (M2.5), in order.
+    reference_ids: Mapped[list[str]] = mapped_column(JSON, default=list)
+    #: Image to video (M2.8): the first frame, and optionally the last.
+    start_frame_id: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    end_frame_id: Mapped[str | None] = mapped_column(String(32), nullable=True)
     seed: Mapped[int | None] = mapped_column(Integer, nullable=True)
     #: queued | running | succeeded | failed | cancelled | interrupted
     status: Mapped[str] = mapped_column(String(16), default="queued")
@@ -148,6 +153,8 @@ class Project(Base):
         ForeignKey("assets.id", ondelete="SET NULL", use_alter=True), nullable=True
     )
     brief: Mapped[str] = mapped_column(Text, default="", server_default="")
+    #: Describe new images with the captions model (M2.6); sends them to it.
+    describe_images: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, onupdate=utcnow)
     deleted_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
@@ -170,3 +177,123 @@ class Folder(Base):
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, onupdate=utcnow)
+
+
+class Connection(Base):
+    """A hosted provider you connected. Holds where its key is stored, never
+    the key itself (framestudio.vault)."""
+
+    __tablename__ = "connections"
+
+    provider: Mapped[str] = mapped_column(String(32), primary_key=True)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    #: Name of the key in the store, and which store (keyring | file | memory).
+    secret_name: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    secret_backend: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    #: The key's last four characters, to tell keys apart.
+    key_hint: Mapped[str | None] = mapped_column(String(8), nullable=True)
+    #: ok | refused | unreachable | unchecked | missing
+    status: Mapped[str] = mapped_column(String(16), default="unchecked")
+    status_message: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    validated_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
+    monthly_cap_usd: Mapped[float | None] = mapped_column(Float, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, onupdate=utcnow)
+
+
+class UsageRecord(Base):
+    """One billable request to a hosted provider: what it used and what it cost
+    (estimated). Kept when the generation or connection is deleted."""
+
+    __tablename__ = "usage"
+    __table_args__ = (Index("ix_usage_provider_month", "provider", "month"),)
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=new_id)
+    provider: Mapped[str] = mapped_column(String(32))
+    model: Mapped[str] = mapped_column(String(120), default="")
+    #: composer | director | enhance | describe | ...
+    source: Mapped[str] = mapped_column(String(32), default="composer")
+    #: Calendar month in UTC, YYYY-MM; caps are monthly.
+    month: Mapped[str] = mapped_column(String(7))
+    requests: Mapped[int] = mapped_column(Integer, default=1)
+    input_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    output_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    images: Mapped[int] = mapped_column(Integer, default=0)
+    video_seconds: Mapped[float] = mapped_column(Float, default=0.0)
+    cost_usd: Mapped[float | None] = mapped_column(Float, nullable=True)
+    generation_id: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
+
+
+class ElementFolder(Base):
+    """A folder of elements (M4.1), separate from asset folders."""
+
+    __tablename__ = "element_folders"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=new_id)
+    #: ``None`` for global element folders.
+    project_id: Mapped[str | None] = mapped_column(
+        ForeignKey("projects.id", ondelete="CASCADE"), nullable=True, index=True
+    )
+    name: Mapped[str] = mapped_column(String(80))
+    color: Mapped[str] = mapped_column(String(16), default="tungsten")
+    sort_order: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
+
+
+class Element(Base):
+    """A character, location or prop referenced by @handle (M4)."""
+
+    __tablename__ = "elements"
+    __table_args__ = (Index("ux_elements_scope_handle", "scope_key", "handle", unique=True),)
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=new_id)
+    #: ``None`` for global elements; project elements go with their project.
+    project_id: Mapped[str | None] = mapped_column(
+        ForeignKey("projects.id", ondelete="CASCADE"), nullable=True, index=True
+    )
+    #: The project id, or "global": handles are unique per scope.
+    scope_key: Mapped[str] = mapped_column(String(32))
+    folder_id: Mapped[str | None] = mapped_column(
+        ForeignKey("element_folders.id", ondelete="SET NULL"), nullable=True
+    )
+    handle: Mapped[str] = mapped_column(String(64))
+    #: character | location | prop | auto
+    category: Mapped[str] = mapped_column(String(16), default="auto")
+    name: Mapped[str] = mapped_column(String(120))
+    version: Mapped[int] = mapped_column(Integer, default=1)
+    description: Mapped[str] = mapped_column(Text, default="", server_default="")
+    #: draft | ready
+    status: Mapped[str] = mapped_column(String(16), default="draft")
+    properties: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, onupdate=utcnow)
+
+
+class ElementMedia(Base):
+    """A picture or clip of an element; the first by position is primary."""
+
+    __tablename__ = "element_media"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=new_id)
+    element_id: Mapped[str] = mapped_column(
+        ForeignKey("elements.id", ondelete="CASCADE"), index=True
+    )
+    asset_id: Mapped[str] = mapped_column(ForeignKey("assets.id", ondelete="CASCADE"), index=True)
+    #: primary | angle | sheet | turntable (M4.6 adds generated roles)
+    role: Mapped[str] = mapped_column(String(16), default="angle")
+    position: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class ElementUse(Base):
+    """A generation that referenced an element ("Used in")."""
+
+    __tablename__ = "element_uses"
+
+    element_id: Mapped[str] = mapped_column(
+        ForeignKey("elements.id", ondelete="CASCADE"), primary_key=True
+    )
+    generation_id: Mapped[str] = mapped_column(
+        ForeignKey("generations.id", ondelete="CASCADE"), primary_key=True, index=True
+    )
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)

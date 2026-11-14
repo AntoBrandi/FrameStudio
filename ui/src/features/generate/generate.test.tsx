@@ -1,13 +1,17 @@
 import { QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor } from "@testing-library/react";
+import { createMemoryHistory, createRootRoute, createRouter, RouterProvider } from "@tanstack/react-router";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import type { GenerationOut } from "@/api/client";
 import { makeQueryClient } from "@/app/App";
 import { mockApi, requests } from "@/test/api-mock";
+import { CLIPS, model, SIZES } from "@/test/models";
 import { Composer } from "./Composer";
 import { GenerationCard } from "./GenerationCard";
+import type { ModelOut } from "./params";
+import { useComposerStore } from "./store";
 
 function wrap(children: ReactNode) {
   return <QueryClientProvider client={makeQueryClient()}>{children}</QueryClientProvider>;
@@ -22,6 +26,9 @@ const base: GenerationOut = {
   provider: "mock",
   prompt: "a red door",
   params: { aspect: "16:9" },
+  references: [],
+  start_frame: null,
+  end_frame: null,
   seed: 7,
   status: "queued",
   error_code: null,
@@ -36,37 +43,203 @@ const base: GenerationOut = {
   finished_at: null,
 };
 
+const MOCK = model(
+  "mock",
+  ["image", "video"],
+  {
+    aspect: {
+      type: "enum",
+      values: ["1:1", "16:9"],
+      default: "1:1",
+      default_by_mode: { video: "16:9" },
+      control: "pills",
+    },
+    duration: { type: "integer", min: 2, max: 12, default: 3, unit: "s", modes: ["video"], control: "stepper" },
+  },
+  [],
+  { name: "Mock engine", runtime: "local" },
+);
+const CLOUD = model(
+  "cloud",
+  ["image", "video"],
+  {
+    aspect: { type: "enum", values: ["1:1", "16:9", "9:16"], default: "1:1", control: "pills" },
+    quality: { type: "enum", values: ["draft", "final"], default: "draft", control: "pills" },
+    guidance: { type: "number", min: 1, max: 20, default: 7, control: "slider", advanced: true },
+  },
+  [],
+  {
+    name: "Cloud model",
+    limits: { max_references: 2, reference_kinds: ["image"], max_batch: 2, max_prompt_chars: null },
+    pricing: {
+      unit: "image",
+      usd: 0.04,
+      by: null,
+      table: null,
+      source_url: "https://example.com",
+      checked_at: "2026-11-14",
+    },
+  },
+);
+const OFFLINE = model("offline", ["image"], {}, [], {
+  name: "Offline model",
+  available: false,
+  unavailable_reason: "Connect it in Settings › Connections.",
+});
+
+function withRouter(children: ReactNode) {
+  const root = createRootRoute({ component: () => <>{children}</> });
+  const router = createRouter({ routeTree: root, history: createMemoryHistory({ initialEntries: ["/image"] }) });
+  return wrap(<RouterProvider router={router} />);
+}
+
+function setup(models: ModelOut[] = [MOCK, CLOUD, OFFLINE, CLIPS, SIZES]) {
+  localStorage.clear();
+  useComposerStore.setState({ models: {}, params: {}, batch: 1, seed: null, drafts: {} });
+  mockApi({
+    "GET /api/models": models,
+    "POST /api/generations/estimate": { ok: true, problems: [], cost_usd: null, seconds: 2, notes: null },
+    "POST /api/generations": [base],
+  });
+}
+
+async function pickModel(user: ReturnType<typeof userEvent.setup>, id: string) {
+  await user.click(await screen.findByTestId("model-picker"));
+  await user.click(await screen.findByTestId(`model-option-${id}`));
+}
+
 describe("composer", () => {
-  it("sends the prompt and controls on Enter", async () => {
-    mockApi({ "POST /api/generations": [base] });
+  it("draws the controls from the model's schema", async () => {
+    setup();
+    render(withRouter(<Composer mode="video" />));
+    expect(await screen.findByRole("group", { name: "duration" })).toHaveTextContent("3s");
+    expect(screen.getByRole("group", { name: "aspect" })).toBeInTheDocument();
+    expect(screen.getByTestId("model-picker")).toHaveTextContent("Mock engine");
+    expect(screen.queryByTestId("reference-tray")).not.toBeInTheDocument();
+  });
+
+  it("switching models re-renders only the controls the new model has", async () => {
+    setup();
     const user = userEvent.setup();
-    render(wrap(<Composer mode="image" />));
-    await user.click(screen.getByRole("button", { name: "16:9" }));
+    render(withRouter(<Composer mode="video" />));
+    await screen.findByRole("group", { name: "duration" });
+    await pickModel(user, "clips");
+    expect(screen.getByTestId("model-picker")).toHaveTextContent("clips");
+    expect(screen.getByRole("group", { name: "aspect" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "21:9" })).toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: "quality" })).not.toBeInTheDocument();
+    await pickModel(user, "mock");
+    expect(screen.queryByRole("button", { name: "21:9" })).not.toBeInTheDocument();
+  });
+
+  it("does not let a refused combination be chosen", async () => {
+    setup();
+    const user = userEvent.setup();
+    render(withRouter(<Composer mode="video" />));
+    await pickModel(user, "clips");
+    const plus = screen.getByRole("button", { name: "duration +" });
+    for (let i = 0; i < 10; i += 1) await user.click(plus);
+    expect(screen.getByRole("group", { name: "duration" })).toHaveTextContent("12s");
+    const wide = screen.getByRole("button", { name: "21:9" });
+    expect(wide).toHaveAttribute("aria-disabled", "true");
+    expect(wide).toHaveAttribute("title", "21:9 clips run 10 s at most");
+    await user.click(wide);
+    expect(wide).toHaveAttribute("aria-pressed", "false");
+    // Shorter clips make 21:9 available again, and then cap the duration.
+    for (let i = 0; i < 2; i += 1) await user.click(screen.getByRole("button", { name: "duration −" }));
+    await user.click(screen.getByRole("button", { name: "21:9" }));
+    expect(screen.getByRole("button", { name: "21:9" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "duration +" })).toBeDisabled();
+  });
+
+  it("lists models by where they run and explains the ones that cannot", async () => {
+    setup();
+    const user = userEvent.setup();
+    render(withRouter(<Composer mode="image" />));
+    await user.click(await screen.findByTestId("model-picker"));
+    const offline = await screen.findByTestId("model-option-offline");
+    expect(offline).toHaveAttribute("data-disabled", "true");
+    expect(offline).toHaveTextContent("Connect it in Settings › Connections.");
+    expect(screen.getByTestId("model-option-cloud")).toHaveTextContent("$0.04 / image");
+    expect(screen.getByText("On this machine")).toBeInTheDocument();
+    expect(screen.getByText("Hosted")).toBeInTheDocument();
+    await user.type(screen.getByPlaceholderText("Search models…"), "sizes");
+    expect(screen.queryByTestId("model-option-cloud")).not.toBeInTheDocument();
+    expect(screen.getByTestId("model-option-sizes")).toBeInTheDocument();
+  });
+
+  it("sends the prompt, model and settings on Enter", async () => {
+    setup();
+    const user = userEvent.setup();
+    render(withRouter(<Composer mode="image" />));
+    await user.click(await screen.findByRole("button", { name: "16:9" }));
     await user.click(screen.getByRole("button", { name: "Batch size +" }));
-    await user.type(screen.getByTestId("prompt-input"), "a red door{Enter}");
+    // jsdom does not feed typed text to Lexical; the browser E2E tests type for real.
+    act(() => useComposerStore.getState().setDraft("image", "a red door"));
+    await waitFor(() => expect(screen.getByTestId("prompt-input")).toHaveTextContent("a red door"));
+    await user.click(screen.getByTestId("prompt-input"));
+    await user.keyboard("{Enter}");
     await waitFor(() =>
       expect(requests).toContainEqual({
         method: "POST",
         path: "/api/generations",
-        body: { mode: "image", model: "mock", prompt: "a red door", batch: 2, params: { aspect: "16:9" } },
+        body: {
+          mode: "image",
+          model: "mock",
+          prompt: "a red door",
+          batch: 2,
+          params: { aspect: "16:9" },
+          references: [],
+        },
       }),
     );
   });
 
-  it("keeps the batch between 1 and 4", async () => {
+  it("keeps the batch within the model's limit", async () => {
+    setup();
     const user = userEvent.setup();
-    render(wrap(<Composer mode="video" />));
-    const minus = screen.getByRole("button", { name: "Batch size −" });
-    const plus = screen.getByRole("button", { name: "Batch size +" });
-    expect(minus).toBeDisabled();
+    render(withRouter(<Composer mode="image" />));
+    const plus = await screen.findByRole("button", { name: "Batch size +" });
     for (let i = 0; i < 5; i += 1) await user.click(plus);
-    expect(plus).toBeDisabled();
     expect(screen.getByRole("group", { name: "Batch size" })).toHaveTextContent("4");
+    await pickModel(user, "cloud");
+    expect(screen.getByRole("group", { name: "Batch size" })).toHaveTextContent("2");
+    expect(screen.getByRole("button", { name: "Batch size +" })).toBeDisabled();
   });
 
-  it("shows video controls only in video mode", () => {
-    render(wrap(<Composer mode="video" />));
-    expect(screen.getByRole("group", { name: "Duration" })).toBeInTheDocument();
+  it("shows the estimate, and the reasons Generate is held back", async () => {
+    setup();
+    mockApi({
+      "POST /api/generations/estimate": { ok: true, problems: [], cost_usd: 0.08, seconds: 4, notes: null },
+    });
+    const user = userEvent.setup();
+    render(withRouter(<Composer mode="image" />));
+    await pickModel(user, "cloud");
+    expect(await screen.findByTestId("estimate")).toHaveTextContent("about $0.08 · ~4 s");
+    mockApi({
+      "POST /api/generations/estimate": {
+        ok: false,
+        problems: ["This would pass the $1.00 monthly cap."],
+        cost_usd: 0.08,
+        seconds: 4,
+        notes: null,
+      },
+    });
+    await user.click(screen.getByRole("button", { name: "final" }));
+    expect(await screen.findByTestId("composer-problems")).toHaveTextContent("monthly cap");
+    expect(screen.getByTestId("generate-button")).toBeDisabled();
+  });
+
+  it("offers a reference tray sized to the model", async () => {
+    setup();
+    const user = userEvent.setup();
+    render(withRouter(<Composer mode="image" />));
+    await pickModel(user, "cloud");
+    expect(screen.getByTestId("reference-count")).toHaveTextContent("References 0/2");
+    expect(screen.getByTestId("more-settings")).toBeInTheDocument();
+    await user.click(screen.getByTestId("more-settings"));
+    expect(await screen.findByTestId("param-guidance")).toBeInTheDocument();
+    expect(screen.getByTestId("seed-input")).toHaveAttribute("placeholder", "random");
   });
 });
 

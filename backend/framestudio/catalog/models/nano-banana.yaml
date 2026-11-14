@@ -1,0 +1,38 @@
+# Google's Gemini 2.5 Flash Image ("Nano Banana") through the Gemini API.
+id: nano-banana
+name: Nano Banana
+description: Google's fast image model for quick stills and edits from instructions; up to 3 reference images.
+provider: google
+runtime: api
+provider_model: gemini-2.5-flash-image
+modes: [image]
+capabilities: [text_to_image, image_edit, multi_reference]
+params:
+  aspect:
+    type: enum
+    label: Aspect ratio
+    values: ["1:1", "16:9", "9:16", "4:3", "3:4", "3:2", "2:3", "5:4", "4:5", "21:9"]
+    default: "1:1"
+    control: pills
+limits:
+  max_references: 3
+  reference_kinds: [image]
+  max_batch: 4
+pricing:
+  unit: image
+  usd: 0.039
+  source_url: https://ai.google.dev/gemini-api/docs/pricing
+  checked_at: "2026-11-14"
+license:
+  kind: hosted_service
+  name: Gemini API Additional Terms of Service
+  commercial_use: "yes"
+  credit: Google
+  source_url: https://ai.google.dev/gemini-api/terms
+  notes: Outputs carry a SynthID watermark. Check the terms for your use.
+tags: [google, nano-banana]
+# Auto prefers lower ranks (test doubles last, so Auto always works offline).
+auto_rank: 20
+fixtures:
+  - mode: image
+    params: { aspect: "1:1" }

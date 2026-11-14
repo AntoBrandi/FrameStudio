@@ -1,16 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, Outlet } from "@tanstack/react-router";
-import {
-  Command as CommandIcon,
-  FolderOpen,
-  Moon,
-  PanelLeft,
-  PanelRight,
-  Settings,
-  Star,
-  Sun,
-  Trash2,
-} from "lucide-react";
+import { Command as CommandIcon, Moon, PanelLeft, PanelRight, Settings, Sun } from "lucide-react";
 import { type ReactNode, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -21,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Kbd, Tooltip } from "@/components/ui/misc";
 import { useAuthStore } from "@/features/auth/store";
 import { JobTray } from "@/features/jobs/JobTray";
+import { LibrarySidebar } from "@/features/library/Sidebar";
 import { BackendStatus } from "@/features/status/BackendStatus";
 import { isMac } from "@/lib/utils";
 import { CommandPalette } from "./CommandPalette";
@@ -169,34 +160,6 @@ function TopNav() {
   );
 }
 
-function Sidebar() {
-  const { t } = useTranslation();
-  const items = [
-    { icon: FolderOpen, label: t("shell.allAssets") },
-    { icon: Star, label: t("shell.favorites") },
-    { icon: Trash2, label: t("shell.trash") },
-  ];
-  return (
-    <aside aria-label={t("shell.library")} className="flex w-56 flex-col gap-1 border-r border-line bg-flat p-3">
-      <span className="px-2 pb-1 font-mono text-[11px] uppercase tracking-widest text-muted">{t("shell.library")}</span>
-      {items.map((item) => (
-        <span
-          key={item.label}
-          className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted"
-          aria-disabled
-        >
-          <item.icon className="size-4" aria-hidden />
-          {item.label}
-        </span>
-      ))}
-      <span className="px-2 pt-4 pb-1 font-mono text-[11px] uppercase tracking-widest text-muted">
-        {t("shell.projects")}
-      </span>
-      <p className="px-2 text-xs text-muted">{t("shell.comingIn", { milestone: "M1" })}</p>
-    </aside>
-  );
-}
-
 function Inspector() {
   const { t } = useTranslation();
   return (
@@ -234,7 +197,7 @@ export function AppShell() {
       </a>
       <TopNav />
       <div className="flex min-h-0">
-        {sidebarOpen ? <Sidebar /> : null}
+        {sidebarOpen ? <LibrarySidebar /> : null}
         <main id="main" tabIndex={-1} className="relative min-w-0 flex-1 overflow-auto focus:outline-none">
           <Outlet />
         </main>

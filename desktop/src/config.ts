@@ -102,3 +102,25 @@ export function isFrameStudioHealth(body: unknown): body is Health {
 
 /** Permissions the UI may use; everything else is refused. */
 export const ALLOWED_PERMISSIONS = new Set(["notifications", "clipboard-sanitized-write", "fullscreen"]);
+
+/** Whether a backend URL points at this machine (its file paths are ours). */
+export function isLocalBackend(config: ShellConfig): boolean {
+  if (config.mode === "spawn") return true;
+  try {
+    const host = new URL(config.backendUrl ?? "").hostname;
+    return host === "127.0.0.1" || host === "localhost" || host === "[::1]" || host === "::1";
+  } catch {
+    return false;
+  }
+}
+
+/** Only files inside this install's media folder may be revealed. */
+export function isRevealable(target: unknown, dataDir: string, platform: NodeJS.Platform = process.platform): boolean {
+  if (typeof target !== "string" || !target) return false;
+  const p = platform === "win32" ? path.win32 : path.posix;
+  if (!p.isAbsolute(target)) return false;
+  const media = p.resolve(dataDir, "media");
+  const resolved = p.resolve(target);
+  const relative = p.relative(media, resolved);
+  return relative !== "" && !relative.startsWith("..") && !p.isAbsolute(relative);
+}

@@ -1,7 +1,10 @@
-import { createRootRoute, createRoute, createRouter } from "@tanstack/react-router";
+import { createRootRoute, createRoute, createRouter, useNavigate } from "@tanstack/react-router";
+import { ElementsPage, type ElementsSearch } from "@/features/elements/ElementsPage";
 import { CreatePage } from "@/features/generate/CreatePage";
 import { HomePage } from "@/pages/HomePage";
+import { AssetsPage, type LibrarySearch, TrashPage } from "@/pages/LibraryPages";
 import { PlaceholderPage } from "@/pages/PlaceholderPage";
+import { ProjectPage, ProjectsPage, type ProjectSearch } from "@/pages/ProjectPages";
 import { SettingsPage } from "@/pages/SettingsPage";
 import { AppShell } from "./AppShell";
 
@@ -9,8 +12,34 @@ interface ViewSearch {
   view?: string;
 }
 
-const validateView = (search: Record<string, unknown>): ViewSearch =>
-  typeof search.view === "string" && search.view ? { view: search.view } : {};
+const text = (value: unknown): string | undefined => (typeof value === "string" && value ? value : undefined);
+const truthy = (value: unknown): boolean | undefined => (value === true || value === "true" ? true : undefined);
+
+/** Drop undefined keys so URLs stay clean. */
+function clean<T extends object>(value: T): T {
+  return Object.fromEntries(Object.entries(value).filter(([, v]) => v !== undefined)) as T;
+}
+
+const validateView = (search: Record<string, unknown>): ViewSearch => clean({ view: text(search.view) });
+const validateLibrary = (search: Record<string, unknown>): LibrarySearch =>
+  clean({ folder: text(search.folder), view: text(search.view), q: text(search.q), liked: truthy(search.liked) });
+const validateProject = (search: Record<string, unknown>): ProjectSearch =>
+  clean({
+    tab: search.tab === "brief" ? "brief" : undefined,
+    folder: text(search.folder),
+    view: text(search.view),
+    q: text(search.q),
+  });
+
+const CATEGORY = new Set(["character", "location", "prop", "auto"]);
+const validateElements = (search: Record<string, unknown>): ElementsSearch =>
+  clean({
+    scope: text(search.scope),
+    category: CATEGORY.has(search.category as string) ? (search.category as ElementsSearch["category"]) : undefined,
+    status: search.status === "draft" || search.status === "ready" ? search.status : undefined,
+    folder: text(search.folder),
+    q: text(search.q),
+  });
 
 const rootRoute = createRootRoute({ component: AppShell });
 
@@ -36,12 +65,86 @@ const videoRoute = createRoute({
   },
 });
 
-const placeholder = (path: "/studio" | "/assets" | "/elements" | "/canvas") =>
-  createRoute({
-    getParentRoute: () => rootRoute,
-    path,
-    component: () => <PlaceholderPage page={path.slice(1) as "studio" | "assets" | "elements" | "canvas"} />,
-  });
+const assetsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/assets",
+  validateSearch: validateLibrary,
+  component: function AssetsRoute() {
+    const search = assetsRoute.useSearch();
+    const navigate = useNavigate();
+    return (
+      <AssetsPage
+        search={search}
+        setSearch={(patch) => void navigate({ to: "/assets", search: (prev) => clean({ ...prev, ...patch }) })}
+      />
+    );
+  },
+});
+
+const trashRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/trash",
+  validateSearch: validateLibrary,
+  component: function TrashRoute() {
+    const search = trashRoute.useSearch();
+    const navigate = useNavigate();
+    return (
+      <TrashPage
+        search={search}
+        setSearch={(patch) => void navigate({ to: "/trash", search: (prev) => clean({ ...prev, ...patch }) })}
+      />
+    );
+  },
+});
+
+const studioRoute = createRoute({ getParentRoute: () => rootRoute, path: "/studio", component: ProjectsPage });
+
+const projectRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/studio/$projectId",
+  validateSearch: validateProject,
+  component: function ProjectRoute() {
+    const { projectId } = projectRoute.useParams();
+    const search = projectRoute.useSearch();
+    const navigate = useNavigate();
+    return (
+      <ProjectPage
+        key={projectId}
+        projectId={projectId}
+        search={search}
+        setSearch={(patch) =>
+          void navigate({
+            to: "/studio/$projectId",
+            params: { projectId },
+            search: (prev) => clean({ ...prev, ...patch }),
+          })
+        }
+      />
+    );
+  },
+});
+
+const elementsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/elements",
+  validateSearch: validateElements,
+  component: function ElementsRoute() {
+    const search = elementsRoute.useSearch();
+    const navigate = useNavigate();
+    return (
+      <ElementsPage
+        search={search}
+        setSearch={(patch) => void navigate({ to: "/elements", search: (prev) => clean({ ...prev, ...patch }) })}
+      />
+    );
+  },
+});
+
+const canvasRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/canvas",
+  component: () => <PlaceholderPage page="canvas" />,
+});
 
 const settingsRoute = createRoute({ getParentRoute: () => rootRoute, path: "/settings", component: SettingsPage });
 
@@ -49,10 +152,12 @@ export const routeTree = rootRoute.addChildren([
   homeRoute,
   imageRoute,
   videoRoute,
-  placeholder("/studio"),
-  placeholder("/assets"),
-  placeholder("/elements"),
-  placeholder("/canvas"),
+  studioRoute,
+  projectRoute,
+  assetsRoute,
+  trashRoute,
+  elementsRoute,
+  canvasRoute,
   settingsRoute,
 ]);
 

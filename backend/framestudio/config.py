@@ -8,7 +8,7 @@ change at runtime live in the settings store (``framestudio.settings``).
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Literal
 
 import platformdirs
 from pydantic import Field, field_validator
@@ -54,6 +54,12 @@ class Config(BaseSettings):
     #: Built UI to serve at "/". Defaults to ``ui/dist`` in a source checkout.
     ui_dist: Path | None = None
     dev: bool = False
+    #: Where API keys are kept: the OS keyring when available (``auto``), an
+    #: encrypted file, or memory (tests). See ``framestudio.vault``.
+    secrets: Literal["auto", "keyring", "file", "memory"] = "auto"
+    #: Answer provider calls with a built-in fake instead of the network (E2E
+    #: tests and offline demos). Keys starting ``fs-test-ok`` are accepted.
+    fake_providers: bool = False
 
     @field_validator("allowed_origins", "allowed_hosts", mode="before")
     @classmethod

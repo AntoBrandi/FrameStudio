@@ -6,15 +6,17 @@ import asyncio
 import secrets
 import uuid
 from datetime import datetime
+from pathlib import Path
 from typing import Any, ClassVar, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import and_, exists, not_, select
 from sqlalchemy.orm import Session
 
+from framestudio.catalog import ParamError, estimate_cost, validate_params
 from framestudio.db.base import utcnow
 from framestudio.db.models import Asset, Generation, Job
-from framestudio.jobs.base import JobContext, JobError, JobKind, JobSnapshot
+from framestudio.jobs.base import JobContext, JobError, JobKind, JobSnapshot, PollResult
 from framestudio.library.assets import (
     AssetOut,
     Placement,
@@ -22,8 +24,19 @@ from framestudio.library.assets import (
     ingest_file,
     resolve_placement,
 )
+from framestudio.library.describe import describe_if_wanted
 from framestudio.library.media import MediaError
-from framestudio.providers.base import GenerationOutput, GenerationProvider, GenerationRequest
+from framestudio.providers.base import (
+    GenerationOutput,
+    GenerationProvider,
+    GenerationRequest,
+    HostedProvider,
+    LocalProvider,
+    ProviderError,
+    RemoteProvider,
+    with_retries,
+)
+from framestudio.router import AUTO, RouteRequest, route
 from framestudio.services import Services
 
 MAX_SEED = 2**31 - 1
@@ -48,6 +61,11 @@ class GenerationCreate(BaseModel):
     seed: int | None = Field(default=None, ge=0, le=MAX_SEED)
     batch: int = Field(default=1, ge=1, le=4)
     params: dict[str, Any] = Field(default_factory=dict)
+    #: Library assets given to the model as references, in order (M2.5).
+    references: list[str] = Field(default_factory=list, max_length=16)
+    #: Image to video: the first frame, and optionally the last (asset ids).
+    start_frame: str | None = None
+    end_frame: str | None = None
     parent_asset_id: str | None = None
     #: Where results land: a project, a folder (which implies its project), or
     #: the global library when both are omitted.
@@ -69,6 +87,9 @@ class GenerationOut(BaseModel):
     error_code: str | None
     error_message: str | None
     job_id: str | None
+    references: list[str]
+    start_frame: str | None
+    end_frame: str | None
     parent_asset_id: str | None
     project_id: str | None
     folder_id: str | None
@@ -94,6 +115,9 @@ def generation_out(session: Session, generation: Generation) -> GenerationOut:
         provider=generation.provider,
         prompt=generation.prompt,
         params=generation.params or {},
+        references=list(generation.reference_ids or []),
+        start_frame=generation.start_frame_id,
+        end_frame=generation.end_frame_id,
         seed=generation.seed,
         status=generation.status,  # type: ignore[arg-type]
         error_code=generation.error_code,
@@ -140,9 +164,45 @@ class UnknownModelError(ValueError):
     pass
 
 
-class GenerateJob(JobKind):
-    kind: ClassVar[str] = "generate"
-    lane = "gpu"
+def availability(services: Services, spec: Any) -> tuple[bool, str | None]:
+    """Whether a catalog model can run right now, and why not."""
+    if spec.provider in services.providers:
+        return True, None
+    if spec.runtime == "api":
+        return False, f"Connect {spec.provider} in Settings › Connections."
+    return False, "Install it from Settings › Models."
+
+
+def _sync_generation(services: Services, job: JobSnapshot) -> None:
+    """Mirror a generation job's state onto its generation rows."""
+    status = _STATUS_FROM_JOB.get(job.state)
+    if status is None:
+        return
+    with services.db.session() as session:
+        generations = session.scalars(select(Generation).where(Generation.job_id == job.id)).all()
+        outs = []
+        for generation in generations:
+            generation.status = status
+            if status == "queued":
+                generation.error_code = None
+                generation.error_message = None
+                generation.started_at = None
+                generation.finished_at = None
+            elif status == "running" and generation.started_at is None:
+                generation.started_at = utcnow()
+            elif status in {"succeeded", "failed", "cancelled", "interrupted"}:
+                generation.finished_at = utcnow()
+                generation.error_code = job.error_code if status != "succeeded" else None
+                generation.error_message = job.error_message if status != "succeeded" else None
+            session.flush()
+            outs.append(generation_out(session, generation))
+    for out in outs:
+        services.events.publish("generation.updated", out.model_dump(mode="json"))
+
+
+class _ProviderJob(JobKind):
+    #: Base delay before retrying a transient provider error (doubles each time).
+    retry_delay: ClassVar[float] = 1.0
 
     def __init__(self, providers: dict[str, GenerationProvider]) -> None:
         self.providers = providers
@@ -150,47 +210,239 @@ class GenerateJob(JobKind):
     def title(self, payload: dict[str, Any]) -> str:
         return str(payload.get("title") or "Generation")
 
-    async def run(self, ctx: JobContext) -> dict[str, Any]:
-        generation_id = ctx.payload["generation_id"]
-        services = ctx.services
-        request, provider_id = await asyncio.to_thread(_load_request, services, generation_id)
+    def on_change(self, services: Services, job: JobSnapshot) -> None:
+        _sync_generation(services, job)
+
+    async def _prepare(self, ctx: JobContext) -> tuple[GenerationRequest, GenerationProvider]:
+        request, provider_id = await asyncio.to_thread(
+            _load_request, ctx.services, ctx.payload["generation_id"]
+        )
         provider = self.providers.get(provider_id)
         if provider is None:
-            raise JobError("unknown_provider", f"Provider '{provider_id}' is not available.")
-        output = await provider.generate(request, ctx)
-        ctx.progress(0.95, "Saving")
-        try:
-            asset_id = await asyncio.to_thread(_store_output, services, generation_id, output)
-        finally:
-            output.path.unlink(missing_ok=True)
-        return {"asset_id": asset_id}
+            raise JobError(
+                "unknown_provider",
+                f"Provider '{provider_id}' is not connected. Check Settings › Connections.",
+            )
+        return request, provider
 
-    def on_change(self, services: Services, job: JobSnapshot) -> None:
-        status = _STATUS_FROM_JOB.get(job.state)
-        if status is None:
-            return
-        with services.db.session() as session:
-            generations = session.scalars(
-                select(Generation).where(Generation.job_id == job.id)
-            ).all()
-            outs = []
-            for generation in generations:
-                generation.status = status
-                if status == "queued":
-                    generation.error_code = None
-                    generation.error_message = None
-                    generation.started_at = None
-                    generation.finished_at = None
-                elif status == "running" and generation.started_at is None:
-                    generation.started_at = utcnow()
-                elif status in {"succeeded", "failed", "cancelled", "interrupted"}:
-                    generation.finished_at = utcnow()
-                    generation.error_code = job.error_code if status != "succeeded" else None
-                    generation.error_message = job.error_message if status != "succeeded" else None
-                session.flush()
-                outs.append(generation_out(session, generation))
-        for out in outs:
-            services.events.publish("generation.updated", out.model_dump(mode="json"))
+    async def _store(self, ctx: JobContext, outputs: list[GenerationOutput]) -> dict[str, Any]:
+        if not outputs:
+            raise JobError("no_output", "The provider finished without returning a file.")
+        ctx.progress(0.95, "Saving")
+        asset_ids: list[str] = []
+        try:
+            for output in outputs:
+                asset_ids.append(
+                    await asyncio.to_thread(
+                        _store_output, ctx.services, ctx.payload["generation_id"], output
+                    )
+                )
+        finally:
+            for output in outputs:
+                output.path.unlink(missing_ok=True)
+        for asset_id in asset_ids:
+            await describe_if_wanted(ctx.services, asset_id)
+        return {"asset_id": asset_ids[0], "asset_ids": asset_ids}
+
+
+class GenerateJob(_ProviderJob):
+    """A generation on this machine (GPU lane)."""
+
+    kind: ClassVar[str] = "generate"
+    lane = "gpu"
+
+    async def run(self, ctx: JobContext) -> dict[str, Any]:
+        request, provider = await self._prepare(ctx)
+        if not isinstance(provider, LocalProvider):
+            raise JobError("wrong_provider", f"Provider '{provider.id}' does not run locally.")
+        try:
+            outputs = await with_retries(
+                lambda: provider.generate(request, ctx), base_delay=self.retry_delay
+            )
+        except ProviderError as exc:
+            raise exc.to_job_error() from exc
+        return await self._store(ctx, outputs)
+
+
+async def _reserve(
+    ctx: JobContext, provider: GenerationProvider, request: GenerationRequest
+) -> str:
+    """Check the cap and record the estimated spend before a paid request."""
+    services = ctx.services
+    spec = services.catalog.get(request.model)
+    cost = estimate_cost(spec, request.mode, request.params) if spec else None
+    try:
+        return await asyncio.to_thread(
+            services.usage.reserve,
+            provider.id,
+            cost,
+            model=request.model,
+            images=1 if request.mode == "image" else 0,
+            video_seconds=float(request.params.get("duration", 0))
+            if request.mode == "video"
+            else 0.0,
+            generation_id=ctx.payload["generation_id"],
+        )
+    except ProviderError as exc:
+        raise exc.to_job_error() from exc
+
+
+#: Refusals that happen before the provider does any work, so trying again
+#: cannot pay twice.
+_REFUSED_BEFORE_WORK = {429, 503}
+_NOT_CHARGED = {"auth", "quota", "invalid_params", "unavailable", "not_found", "content_policy"}
+
+
+class GenerateHostedJob(_ProviderJob):
+    """A generation by a paid hosted model that answers in one call (network
+    lane). The spend is reserved first; a request the provider refuses
+    outright costs nothing and voids the reservation."""
+
+    kind: ClassVar[str] = "generate.hosted"
+    lane = "network"
+    attempts: ClassVar[int] = 3
+
+    async def run(self, ctx: JobContext) -> dict[str, Any]:
+        request, provider = await self._prepare(ctx)
+        if not (provider.remote and isinstance(provider, HostedProvider)):
+            raise JobError("wrong_provider", f"Provider '{provider.id}' is not a hosted model.")
+        usage_id = await _reserve(ctx, provider, request)
+        for attempt in range(1, self.attempts + 1):
+            try:
+                outputs = await provider.generate(request, ctx)
+                break
+            except ProviderError as exc:
+                retry = exc.status in _REFUSED_BEFORE_WORK and attempt < self.attempts
+                if not retry:
+                    # Refused outright: nothing to pay. A timeout or a dropped
+                    # connection may have been charged, so its reservation stays.
+                    refused = exc.status is not None or exc.kind in _NOT_CHARGED
+                    if refused:
+                        await asyncio.to_thread(ctx.services.usage.void, usage_id)
+                    raise exc.to_job_error() from exc
+                ctx.progress(0.05, "The provider is busy; trying again")
+                await asyncio.sleep(exc.retry_after or self.retry_delay * 2 ** (attempt - 1))
+        return await self._store(ctx, outputs)
+
+
+class GenerateRemoteJob(_ProviderJob):
+    """A generation run as a paid task by a hosted provider (network lane).
+
+    ``submit`` runs once: its task ID is stored before the first poll, so a
+    restart resumes polling. Status and collect retry transient errors; while
+    the provider stays unreachable the job keeps waiting (the task may still be
+    running, or finished and paid for) until ``max_poll_misses`` polls in a row
+    fail.
+    """
+
+    kind: ClassVar[str] = "generate.remote"
+    lane = "network"
+    remote = True
+    poll_interval: ClassVar[float] = 2.0
+    max_poll_misses: ClassVar[int] = 120
+
+    def __init__(self, providers: dict[str, GenerationProvider]) -> None:
+        super().__init__(providers)
+        self._misses: dict[str, int] = {}
+
+    async def _remote(self, ctx: JobContext) -> tuple[GenerationRequest, RemoteProvider]:
+        request, provider = await self._prepare(ctx)
+        if not isinstance(provider, RemoteProvider):
+            raise JobError("wrong_provider", f"Provider '{provider.id}' is not a hosted service.")
+        return request, provider
+
+    async def submit(self, ctx: JobContext) -> str:
+        request, provider = await self._remote(ctx)
+        services = ctx.services
+        spec = services.catalog.get(request.model)
+        cost = estimate_cost(spec, request.mode, request.params) if spec else None
+        try:
+            # Checked again here: the job may have waited while other spending landed.
+            usage_id = await asyncio.to_thread(
+                services.usage.reserve,
+                provider.id,
+                cost,
+                model=request.model,
+                images=1 if request.mode == "image" else 0,
+                video_seconds=float(request.params.get("duration", 0))
+                if request.mode == "video"
+                else 0.0,
+                generation_id=ctx.payload["generation_id"],
+            )
+        except ProviderError as exc:
+            raise exc.to_job_error() from exc
+        ctx.progress(0.0, "Sending to the provider")
+        try:
+            return await provider.submit(request, ctx)  # never retried: it may be paid
+        except ProviderError as exc:
+            if not exc.transient:  # refused outright: nothing to pay for
+                await asyncio.to_thread(services.usage.void, usage_id)
+            raise exc.to_job_error() from exc
+
+    async def poll(self, ctx: JobContext, task_id: str) -> PollResult:
+        generation_id = ctx.payload["generation_id"]
+        stored = await asyncio.to_thread(_stored_asset_ids, ctx.services, generation_id)
+        if stored:  # collected before a restart: do not download (or ingest) twice
+            return PollResult("succeeded", result={"asset_id": stored[0], "asset_ids": stored})
+        request, provider = await self._remote(ctx)
+        try:
+            status = await with_retries(
+                lambda: provider.status(task_id, request, ctx), base_delay=self.retry_delay
+            )
+        except ProviderError as exc:
+            return self._missed(ctx, exc, "Waiting for the provider to answer")
+        if status.state != "succeeded":
+            self._misses.pop(ctx.job_id, None)
+        if status.state in {"queued", "running"}:
+            label = status.message or (
+                "Queued at the provider" if status.state == "queued" else "Rendering remotely"
+            )
+            return PollResult("running", progress=0.9 * (status.progress or 0.0), message=label)
+        if status.state == "cancelled":
+            return PollResult(
+                "failed", error=JobError("provider_cancelled", "The provider cancelled this task.")
+            )
+        if status.state == "failed":
+            error = status.error or ProviderError("unknown", provider=provider.id)
+            return PollResult("failed", error=error.to_job_error())
+        ctx.progress(0.92, "Downloading")
+        try:
+            outputs = await with_retries(
+                lambda: provider.collect(task_id, request, ctx), base_delay=self.retry_delay
+            )
+        except ProviderError as exc:
+            # The task is finished and paid for: keep trying to download it
+            # rather than fail and invite a Retry that would pay again.
+            return self._missed(ctx, exc, "Waiting to download the result")
+        self._misses.pop(ctx.job_id, None)
+        try:
+            result = await self._store(ctx, outputs)
+        except JobError as exc:
+            return PollResult("failed", error=exc)
+        return PollResult("succeeded", result=result)
+
+    def _missed(self, ctx: JobContext, exc: ProviderError, waiting: str) -> PollResult:
+        """A poll that got no answer: wait on transient errors, up to a limit."""
+        if not exc.transient:
+            self._misses.pop(ctx.job_id, None)
+            return PollResult("failed", error=exc.to_job_error())
+        misses = self._misses.get(ctx.job_id, 0) + 1
+        self._misses[ctx.job_id] = misses
+        if misses >= self.max_poll_misses:
+            self._misses.pop(ctx.job_id, None)
+            return PollResult("failed", error=exc.to_job_error())
+        return PollResult("running", message=waiting)
+
+    async def cancel_remote(self, ctx: JobContext, task_id: str) -> None:
+        self._misses.pop(ctx.job_id, None)
+        request, provider = await self._remote(ctx)
+        try:
+            await with_retries(
+                lambda: provider.cancel(task_id, request, ctx), base_delay=self.retry_delay
+            )
+        except ProviderError as exc:
+            if exc.kind != "not_found":
+                raise
 
 
 def _load_request(services: Services, generation_id: str) -> tuple[GenerationRequest, str]:
@@ -198,13 +450,53 @@ def _load_request(services: Services, generation_id: str) -> tuple[GenerationReq
         generation = session.get(Generation, generation_id)
         if generation is None:
             raise JobError("not_found", "The generation was deleted.")
+        spec = services.catalog.get(generation.model_id)
+        references = []
+        for asset_id in generation.reference_ids or []:
+            asset = session.get(Asset, asset_id)
+            path = services.media.resolve(asset.path) if asset else None
+            if path is None or not path.is_file():
+                raise JobError(
+                    "reference_missing",
+                    "A reference image is no longer in the library. Pick the references again.",
+                )
+            references.append(path)
+
+        def frame(asset_id: str | None) -> Path | None:
+            if asset_id is None:
+                return None
+            asset = session.get(Asset, asset_id)
+            path = services.media.resolve(asset.path) if asset else None
+            if path is None or not path.is_file():
+                raise JobError(
+                    "reference_missing",
+                    "A start or end frame is no longer in the library. Pick it again.",
+                )
+            return path
+
         request = GenerationRequest(
             mode=generation.mode,  # type: ignore[arg-type]
             prompt=generation.prompt,
             seed=generation.seed if generation.seed is not None else 0,
             params=dict(generation.params or {}),
+            model=generation.model_id,
+            provider_model=spec.provider_model if spec else None,
+            references=tuple(references),
+            start_frame=frame(generation.start_frame_id),
+            end_frame=frame(generation.end_frame_id),
         )
         return request, generation.provider
+
+
+def _stored_asset_ids(services: Services, generation_id: str) -> list[str]:
+    with services.db.session() as session:
+        return list(
+            session.scalars(
+                select(Asset.id)
+                .where(Asset.source_generation_id == generation_id)
+                .order_by(Asset.created_at.asc())
+            ).all()
+        )
 
 
 def _store_output(services: Services, generation_id: str, output: GenerationOutput) -> str:
@@ -231,13 +523,174 @@ def _store_output(services: Services, generation_id: str, output: GenerationOutp
     return asset.id
 
 
+class GenerationEstimate(BaseModel):
+    """What Generate would do with these settings, before pressing it."""
+
+    #: Whether the request would be accepted now.
+    ok: bool
+    #: Why not, in words for the composer.
+    problems: list[str]
+    #: The model that would run (what Auto picked, when it was asked for).
+    model: str | None = None
+    #: Estimated US dollars for the whole batch (hosted models).
+    cost_usd: float | None
+    #: Estimated seconds until the results are in.
+    seconds: float | None
+    notes: str | None
+
+
+async def estimate_generations(
+    services: Services, request: GenerationCreate, providers: dict[str, GenerationProvider]
+) -> GenerationEstimate:
+    def refused(*problems: str) -> GenerationEstimate:
+        return GenerationEstimate(
+            ok=False, problems=list(problems), cost_usd=None, seconds=None, notes=None
+        )
+
+    try:
+        request = resolve_auto(services, request)
+    except UnknownModelError as exc:
+        return refused(str(exc))
+    spec = services.catalog.get(request.model)
+    if spec is None:
+        return refused(f"Unknown model '{request.model}'.")
+    provider = providers.get(spec.provider)
+    if provider is None:
+        return refused(f"{spec.name} is not available: {availability(services, spec)[1]}")
+    problems: list[str] = []
+    if request.batch > spec.limits.max_batch:
+        problems.append(f"{spec.name} makes at most {spec.limits.max_batch} at a time")
+    try:
+        params = validate_params(spec, request.mode, request.params)
+    except ParamError as exc:
+        problems.extend(exc.problems)
+        params = {}
+    problems.extend(await asyncio.to_thread(check_references, services, spec, request.references))
+    problems.extend(await asyncio.to_thread(check_frames, services, spec, request))
+    if problems:
+        return refused(*problems)
+    probe = GenerationRequest(
+        mode=request.mode,
+        prompt=request.prompt,
+        seed=request.seed or 0,
+        params=params,
+        model=spec.id,
+        provider_model=spec.provider_model,
+    )
+    estimate = await provider.estimate(spec, probe, request.batch)
+    if spec.runtime == "api":
+        try:
+            await asyncio.to_thread(services.usage.check_cap, spec.provider, estimate.cost_usd)
+        except ProviderError as exc:
+            problems.append(exc.message)
+    return GenerationEstimate(
+        ok=not problems,
+        problems=problems,
+        model=spec.id,
+        cost_usd=estimate.cost_usd,
+        seconds=estimate.seconds,
+        notes=estimate.notes,
+    )
+
+
+def check_references(services: Services, spec: Any, asset_ids: list[str]) -> list[str]:
+    """Why these references cannot go to ``spec``, or an empty list."""
+    limits = spec.limits
+    if not asset_ids:
+        return []
+    if limits.max_references == 0:
+        return [f"{spec.name} does not take reference images"]
+    problems = []
+    if len(asset_ids) > limits.max_references:
+        problems.append(f"{spec.name} takes at most {limits.max_references} references")
+    if len(set(asset_ids)) != len(asset_ids):
+        problems.append("The same reference is in the list twice")
+    with services.db.session() as session:
+        for asset_id in asset_ids:
+            asset = session.get(Asset, asset_id)
+            if asset is None or asset.deleted_at is not None:
+                problems.append("A reference is not in the library (or is in the trash)")
+            elif asset.kind not in limits.reference_kinds:
+                kinds = ", ".join(limits.reference_kinds) or "nothing"
+                problems.append(f"{spec.name} takes {kinds} references, not {asset.kind}")
+    return list(dict.fromkeys(problems))
+
+
+def resolve_auto(services: Services, request: GenerationCreate) -> GenerationCreate:
+    """Replace the model "auto" with the model the router picks for these inputs."""
+    if request.model != AUTO:
+        return request
+    result = route(
+        services,
+        RouteRequest(
+            mode=request.mode,
+            references=len(request.references),
+            start_frame=request.start_frame is not None,
+            end_frame=request.end_frame is not None,
+        ),
+    )
+    if result.model is None:
+        raise UnknownModelError(result.reason)
+    return request.model_copy(update={"model": result.model})
+
+
+def check_frames(services: Services, spec: Any, request: GenerationCreate) -> list[str]:
+    """Why the start and end frames cannot go to ``spec``, or an empty list."""
+    if request.start_frame is None and request.end_frame is None:
+        return []
+    problems = []
+    if request.mode != "video" or "image_to_video" not in spec.capabilities:
+        problems.append(f"{spec.name} does not start a clip from an image")
+    if request.end_frame is not None:
+        if request.start_frame is None:
+            problems.append("An end frame needs a start frame")
+        elif "start_end_frames" not in spec.capabilities:
+            problems.append(f"{spec.name} does not take an end frame")
+    if request.references:
+        problems.append("Use either start and end frames or reference images, not both")
+    with services.db.session() as session:
+        for asset_id in (request.start_frame, request.end_frame):
+            if asset_id is None:
+                continue
+            asset = session.get(Asset, asset_id)
+            if asset is None or asset.deleted_at is not None:
+                problems.append("A frame is not in the library (or is in the trash)")
+            elif asset.kind != "image":
+                problems.append("Start and end frames must be images")
+    return list(dict.fromkeys(problems))
+
+
+def job_kind_for(provider: GenerationProvider) -> str:
+    if not provider.remote:
+        return GenerateJob.kind
+    return (
+        GenerateRemoteJob.kind if isinstance(provider, RemoteProvider) else GenerateHostedJob.kind
+    )
+
+
 async def create_generations(
     services: Services,
     request: GenerationCreate,
     providers: dict[str, GenerationProvider],
 ) -> list[GenerationOut]:
-    if request.model not in providers:
+    request = resolve_auto(services, request)  # UnknownModelError when nothing fits
+    spec = services.catalog.get(request.model)
+    if spec is None:
         raise UnknownModelError(f"Unknown model '{request.model}'.")
+    if spec.provider not in providers:
+        raise UnknownModelError(f"{spec.name} is not available: {availability(services, spec)[1]}")
+    if request.batch > spec.limits.max_batch:
+        raise ParamError([f"{spec.name} makes at most {spec.limits.max_batch} at a time"])
+    params = validate_params(spec, request.mode, request.params)  # ParamError: refused
+    problems = await asyncio.to_thread(check_references, services, spec, request.references)
+    problems += await asyncio.to_thread(check_frames, services, spec, request)
+    if problems:
+        raise ParamError(problems)
+    kind = job_kind_for(providers[spec.provider])
+    if spec.runtime == "api":
+        # ProviderError (code spend_cap) when the batch would pass the monthly cap.
+        estimate = estimate_cost(spec, request.mode, params, request.batch)
+        await asyncio.to_thread(services.usage.check_cap, spec.provider, estimate)
 
     def place() -> Placement:
         with services.db.session() as session:
@@ -252,7 +705,7 @@ async def create_generations(
 
     for index in range(request.batch):
         seed = (base_seed + index) % (MAX_SEED + 1)
-        title = f"{request.mode.capitalize()} · {request.model} · {snippet or 'no prompt'}"
+        title = f"{request.mode.capitalize()} · {spec.name} · {snippet or 'no prompt'}"
 
         def add_generation(
             session: Session, job: Job, seed: int = seed, index: int = index
@@ -261,10 +714,13 @@ async def create_generations(
                 batch_id=batch_id,
                 batch_index=index,
                 mode=request.mode,
-                model_id=request.model,
-                provider=request.model,
+                model_id=spec.id,
+                provider=spec.provider,
                 prompt=request.prompt,
-                params=request.params,
+                params=params,
+                reference_ids=list(request.references),
+                start_frame_id=request.start_frame,
+                end_frame_id=request.end_frame,
                 seed=seed,
                 status="queued",
                 progress=0.0,
@@ -279,7 +735,7 @@ async def create_generations(
             created.append(generation.id)
 
         await services.jobs.submit(
-            "generate", {"title": title}, title=title, before_commit=add_generation
+            kind, {"title": title}, title=title, before_commit=add_generation
         )
 
     def load() -> list[GenerationOut]:

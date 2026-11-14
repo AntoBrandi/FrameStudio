@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 
-export function PlaceholderPage({ page }: { page: "studio" | "assets" | "elements" | "canvas" }) {
+export function PlaceholderPage({ page }: { page: "studio" | "assets" | "canvas" }) {
   const { t } = useTranslation();
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-3 px-6 py-16">

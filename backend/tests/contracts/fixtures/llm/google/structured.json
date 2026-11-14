@@ -1,0 +1,14 @@
+{
+ "synthetic": true,
+ "note": "Written from the provider's documented wire format; replace with a recording (LIVE_API=1 FRAMESTUDIO_RECORD=1).",
+ "model": "gemini-3-pro",
+ "exchanges": [
+  {
+   "method": "POST",
+   "path": "/v1beta/models/gemini-3-pro:streamGenerateContent",
+   "status": 200,
+   "content_type": "text/event-stream",
+   "body": "data: {\"candidates\": [{\"index\": 0, \"content\": {\"role\": \"model\", \"parts\": [{\"text\": \"{\\\"subject\"}]}}], \"modelVersion\": \"gemini-3-pro\", \"responseId\": \"synthetic\"}\r\n\r\ndata: {\"candidates\": [{\"index\": 0, \"content\": {\"role\": \"model\", \"parts\": [{\"text\": \"\\\": \\\"a lig\"}]}}], \"modelVersion\": \"gemini-3-pro\", \"responseId\": \"synthetic\"}\r\n\r\ndata: {\"candidates\": [{\"index\": 0, \"content\": {\"role\": \"model\", \"parts\": [{\"text\": \"hthouse a\"}]}}], \"modelVersion\": \"gemini-3-pro\", \"responseId\": \"synthetic\"}\r\n\r\ndata: {\"candidates\": [{\"index\": 0, \"content\": {\"role\": \"model\", \"parts\": [{\"text\": \"t dusk\\\", \"}]}}], \"modelVersion\": \"gemini-3-pro\", \"responseId\": \"synthetic\"}\r\n\r\ndata: {\"candidates\": [{\"index\": 0, \"content\": {\"role\": \"model\", \"parts\": [{\"text\": \"\\\"camera\\\":\"}]}}], \"modelVersion\": \"gemini-3-pro\", \"responseId\": \"synthetic\"}\r\n\r\ndata: {\"candidates\": [{\"index\": 0, \"content\": {\"role\": \"model\", \"parts\": [{\"text\": \" \\\"dolly i\"}]}}], \"modelVersion\": \"gemini-3-pro\", \"responseId\": \"synthetic\"}\r\n\r\ndata: {\"candidates\": [{\"index\": 0, \"content\": {\"role\": \"model\", \"parts\": [{\"text\": \"n\\\", \\\"dura\"}]}}], \"modelVersion\": \"gemini-3-pro\", \"responseId\": \"synthetic\"}\r\n\r\ndata: {\"candidates\": [{\"index\": 0, \"content\": {\"role\": \"model\", \"parts\": [{\"text\": \"tion_seco\"}]}}], \"modelVersion\": \"gemini-3-pro\", \"responseId\": \"synthetic\"}\r\n\r\ndata: {\"candidates\": [{\"index\": 0, \"content\": {\"role\": \"model\", \"parts\": [{\"text\": \"nds\\\": 5, \"}]}}], \"modelVersion\": \"gemini-3-pro\", \"responseId\": \"synthetic\"}\r\n\r\ndata: {\"candidates\": [{\"index\": 0, \"content\": {\"role\": \"model\", \"parts\": [{\"text\": \"\\\"tags\\\": [\"}]}}], \"modelVersion\": \"gemini-3-pro\", \"responseId\": \"synthetic\"}\r\n\r\ndata: {\"candidates\": [{\"index\": 0, \"content\": {\"role\": \"model\", \"parts\": [{\"text\": \"\\\"dusk\\\", \\\"\"}]}}], \"modelVersion\": \"gemini-3-pro\", \"responseId\": \"synthetic\"}\r\n\r\ndata: {\"candidates\": [{\"index\": 0, \"content\": {\"role\": \"model\", \"parts\": [{\"text\": \"coast\\\"]}\"}]}, \"finishReason\": \"STOP\"}], \"modelVersion\": \"gemini-3-pro\", \"responseId\": \"synthetic\", \"usageMetadata\": {\"promptTokenCount\": 42, \"candidatesTokenCount\": 12, \"thoughtsTokenCount\": 4, \"totalTokenCount\": 58}}\r\n\r\n"
+  }
+ ]
+}

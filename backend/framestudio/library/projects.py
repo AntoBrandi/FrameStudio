@@ -45,6 +45,8 @@ class ProjectOut(BaseModel):
     #: The chosen cover, or the newest asset's thumbnail.
     cover_url: str | None
     asset_count: int
+    #: New images here are described by the captions model (M2.6).
+    describe_images: bool
     created_at: datetime
     updated_at: datetime
     deleted_at: datetime | None
@@ -73,6 +75,7 @@ class ProjectPatch(BaseModel):
     description: str | None = Field(default=None, max_length=140)
     cover_asset_id: str | None = None
     brief: str | None = Field(default=None, max_length=200_000)
+    describe_images: bool | None = None
 
     @field_validator("slug")
     @classmethod
@@ -112,6 +115,7 @@ def _project_out(session: Session, project: Project, detail: bool = False) -> Pr
         "cover_asset_id": project.cover_asset_id,
         "cover_url": f"/api/assets/{cover_id}/thumb" if cover_id else None,
         "asset_count": count,
+        "describe_images": bool(project.describe_images),
         "created_at": project.created_at,
         "updated_at": project.updated_at,
         "deleted_at": project.deleted_at,
@@ -188,6 +192,8 @@ def patch_project(services: Services, project_id: str, patch: ProjectPatch) -> P
             project.cover_asset_id = cover
         if changes.get("brief") is not None:
             project.brief = changes["brief"]
+        if changes.get("describe_images") is not None:
+            project.describe_images = changes["describe_images"]
         project.updated_at = utcnow()
         try:
             session.flush()

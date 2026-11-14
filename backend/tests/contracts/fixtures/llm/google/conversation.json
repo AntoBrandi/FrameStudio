@@ -1,0 +1,21 @@
+{
+ "synthetic": true,
+ "note": "Written from the provider's documented wire format; replace with a recording (LIVE_API=1 FRAMESTUDIO_RECORD=1).",
+ "model": "gemini-3-pro",
+ "exchanges": [
+  {
+   "method": "POST",
+   "path": "/v1beta/models/gemini-3-pro:streamGenerateContent",
+   "status": 200,
+   "content_type": "text/event-stream",
+   "body": "data: {\"candidates\": [{\"index\": 0, \"content\": {\"role\": \"model\", \"parts\": [{\"text\": \"A red square. Saving it now.\"}, {\"functionCall\": {\"name\": \"save_palette\", \"args\": {\"colour\": \"red\"}}, \"thoughtSignature\": \"cGFsZXR0ZS1zaWduYXR1cmU=\"}]}, \"finishReason\": \"STOP\"}], \"modelVersion\": \"gemini-3-pro\", \"responseId\": \"synthetic\", \"usageMetadata\": {\"promptTokenCount\": 42, \"candidatesTokenCount\": 12, \"thoughtsTokenCount\": 4, \"totalTokenCount\": 58}}\r\n\r\n"
+  },
+  {
+   "method": "POST",
+   "path": "/v1beta/models/gemini-3-pro:streamGenerateContent",
+   "status": 200,
+   "content_type": "text/event-stream",
+   "body": "data: {\"candidates\": [{\"index\": 0, \"content\": {\"role\": \"model\", \"parts\": [{\"text\": \"Saved red\"}]}}], \"modelVersion\": \"gemini-3-pro\", \"responseId\": \"synthetic\"}\r\n\r\ndata: {\"candidates\": [{\"index\": 0, \"content\": {\"role\": \"model\", \"parts\": [{\"text\": \" as the p\"}]}}], \"modelVersion\": \"gemini-3-pro\", \"responseId\": \"synthetic\"}\r\n\r\ndata: {\"candidates\": [{\"index\": 0, \"content\": {\"role\": \"model\", \"parts\": [{\"text\": \"alette fo\"}]}}], \"modelVersion\": \"gemini-3-pro\", \"responseId\": \"synthetic\"}\r\n\r\ndata: {\"candidates\": [{\"index\": 0, \"content\": {\"role\": \"model\", \"parts\": [{\"text\": \"r this sh\"}]}}], \"modelVersion\": \"gemini-3-pro\", \"responseId\": \"synthetic\"}\r\n\r\ndata: {\"candidates\": [{\"index\": 0, \"content\": {\"role\": \"model\", \"parts\": [{\"text\": \"ot.\"}]}, \"finishReason\": \"STOP\"}], \"modelVersion\": \"gemini-3-pro\", \"responseId\": \"synthetic\", \"usageMetadata\": {\"promptTokenCount\": 42, \"candidatesTokenCount\": 12, \"thoughtsTokenCount\": 4, \"totalTokenCount\": 58}}\r\n\r\n"
+  }
+ ]
+}

@@ -5,11 +5,44 @@
         "additionalProperties": false,
         "description": "Every user-changeable setting with its default.",
         "properties": {
+          "describe_library": {
+            "default": false,
+            "title": "Describe Library",
+            "type": "boolean"
+          },
           "language": {
             "default": "en",
             "maxLength": 16,
             "minLength": 2,
             "title": "Language",
+            "type": "string"
+          },
+          "llm_captions": {
+            "default": "",
+            "maxLength": 160,
+            "pattern": "^$|^[a-z0-9-]+/[A-Za-z0-9._:/-]+$",
+            "title": "Llm Captions",
+            "type": "string"
+          },
+          "llm_default": {
+            "default": "",
+            "maxLength": 160,
+            "pattern": "^$|^[a-z0-9-]+/[A-Za-z0-9._:/-]+$",
+            "title": "Llm Default",
+            "type": "string"
+          },
+          "llm_director": {
+            "default": "",
+            "maxLength": 160,
+            "pattern": "^$|^[a-z0-9-]+/[A-Za-z0-9._:/-]+$",
+            "title": "Llm Director",
+            "type": "string"
+          },
+          "llm_prompt_help": {
+            "default": "",
+            "maxLength": 160,
+            "pattern": "^$|^[a-z0-9-]+/[A-Za-z0-9._:/-]+$",
+            "title": "Llm Prompt Help",
             "type": "string"
           },
           "mock_failure_rate": {
@@ -53,7 +86,12 @@
           "remote_access",
           "notify_on_job_finish",
           "mock_latency_seconds",
-          "mock_failure_rate"
+          "mock_failure_rate",
+          "llm_default",
+          "llm_prompt_help",
+          "llm_captions",
+          "llm_director",
+          "describe_library"
         ],
         "title": "AppSettings",
         "type": "object"
@@ -62,6 +100,17 @@
         "additionalProperties": false,
         "description": "Partial update: omitted fields keep their current value.",
         "properties": {
+          "describe_library": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Describe Library"
+          },
           "language": {
             "anyOf": [
               {
@@ -74,6 +123,58 @@
               }
             ],
             "title": "Language"
+          },
+          "llm_captions": {
+            "anyOf": [
+              {
+                "maxLength": 160,
+                "pattern": "^$|^[a-z0-9-]+/[A-Za-z0-9._:/-]+$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Llm Captions"
+          },
+          "llm_default": {
+            "anyOf": [
+              {
+                "maxLength": 160,
+                "pattern": "^$|^[a-z0-9-]+/[A-Za-z0-9._:/-]+$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Llm Default"
+          },
+          "llm_director": {
+            "anyOf": [
+              {
+                "maxLength": 160,
+                "pattern": "^$|^[a-z0-9-]+/[A-Za-z0-9._:/-]+$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Llm Director"
+          },
+          "llm_prompt_help": {
+            "anyOf": [
+              {
+                "maxLength": 160,
+                "pattern": "^$|^[a-z0-9-]+/[A-Za-z0-9._:/-]+$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Llm Prompt Help"
           },
           "mock_failure_rate": {
             "anyOf": [
@@ -432,6 +533,13 @@
             ],
             "title": "Source Generation Id"
           },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Tags",
+            "type": "array"
+          },
           "thumb_url": {
             "anyOf": [
               {
@@ -496,6 +604,7 @@
           "favorite",
           "notes",
           "caption",
+          "tags",
           "last_viewed_at",
           "last_downloaded_at",
           "created_at",
@@ -591,6 +700,32 @@
         "title": "AssetPatch",
         "type": "object"
       },
+      "Body_import_elements": {
+        "properties": {
+          "file": {
+            "contentMediaType": "application/octet-stream",
+            "description": "An elements CSV or export zip",
+            "title": "File",
+            "type": "string"
+          },
+          "project_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Id"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "title": "Body_import_elements",
+        "type": "object"
+      },
       "Body_upload_assets": {
         "properties": {
           "files": {
@@ -644,6 +779,724 @@
         "title": "BulkResult",
         "type": "object"
       },
+      "ConnectionOut": {
+        "properties": {
+          "connected": {
+            "title": "Connected",
+            "type": "boolean"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "hosts": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Hosts",
+            "type": "array"
+          },
+          "key_hint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key Hint"
+          },
+          "key_store": {
+            "anyOf": [
+              {
+                "enum": [
+                  "keyring",
+                  "file",
+                  "memory"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key Store"
+          },
+          "key_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key Url"
+          },
+          "monthly_cap_usd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Monthly Cap Usd"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "requires_key": {
+            "title": "Requires Key",
+            "type": "boolean"
+          },
+          "spent_this_month_usd": {
+            "title": "Spent This Month Usd",
+            "type": "number"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "ok",
+                  "refused",
+                  "unreachable",
+                  "unchecked",
+                  "missing"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "status_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status Message"
+          },
+          "test": {
+            "title": "Test",
+            "type": "boolean"
+          },
+          "validated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Validated At"
+          }
+        },
+        "required": [
+          "provider",
+          "name",
+          "description",
+          "key_url",
+          "hosts",
+          "requires_key",
+          "test",
+          "connected",
+          "enabled",
+          "key_hint",
+          "key_store",
+          "status",
+          "status_message",
+          "validated_at",
+          "monthly_cap_usd",
+          "spent_this_month_usd"
+        ],
+        "title": "ConnectionOut",
+        "type": "object"
+      },
+      "ConnectionUpdate": {
+        "additionalProperties": false,
+        "properties": {
+          "api_key": {
+            "anyOf": [
+              {
+                "format": "password",
+                "type": "string",
+                "writeOnly": true
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Key"
+          },
+          "enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enabled"
+          },
+          "monthly_cap_usd": {
+            "anyOf": [
+              {
+                "maximum": 1000000.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Monthly Cap Usd"
+          }
+        },
+        "title": "ConnectionUpdate",
+        "type": "object"
+      },
+      "DescribeQueued": {
+        "properties": {
+          "job_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Job Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "job_ids"
+        ],
+        "title": "DescribeQueued",
+        "type": "object"
+      },
+      "DescribeRequest": {
+        "properties": {
+          "asset_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 200,
+            "minItems": 1,
+            "title": "Asset Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "asset_ids"
+        ],
+        "title": "DescribeRequest",
+        "type": "object"
+      },
+      "ElementCreate": {
+        "properties": {
+          "asset_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "Asset Ids",
+            "type": "array"
+          },
+          "category": {
+            "default": "auto",
+            "enum": [
+              "character",
+              "location",
+              "prop",
+              "auto"
+            ],
+            "title": "Category",
+            "type": "string"
+          },
+          "description": {
+            "default": "",
+            "maxLength": 10000,
+            "title": "Description",
+            "type": "string"
+          },
+          "folder_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Folder Id"
+          },
+          "handle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Handle"
+          },
+          "name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "project_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Id"
+          },
+          "properties": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Properties",
+            "type": "object"
+          },
+          "status": {
+            "default": "draft",
+            "enum": [
+              "draft",
+              "ready"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "ElementCreate",
+        "type": "object"
+      },
+      "ElementFolderCreate": {
+        "properties": {
+          "color": {
+            "default": "tungsten",
+            "maxLength": 16,
+            "title": "Color",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "project_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Id"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "ElementFolderCreate",
+        "type": "object"
+      },
+      "ElementFolderOut": {
+        "properties": {
+          "color": {
+            "title": "Color",
+            "type": "string"
+          },
+          "element_count": {
+            "title": "Element Count",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "project_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Id"
+          }
+        },
+        "required": [
+          "id",
+          "project_id",
+          "name",
+          "color",
+          "element_count"
+        ],
+        "title": "ElementFolderOut",
+        "type": "object"
+      },
+      "ElementFolderPatch": {
+        "properties": {
+          "color": {
+            "anyOf": [
+              {
+                "maxLength": 16,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Color"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "title": "ElementFolderPatch",
+        "type": "object"
+      },
+      "ElementMediaChange": {
+        "properties": {
+          "asset_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "minItems": 1,
+            "title": "Asset Ids",
+            "type": "array"
+          },
+          "role": {
+            "default": "angle",
+            "maxLength": 16,
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "asset_ids"
+        ],
+        "title": "ElementMediaChange",
+        "type": "object"
+      },
+      "ElementMediaOut": {
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "position": {
+            "title": "Position",
+            "type": "integer"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "thumb_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Thumb Url"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "asset_id",
+          "role",
+          "position",
+          "kind",
+          "url",
+          "thumb_url"
+        ],
+        "title": "ElementMediaOut",
+        "type": "object"
+      },
+      "ElementOut": {
+        "properties": {
+          "category": {
+            "enum": [
+              "character",
+              "location",
+              "prop",
+              "auto"
+            ],
+            "title": "Category",
+            "type": "string"
+          },
+          "cover_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cover Url"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "folder_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Folder Id"
+          },
+          "handle": {
+            "title": "Handle",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "media": {
+            "items": {
+              "$ref": "#/components/schemas/ElementMediaOut"
+            },
+            "title": "Media",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "project_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Id"
+          },
+          "properties": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Properties",
+            "type": "object"
+          },
+          "status": {
+            "enum": [
+              "draft",
+              "ready"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "used_in": {
+            "title": "Used In",
+            "type": "integer"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "handle",
+          "name",
+          "category",
+          "status",
+          "version",
+          "description",
+          "properties",
+          "project_id",
+          "folder_id",
+          "media",
+          "cover_url",
+          "used_in",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ElementOut",
+        "type": "object"
+      },
+      "ElementPatch": {
+        "properties": {
+          "category": {
+            "anyOf": [
+              {
+                "enum": [
+                  "character",
+                  "location",
+                  "prop",
+                  "auto"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 10000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "folder_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Folder Id"
+          },
+          "handle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Handle"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "properties": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Properties"
+          },
+          "regenerate_handle": {
+            "default": false,
+            "title": "Regenerate Handle",
+            "type": "boolean"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "draft",
+                  "ready"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "title": "ElementPatch",
+        "type": "object"
+      },
       "EmptyTrashResult": {
         "properties": {
           "assets_deleted": {
@@ -665,6 +1518,67 @@
           "bytes_freed"
         ],
         "title": "EmptyTrashResult",
+        "type": "object"
+      },
+      "EnhanceRequest": {
+        "properties": {
+          "mode": {
+            "default": "image",
+            "enum": [
+              "image",
+              "video"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "prompt": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Prompt",
+            "type": "string"
+          }
+        },
+        "required": [
+          "prompt"
+        ],
+        "title": "EnhanceRequest",
+        "type": "object"
+      },
+      "EnhanceResult": {
+        "properties": {
+          "changes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Changes",
+            "type": "array"
+          },
+          "llm": {
+            "title": "Llm",
+            "type": "string"
+          },
+          "prompt": {
+            "title": "Prompt",
+            "type": "string"
+          }
+        },
+        "required": [
+          "prompt",
+          "changes",
+          "llm"
+        ],
+        "title": "EnhanceResult",
         "type": "object"
       },
       "FakeJobCreate": {
@@ -692,6 +1606,64 @@
           }
         },
         "title": "FakeJobCreate",
+        "type": "object"
+      },
+      "FalImport": {
+        "properties": {
+          "endpoint_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Endpoint Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "endpoint_ids"
+        ],
+        "title": "FalImport",
+        "type": "object"
+      },
+      "FalModelSummary": {
+        "properties": {
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "endpoint_id": {
+            "title": "Endpoint Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "supported": {
+            "title": "Supported",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "endpoint_id",
+          "name",
+          "category",
+          "description",
+          "supported"
+        ],
+        "title": "FalModelSummary",
         "type": "object"
       },
       "FavoriteAssets": {
@@ -898,6 +1870,17 @@
             "title": "Batch",
             "type": "integer"
           },
+          "end_frame": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Frame"
+          },
           "folder_id": {
             "anyOf": [
               {
@@ -956,6 +1939,14 @@
             "title": "Prompt",
             "type": "string"
           },
+          "references": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 16,
+            "title": "References",
+            "type": "array"
+          },
           "seed": {
             "anyOf": [
               {
@@ -968,9 +1959,89 @@
               }
             ],
             "title": "Seed"
+          },
+          "start_frame": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Frame"
           }
         },
         "title": "GenerationCreate",
+        "type": "object"
+      },
+      "GenerationEstimate": {
+        "description": "What Generate would do with these settings, before pressing it.",
+        "properties": {
+          "cost_usd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Usd"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "problems": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Problems",
+            "type": "array"
+          },
+          "seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seconds"
+          }
+        },
+        "required": [
+          "ok",
+          "problems",
+          "cost_usd",
+          "seconds",
+          "notes"
+        ],
+        "title": "GenerationEstimate",
         "type": "object"
       },
       "GenerationOut": {
@@ -997,6 +2068,17 @@
             "format": "date-time",
             "title": "Created At",
             "type": "string"
+          },
+          "end_frame": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Frame"
           },
           "error_code": {
             "anyOf": [
@@ -1105,6 +2187,13 @@
             "title": "Provider",
             "type": "string"
           },
+          "references": {
+            "items": {
+              "type": "string"
+            },
+            "title": "References",
+            "type": "array"
+          },
           "seed": {
             "anyOf": [
               {
@@ -1115,6 +2204,17 @@
               }
             ],
             "title": "Seed"
+          },
+          "start_frame": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Frame"
           },
           "started_at": {
             "anyOf": [
@@ -1155,6 +2255,9 @@
           "error_code",
           "error_message",
           "job_id",
+          "references",
+          "start_frame",
+          "end_frame",
           "parent_asset_id",
           "project_id",
           "folder_id",
@@ -1168,6 +2271,17 @@
       },
       "GenerationSummary": {
         "properties": {
+          "end_frame": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Frame"
+          },
           "id": {
             "title": "Id",
             "type": "string"
@@ -1185,9 +2299,28 @@
             "title": "Params",
             "type": "object"
           },
+          "parent_asset_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Asset Id"
+          },
           "prompt": {
             "title": "Prompt",
             "type": "string"
+          },
+          "references": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "References",
+            "type": "array"
           },
           "seed": {
             "anyOf": [
@@ -1199,6 +2332,17 @@
               }
             ],
             "title": "Seed"
+          },
+          "start_frame": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Frame"
           }
         },
         "required": [
@@ -1253,6 +2397,38 @@
           "api_version"
         ],
         "title": "Health",
+        "type": "object"
+      },
+      "ImportResult": {
+        "properties": {
+          "created": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Created",
+            "type": "array"
+          },
+          "problems": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Problems",
+            "type": "array"
+          },
+          "renamed": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Renamed",
+            "type": "object"
+          }
+        },
+        "required": [
+          "created",
+          "renamed",
+          "problems"
+        ],
+        "title": "ImportResult",
         "type": "object"
       },
       "IngestItem": {
@@ -1447,6 +2623,200 @@
         "title": "JobOut",
         "type": "object"
       },
+      "LLMModelOut": {
+        "properties": {
+          "context_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context Tokens"
+          },
+          "effort": {
+            "title": "Effort",
+            "type": "boolean"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "max_output_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Output Tokens"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "ref": {
+            "title": "Ref",
+            "type": "string"
+          },
+          "structured_output": {
+            "title": "Structured Output",
+            "type": "boolean"
+          },
+          "tools": {
+            "title": "Tools",
+            "type": "boolean"
+          },
+          "usd_per_mtok_in": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Usd Per Mtok In"
+          },
+          "usd_per_mtok_out": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Usd Per Mtok Out"
+          },
+          "vision": {
+            "title": "Vision",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ref",
+          "id",
+          "name",
+          "provider",
+          "vision",
+          "tools",
+          "structured_output",
+          "effort",
+          "context_tokens",
+          "max_output_tokens",
+          "usd_per_mtok_in",
+          "usd_per_mtok_out"
+        ],
+        "title": "LLMModelOut",
+        "type": "object"
+      },
+      "LLMOverview": {
+        "properties": {
+          "providers": {
+            "items": {
+              "$ref": "#/components/schemas/LLMProviderOut"
+            },
+            "title": "Providers",
+            "type": "array"
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/LLMTaskOut"
+            },
+            "title": "Tasks",
+            "type": "array"
+          }
+        },
+        "required": [
+          "providers",
+          "tasks"
+        ],
+        "title": "LLMOverview",
+        "type": "object"
+      },
+      "LLMProviderOut": {
+        "properties": {
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "models": {
+            "items": {
+              "$ref": "#/components/schemas/LLMModelOut"
+            },
+            "title": "Models",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          }
+        },
+        "required": [
+          "provider",
+          "name",
+          "models",
+          "error"
+        ],
+        "title": "LLMProviderOut",
+        "type": "object"
+      },
+      "LLMTaskOut": {
+        "properties": {
+          "choice": {
+            "title": "Choice",
+            "type": "string"
+          },
+          "effective": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective"
+          },
+          "task": {
+            "enum": [
+              "default",
+              "prompt_help",
+              "captions",
+              "director"
+            ],
+            "title": "Task",
+            "type": "string"
+          }
+        },
+        "required": [
+          "task",
+          "choice",
+          "effective"
+        ],
+        "title": "LLMTaskOut",
+        "type": "object"
+      },
       "LibrarySummary": {
         "properties": {
           "favorites": {
@@ -1510,6 +2880,276 @@
         "title": "LibrarySummary",
         "type": "object"
       },
+      "LicenseRecord": {
+        "additionalProperties": false,
+        "description": "Who made the model and on what terms, shown before use.",
+        "properties": {
+          "commercial_use": {
+            "enum": [
+              "yes",
+              "no",
+              "restricted",
+              "unknown"
+            ],
+            "title": "Commercial Use",
+            "type": "string"
+          },
+          "credit": {
+            "minLength": 1,
+            "title": "Credit",
+            "type": "string"
+          },
+          "evidence_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Url"
+          },
+          "kind": {
+            "enum": [
+              "open_weights",
+              "hosted_service",
+              "test_double"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "notes": {
+            "default": "",
+            "title": "Notes",
+            "type": "string"
+          },
+          "source_url": {
+            "minLength": 1,
+            "title": "Source Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "name",
+          "commercial_use",
+          "credit",
+          "source_url"
+        ],
+        "title": "LicenseRecord",
+        "type": "object"
+      },
+      "Limits": {
+        "additionalProperties": false,
+        "properties": {
+          "max_batch": {
+            "default": 4,
+            "maximum": 16.0,
+            "minimum": 1.0,
+            "title": "Max Batch",
+            "type": "integer"
+          },
+          "max_prompt_chars": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Prompt Chars"
+          },
+          "max_references": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Max References",
+            "type": "integer"
+          },
+          "reference_kinds": {
+            "items": {
+              "enum": [
+                "image",
+                "video",
+                "audio"
+              ],
+              "type": "string"
+            },
+            "title": "Reference Kinds",
+            "type": "array"
+          }
+        },
+        "title": "Limits",
+        "type": "object"
+      },
+      "MediaOrder": {
+        "properties": {
+          "asset_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "Asset Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "asset_ids"
+        ],
+        "title": "MediaOrder",
+        "type": "object"
+      },
+      "ModelOut": {
+        "properties": {
+          "available": {
+            "title": "Available",
+            "type": "boolean"
+          },
+          "capabilities": {
+            "items": {
+              "enum": [
+                "text_to_image",
+                "image_edit",
+                "multi_reference",
+                "text_to_video",
+                "image_to_video",
+                "start_end_frames",
+                "extend",
+                "native_audio"
+              ],
+              "type": "string"
+            },
+            "title": "Capabilities",
+            "type": "array"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "license": {
+            "$ref": "#/components/schemas/LicenseRecord"
+          },
+          "limits": {
+            "$ref": "#/components/schemas/Limits"
+          },
+          "modes": {
+            "items": {
+              "enum": [
+                "image",
+                "video"
+              ],
+              "type": "string"
+            },
+            "title": "Modes",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "parameter_schema": {
+            "additionalProperties": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Parameter Schema",
+            "type": "object"
+          },
+          "params": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ParamSpec"
+            },
+            "title": "Params",
+            "type": "object"
+          },
+          "pricing": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Pricing"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "rules": {
+            "items": {
+              "$ref": "#/components/schemas/Rule"
+            },
+            "title": "Rules",
+            "type": "array"
+          },
+          "runtime": {
+            "enum": [
+              "local",
+              "api"
+            ],
+            "title": "Runtime",
+            "type": "string"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Tags",
+            "type": "array"
+          },
+          "unavailable_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unavailable Reason"
+          },
+          "variants": {
+            "items": {
+              "$ref": "#/components/schemas/Variant"
+            },
+            "title": "Variants",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "provider",
+          "runtime",
+          "modes",
+          "capabilities",
+          "params",
+          "rules",
+          "limits",
+          "license",
+          "pricing",
+          "variants",
+          "tags",
+          "available",
+          "unavailable_reason",
+          "parameter_schema"
+        ],
+        "title": "ModelOut",
+        "type": "object"
+      },
       "MonthCount": {
         "properties": {
           "count": {
@@ -1567,6 +3207,256 @@
           "asset_ids"
         ],
         "title": "MoveAssets",
+        "type": "object"
+      },
+      "NameSuggestions": {
+        "properties": {
+          "names": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Names",
+            "type": "array"
+          }
+        },
+        "required": [
+          "names"
+        ],
+        "title": "NameSuggestions",
+        "type": "object"
+      },
+      "ParamSpec": {
+        "additionalProperties": false,
+        "properties": {
+          "advanced": {
+            "default": false,
+            "title": "Advanced",
+            "type": "boolean"
+          },
+          "control": {
+            "anyOf": [
+              {
+                "enum": [
+                  "pills",
+                  "select",
+                  "slider",
+                  "toggle",
+                  "stepper",
+                  "seed",
+                  "text"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Control"
+          },
+          "default": {
+            "title": "Default"
+          },
+          "default_by_mode": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "propertyNames": {
+                  "enum": [
+                    "image",
+                    "video"
+                  ]
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default By Mode"
+          },
+          "help": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Help"
+          },
+          "label": {
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "max": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max"
+          },
+          "min": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min"
+          },
+          "modes": {
+            "anyOf": [
+              {
+                "items": {
+                  "enum": [
+                    "image",
+                    "video"
+                  ],
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Modes"
+          },
+          "step": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Step"
+          },
+          "type": {
+            "enum": [
+              "enum",
+              "integer",
+              "number",
+              "boolean",
+              "seed",
+              "string"
+            ],
+            "title": "Type",
+            "type": "string"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "values": {
+            "anyOf": [
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Values"
+          }
+        },
+        "required": [
+          "type",
+          "label"
+        ],
+        "title": "ParamSpec",
+        "type": "object"
+      },
+      "Pricing": {
+        "additionalProperties": false,
+        "description": "What a request costs, for the estimate shown before Generate.",
+        "properties": {
+          "by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "By"
+          },
+          "checked_at": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "title": "Checked At",
+            "type": "string"
+          },
+          "source_url": {
+            "minLength": 1,
+            "title": "Source Url",
+            "type": "string"
+          },
+          "table": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "number"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Table"
+          },
+          "unit": {
+            "enum": [
+              "image",
+              "video_second",
+              "request"
+            ],
+            "title": "Unit",
+            "type": "string"
+          },
+          "usd": {
+            "minimum": 0.0,
+            "title": "Usd",
+            "type": "number"
+          }
+        },
+        "required": [
+          "unit",
+          "usd",
+          "source_url",
+          "checked_at"
+        ],
+        "title": "Pricing",
         "type": "object"
       },
       "ProjectCreate": {
@@ -1639,6 +3529,10 @@
             ],
             "title": "Deleted At"
           },
+          "describe_images": {
+            "title": "Describe Images",
+            "type": "boolean"
+          },
           "description": {
             "title": "Description",
             "type": "string"
@@ -1669,6 +3563,7 @@
           "cover_asset_id",
           "cover_url",
           "asset_count",
+          "describe_images",
           "created_at",
           "updated_at",
           "deleted_at",
@@ -1722,6 +3617,10 @@
             ],
             "title": "Deleted At"
           },
+          "describe_images": {
+            "title": "Describe Images",
+            "type": "boolean"
+          },
           "description": {
             "title": "Description",
             "type": "string"
@@ -1752,6 +3651,7 @@
           "cover_asset_id",
           "cover_url",
           "asset_count",
+          "describe_images",
           "created_at",
           "updated_at",
           "deleted_at"
@@ -1783,6 +3683,17 @@
               }
             ],
             "title": "Cover Asset Id"
+          },
+          "describe_images": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Describe Images"
           },
           "description": {
             "anyOf": [
@@ -1824,6 +3735,184 @@
           }
         },
         "title": "ProjectPatch",
+        "type": "object"
+      },
+      "ProviderUsage": {
+        "properties": {
+          "cap_usd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cap Usd"
+          },
+          "cost_usd": {
+            "title": "Cost Usd",
+            "type": "number"
+          },
+          "images": {
+            "title": "Images",
+            "type": "integer"
+          },
+          "input_tokens": {
+            "title": "Input Tokens",
+            "type": "integer"
+          },
+          "output_tokens": {
+            "title": "Output Tokens",
+            "type": "integer"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "requests": {
+            "title": "Requests",
+            "type": "integer"
+          },
+          "video_seconds": {
+            "title": "Video Seconds",
+            "type": "number"
+          }
+        },
+        "required": [
+          "provider",
+          "requests",
+          "input_tokens",
+          "output_tokens",
+          "images",
+          "video_seconds",
+          "cost_usd",
+          "cap_usd"
+        ],
+        "title": "ProviderUsage",
+        "type": "object"
+      },
+      "RouteOption": {
+        "properties": {
+          "available": {
+            "title": "Available",
+            "type": "boolean"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "misfit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Misfit"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rank"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "rank",
+          "available",
+          "misfit"
+        ],
+        "title": "RouteOption",
+        "type": "object"
+      },
+      "RouteResult": {
+        "properties": {
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/RouteOption"
+            },
+            "title": "Options",
+            "type": "array"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "model",
+          "reason",
+          "options"
+        ],
+        "title": "RouteResult",
+        "type": "object"
+      },
+      "Rule": {
+        "additionalProperties": false,
+        "description": "A combination the model refuses: when ``when`` matches, the parameters\nin ``allow`` may only take the listed values (or range).",
+        "properties": {
+          "allow": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "items": {},
+                  "type": "array"
+                },
+                {
+                  "additionalProperties": {
+                    "type": "number"
+                  },
+                  "type": "object"
+                }
+              ]
+            },
+            "minProperties": 1,
+            "title": "Allow",
+            "type": "object"
+          },
+          "reason": {
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          },
+          "when": {
+            "additionalProperties": true,
+            "minProperties": 1,
+            "title": "When",
+            "type": "object"
+          }
+        },
+        "required": [
+          "when",
+          "allow",
+          "reason"
+        ],
+        "title": "Rule",
         "type": "object"
       },
       "SessionCreate": {
@@ -2049,6 +4138,32 @@
         "title": "ToolStatus",
         "type": "object"
       },
+      "UsageSummary": {
+        "properties": {
+          "month": {
+            "title": "Month",
+            "type": "string"
+          },
+          "providers": {
+            "items": {
+              "$ref": "#/components/schemas/ProviderUsage"
+            },
+            "title": "Providers",
+            "type": "array"
+          },
+          "total_cost_usd": {
+            "title": "Total Cost Usd",
+            "type": "number"
+          }
+        },
+        "required": [
+          "month",
+          "providers",
+          "total_cost_usd"
+        ],
+        "title": "UsageSummary",
+        "type": "object"
+      },
       "ValidationError": {
         "properties": {
           "ctx": {
@@ -2087,6 +4202,108 @@
           "type"
         ],
         "title": "ValidationError",
+        "type": "object"
+      },
+      "Variant": {
+        "additionalProperties": false,
+        "description": "A downloadable form of a local model (filled in by M3).",
+        "properties": {
+          "accelerators": {
+            "items": {
+              "enum": [
+                "cuda",
+                "rocm",
+                "mps",
+                "vulkan",
+                "cpu"
+              ],
+              "type": "string"
+            },
+            "title": "Accelerators",
+            "type": "array"
+          },
+          "curated_on": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Curated On",
+            "type": "array"
+          },
+          "engines": {
+            "items": {
+              "enum": [
+                "comfyui",
+                "sdcpp",
+                "python"
+              ],
+              "type": "string"
+            },
+            "title": "Engines",
+            "type": "array"
+          },
+          "format": {
+            "enum": [
+              "fp32",
+              "bf16",
+              "fp16",
+              "fp8",
+              "gguf"
+            ],
+            "title": "Format",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "quant": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quant"
+          },
+          "ram_min_gb": {
+            "minimum": 0.0,
+            "title": "Ram Min Gb",
+            "type": "number"
+          },
+          "size_gb": {
+            "exclusiveMinimum": 0.0,
+            "title": "Size Gb",
+            "type": "number"
+          },
+          "vram_min_gb": {
+            "minimum": 0.0,
+            "title": "Vram Min Gb",
+            "type": "number"
+          },
+          "vram_recommended_gb": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vram Recommended Gb"
+          }
+        },
+        "required": [
+          "id",
+          "format",
+          "size_gb",
+          "vram_min_gb",
+          "ram_min_gb",
+          "accelerators",
+          "engines"
+        ],
+        "title": "Variant",
         "type": "object"
       }
     }
@@ -2350,6 +4567,51 @@
           }
         },
         "summary": "List Assets",
+        "tags": [
+          "assets"
+        ]
+      }
+    },
+    "/api/assets/describe": {
+      "post": {
+        "description": "Caption and tag these assets with the model chosen for captions (sends\na downscaled copy of each picture to it). Runs as background jobs.",
+        "operationId": "describe_assets",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DescribeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DescribeQueued"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Describe Assets",
         "tags": [
           "assets"
         ]
@@ -3032,6 +5294,52 @@
         ]
       }
     },
+    "/api/assets/{asset_id}/name-suggestions": {
+      "post": {
+        "description": "Three short names for an asset, from its caption and prompt.",
+        "operationId": "name_suggestions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "asset_id",
+            "required": true,
+            "schema": {
+              "title": "Asset Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NameSuggestions"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Name Suggestions",
+        "tags": [
+          "assets"
+        ]
+      }
+    },
     "/api/assets/{asset_id}/poster": {
       "get": {
         "operationId": "asset_poster",
@@ -3236,6 +5544,1023 @@
         "summary": "Create Session",
         "tags": [
           "auth"
+        ]
+      }
+    },
+    "/api/catalog/fal/import": {
+      "post": {
+        "description": "Add fal models to the catalog: parameters and price read from fal.",
+        "operationId": "import_fal_models",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FalImport"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ModelOut"
+                  },
+                  "title": "Response Import Fal Models",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Import Fal Models",
+        "tags": [
+          "models"
+        ]
+      }
+    },
+    "/api/catalog/fal/search": {
+      "get": {
+        "description": "Models on fal.ai matching ``q`` (needs the fal connection).",
+        "operationId": "search_fal_models",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "default": "",
+              "maxLength": 200,
+              "title": "Q",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "category",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/FalModelSummary"
+                  },
+                  "title": "Response Search Fal Models",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Search Fal Models",
+        "tags": [
+          "models"
+        ]
+      }
+    },
+    "/api/connections": {
+      "get": {
+        "operationId": "list_connections",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ConnectionOut"
+                  },
+                  "title": "Response List Connections",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Connections",
+        "tags": [
+          "connections"
+        ]
+      }
+    },
+    "/api/connections/{provider}": {
+      "delete": {
+        "description": "Forget the key (from the keyring or key file) and the connection.\nUsage history stays.",
+        "operationId": "remove_connection",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "provider",
+            "required": true,
+            "schema": {
+              "title": "Provider",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove Connection",
+        "tags": [
+          "connections"
+        ]
+      },
+      "get": {
+        "operationId": "get_connection",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "provider",
+            "required": true,
+            "schema": {
+              "title": "Provider",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Connection",
+        "tags": [
+          "connections"
+        ]
+      },
+      "put": {
+        "description": "Add or replace the key (checked with the provider first), turn the\nconnection on or off, or set its monthly cap.",
+        "operationId": "update_connection",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "provider",
+            "required": true,
+            "schema": {
+              "title": "Provider",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectionUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Connection",
+        "tags": [
+          "connections"
+        ]
+      }
+    },
+    "/api/connections/{provider}/check": {
+      "post": {
+        "operationId": "check_connection",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "provider",
+            "required": true,
+            "schema": {
+              "title": "Provider",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Check Connection",
+        "tags": [
+          "connections"
+        ]
+      }
+    },
+    "/api/elements": {
+      "get": {
+        "description": "A project's elements and the global ones (or only the global ones\nwithout ``project_id``).",
+        "operationId": "list_elements",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Project Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "include_global",
+            "required": false,
+            "schema": {
+              "default": true,
+              "title": "Include Global",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "category",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "character",
+                    "location",
+                    "prop",
+                    "auto"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "draft",
+                    "ready"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "folder_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Folder Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ElementOut"
+                  },
+                  "title": "Response List Elements",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Elements",
+        "tags": [
+          "elements"
+        ]
+      },
+      "post": {
+        "operationId": "create_element",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ElementCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ElementOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Handle already taken"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Element",
+        "tags": [
+          "elements"
+        ]
+      }
+    },
+    "/api/elements/export": {
+      "get": {
+        "description": "Export a project's elements (or the global ones). The zip carries the\nmedia; the CSV names them by content hash.",
+        "operationId": "export_elements",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Project Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "format",
+            "required": false,
+            "schema": {
+              "default": "zip",
+              "enum": [
+                "csv",
+                "zip"
+              ],
+              "title": "Format",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/zip": {},
+              "text/csv": {}
+            },
+            "description": "The elements as CSV, or a zip with their media"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Export Elements",
+        "tags": [
+          "elements"
+        ]
+      }
+    },
+    "/api/elements/folders": {
+      "get": {
+        "operationId": "list_element_folders",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Project Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ElementFolderOut"
+                  },
+                  "title": "Response List Element Folders",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Element Folders",
+        "tags": [
+          "elements"
+        ]
+      },
+      "post": {
+        "operationId": "create_element_folder",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ElementFolderCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ElementFolderOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Element Folder",
+        "tags": [
+          "elements"
+        ]
+      }
+    },
+    "/api/elements/folders/{folder_id}": {
+      "delete": {
+        "operationId": "delete_element_folder",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "folder_id",
+            "required": true,
+            "schema": {
+              "title": "Folder Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Element Folder",
+        "tags": [
+          "elements"
+        ]
+      },
+      "patch": {
+        "operationId": "patch_element_folder",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "folder_id",
+            "required": true,
+            "schema": {
+              "title": "Folder Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ElementFolderPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Patch Element Folder",
+        "tags": [
+          "elements"
+        ]
+      }
+    },
+    "/api/elements/import": {
+      "post": {
+        "description": "Import elements exported from FrameStudio. Handles already taken here\nget a suffix; CSV media are matched by content to assets in this library.",
+        "operationId": "import_elements",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_import_elements"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "422": {
+            "description": "Unreadable"
+          }
+        },
+        "summary": "Import Elements",
+        "tags": [
+          "elements"
+        ]
+      }
+    },
+    "/api/elements/{element_id}": {
+      "delete": {
+        "description": "Delete the element; its pictures and clips stay in the library.",
+        "operationId": "delete_element",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "element_id",
+            "required": true,
+            "schema": {
+              "title": "Element Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Element",
+        "tags": [
+          "elements"
+        ]
+      },
+      "get": {
+        "operationId": "get_element",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "element_id",
+            "required": true,
+            "schema": {
+              "title": "Element Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ElementOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Element",
+        "tags": [
+          "elements"
+        ]
+      },
+      "patch": {
+        "operationId": "patch_element",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "element_id",
+            "required": true,
+            "schema": {
+              "title": "Element Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ElementPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ElementOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Handle already taken"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Patch Element",
+        "tags": [
+          "elements"
+        ]
+      }
+    },
+    "/api/elements/{element_id}/media": {
+      "post": {
+        "description": "Attach library assets (at the end; the first ever becomes primary).",
+        "operationId": "add_element_media",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "element_id",
+            "required": true,
+            "schema": {
+              "title": "Element Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ElementMediaChange"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ElementOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Element Media",
+        "tags": [
+          "elements"
+        ]
+      },
+      "put": {
+        "description": "Set the media: reorder (the first becomes primary), attach or detach.",
+        "operationId": "order_element_media",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "element_id",
+            "required": true,
+            "schema": {
+              "title": "Element Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MediaOrder"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ElementOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Order Element Media",
+        "tags": [
+          "elements"
         ]
       }
     },
@@ -3695,6 +7020,48 @@
         ]
       }
     },
+    "/api/generations/estimate": {
+      "post": {
+        "description": "Cost and time for these settings, and what stands in the way, without\nstarting anything. The composer calls it as settings change.",
+        "operationId": "estimate_generation",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerationCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerationEstimate"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Estimate Generation",
+        "tags": [
+          "generations"
+        ]
+      }
+    },
     "/api/generations/{generation_id}": {
       "get": {
         "operationId": "get_generation",
@@ -4061,6 +7428,163 @@
         ]
       }
     },
+    "/api/llm": {
+      "get": {
+        "description": "Models read from each connected provider's API (cached for ten minutes;\n``refresh`` reads them again), and the model each task will use.",
+        "operationId": "get_llm_overview",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "refresh",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Refresh",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LLMOverview"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Llm Overview",
+        "tags": [
+          "llm"
+        ]
+      }
+    },
+    "/api/llm/enhance": {
+      "post": {
+        "description": "Rewrite a prompt with the model chosen for prompt help; the reply\nlists what changed so the composer can show a diff and undo it.",
+        "operationId": "enhance",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnhanceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnhanceResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Enhance",
+        "tags": [
+          "llm"
+        ]
+      }
+    },
+    "/api/models": {
+      "get": {
+        "description": "Every catalog model, with whether it can run on this install right now.",
+        "operationId": "list_models",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ModelOut"
+                  },
+                  "title": "Response List Models",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Models",
+        "tags": [
+          "models"
+        ]
+      }
+    },
+    "/api/models/{model_id}": {
+      "get": {
+        "operationId": "get_model",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "model_id",
+            "required": true,
+            "schema": {
+              "title": "Model Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Model",
+        "tags": [
+          "models"
+        ]
+      }
+    },
     "/api/projects": {
       "get": {
         "operationId": "list_projects",
@@ -4367,6 +7891,86 @@
         ]
       }
     },
+    "/api/route": {
+      "get": {
+        "description": "What Auto would pick for these inputs, why, and every model considered.",
+        "operationId": "route_model",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "mode",
+            "required": false,
+            "schema": {
+              "default": "image",
+              "enum": [
+                "image",
+                "video"
+              ],
+              "title": "Mode",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "references",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "maximum": 64,
+              "minimum": 0,
+              "title": "References",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "start_frame",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Start Frame",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "end_frame",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "End Frame",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RouteResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Route Model",
+        "tags": [
+          "models"
+        ]
+      }
+    },
     "/api/settings": {
       "get": {
         "operationId": "get_settings",
@@ -4488,6 +8092,57 @@
         "summary": "Empty Trash",
         "tags": [
           "trash"
+        ]
+      }
+    },
+    "/api/usage": {
+      "get": {
+        "operationId": "get_usage",
+        "parameters": [
+          {
+            "description": "YYYY-MM (UTC); this month when omitted",
+            "in": "query",
+            "name": "month",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "YYYY-MM (UTC); this month when omitted",
+              "title": "Month"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Usage",
+        "tags": [
+          "connections"
         ]
       }
     }

@@ -40,6 +40,11 @@ class GenerationSummary(BaseModel):
     prompt: str
     seed: int | None
     params: dict[str, Any]
+    #: Lineage: the assets given as references, and the one it was made from.
+    references: list[str] = []
+    start_frame: str | None = None
+    end_frame: str | None = None
+    parent_asset_id: str | None = None
 
 
 class AssetOut(BaseModel):
@@ -68,6 +73,8 @@ class AssetOut(BaseModel):
     favorite: bool
     notes: str
     caption: str | None
+    #: Search tags from Describe image (M2.6).
+    tags: list[str]
     last_viewed_at: datetime | None
     last_downloaded_at: datetime | None
     created_at: datetime
@@ -174,6 +181,10 @@ def asset_out(asset: Asset, generation: Generation | None = None) -> AssetOut:
             model_id=generation.model_id,
             prompt=generation.prompt,
             seed=generation.seed,
+            references=list(generation.reference_ids or []),
+            start_frame=generation.start_frame_id,
+            end_frame=generation.end_frame_id,
+            parent_asset_id=generation.parent_asset_id,
             params=generation.params or {},
         )
         if generation is not None
@@ -205,6 +216,7 @@ def asset_out(asset: Asset, generation: Generation | None = None) -> AssetOut:
         favorite=asset.favorite,
         notes=asset.notes or "",
         caption=asset.caption,
+        tags=list(asset.tags or []),
         last_viewed_at=asset.last_viewed_at,
         last_downloaded_at=asset.last_downloaded_at,
         created_at=asset.created_at,

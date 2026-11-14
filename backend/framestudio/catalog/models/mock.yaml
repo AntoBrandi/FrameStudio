@@ -1,0 +1,69 @@
+# The mock engine ships with the product (decision D8): placeholder stills and
+# test-pattern clips, so every flow can be tried and tested without a GPU or a key.
+id: mock
+name: Mock engine
+description: Placeholder images and test-pattern clips for trying the app without a model.
+provider: mock
+runtime: local
+modes: [image, video]
+capabilities: [text_to_image, text_to_video, native_audio]
+params:
+  aspect:
+    type: enum
+    label: Aspect ratio
+    values: ["1:1", "16:9", "9:16", "4:3", "3:4", "21:9"]
+    default: "1:1"
+    default_by_mode: { video: "16:9" }
+    control: pills
+  duration:
+    type: integer
+    label: Duration
+    unit: s
+    min: 1
+    max: 30
+    default: 3
+    modes: [video]
+    control: stepper
+  audio:
+    type: boolean
+    label: Audio
+    default: true
+    modes: [video]
+    control: toggle
+    help: A test tone under the clip.
+  latency_seconds:
+    type: number
+    label: Simulated latency
+    unit: s
+    min: 0
+    max: 120
+    advanced: true
+    control: slider
+    help: Overrides Settings › Developer for this request.
+  force_failure:
+    type: boolean
+    label: Fail on purpose
+    advanced: true
+    control: toggle
+rules:
+  - when: { aspect: "21:9" }
+    allow: { duration: { max: 10 } }
+    reason: Widescreen mock clips are at most 10 seconds.
+limits:
+  max_references: 0
+  max_batch: 4
+license:
+  kind: test_double
+  name: AGPL-3.0-only (part of FrameStudio)
+  commercial_use: "yes"
+  credit: FrameStudio contributors
+  source_url: https://github.com/AntoBrandi/FrameStudio
+  notes: Draws the prompt on a coloured card or renders an ffmpeg test pattern; no model involved.
+tags: [test, offline]
+# Auto prefers lower ranks (test doubles last, so Auto always works offline).
+auto_rank: 900
+fixtures:
+  - mode: image
+    params: { aspect: "16:9" }
+  - mode: video
+    params: { aspect: "21:9", duration: 5, audio: false }
