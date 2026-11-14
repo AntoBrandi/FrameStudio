@@ -90,7 +90,9 @@ scripts/   dev, start and setup commands (plain Node, any OS)
   chips too, and handles that name no element are flagged. Each model gets elements in the form it
   can use: their pictures as reference images (Nano Banana, Seedance), one input picture
   (image-to-image models), or their names and descriptions in words; Preview in the composer shows
-  exactly what will be sent.
+  exactly what will be sent. One picker adds references from recent work, uploads, generations,
+  liked pictures or elements (or a new element made on the spot), counting against the model's
+  real limit.
 - **Test doubles ship with the product** (D8): the mock engine, a hosted "Mock cloud" model,
   fake local and remote jobs, a scripted fake LLM, and offline key checks
   (`FRAMESTUDIO_FAKE_PROVIDERS=1`, where keys starting `fs-test-ok` pass).

@@ -93,6 +93,12 @@ Test media: `backend/tests/fixtures/media` (regenerate with `make_corpus.py`).
   in `generations.resolved` (the job sends that prompt and those pictures; `reference_ids` stays the
   hand-attached ones). `POST /api/generations/preview` returns it; the composer's Preview shows it.
   Golden requests: `tests/golden/references/` (rewrite with `FRAMESTUDIO_UPDATE_GOLDEN=1`).
+- Reference picker (M4.5): `features/generate/ReferencePicker.tsx` is the one picture picker
+  (composer references, start/end frames, an element's pictures): tabs Recent, Uploads,
+  Generations, Liked (asset `provenance`/`liked` filters), plus Elements and Presets when given
+  `elements`. The composer hosts it; picked elements become chips in the prompt. Its counter is
+  attached + one per element with pictures against the model's limit (elements are unlimited when
+  the model takes no pictures). E2E tests sharing a backend use unique names per run.
 - LLM contract fixtures: `backend/tests/contracts/fixtures/llm/<provider>/<case>.json`, synthetic
   until recorded (`uv run python -m tests.contracts.llm_wire` rewrites synthetic ones). Live runs:
   `LIVE_API=1 FRAMESTUDIO_LIVE_<PROVIDER>_KEY=… uv run pytest tests/contracts` (paid);

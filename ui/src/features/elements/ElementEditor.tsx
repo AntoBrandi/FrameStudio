@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Field, inputClass } from "@/components/ui/misc";
-import { LibraryPicker, type Reference } from "@/features/generate/ReferenceTray";
+import { type Reference, ReferencePicker } from "@/features/generate/ReferencePicker";
 import { uploadFiles } from "@/features/library/upload";
 import { cn } from "@/lib/utils";
 import {
@@ -465,18 +465,13 @@ export function ElementEditor({
             </Button>
           </div>
         </form>
-        <LibraryPicker
+        <ReferencePicker
           open={picking}
           onOpenChange={setPicking}
-          chosen={draft.media.map((m) => ({ id: m.id, thumb: m.thumb, name: m.id }))}
+          taken={draft.media.map((m) => m.id)}
           room={MAX_MEDIA - draft.media.length}
           kinds={["image", "video"]}
-          labels={{
-            title: t("elements.pickTitle"),
-            hint: t("elements.pickHint"),
-            none: t("elements.pickNone"),
-            add: (count) => t("elements.pickAdd", { count }),
-          }}
+          labels={{ title: t("elements.pickTitle"), hint: t("elements.pickHint") }}
           onAdd={(picked: Reference[]) => addMedia(picked.map((r) => ({ id: r.id, thumb: r.thumb, kind: "image" })))}
         />
       </DialogContent>

@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { Minus, Plus, SlidersHorizontal, Sparkles } from "lucide-react";
+import { AtSign, Minus, Plus, SlidersHorizontal, Sparkles } from "lucide-react";
 import { type FormEvent, useCallback, useDeferredValue, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -16,9 +16,19 @@ import { ParamControls, SeedField } from "./ParamControls";
 import { type Mode, type ModelOut, normalize, type Params, paramsFor } from "./params";
 import { PromptEditor } from "./PromptEditor";
 import { RequestPreview } from "./RequestPreview";
+import { ReferencePicker } from "./ReferencePicker";
 import { type Reference, ReferenceTray } from "./ReferenceTray";
 import { AUTO, NO_ATTACHMENTS, paramsKey, useComposerStore } from "./store";
-import { mayHoldTokens, parsePrompt, renderTokens, sameTokens, type Token, trimTokens } from "./tokens";
+import {
+  mayHoldTokens,
+  mergeTokens,
+  parsePrompt,
+  renderTokens,
+  sameTokens,
+  textToken,
+  type Token,
+  trimTokens,
+} from "./tokens";
 
 export type { Mode } from "./params";
 
@@ -190,6 +200,30 @@ export function Composer({ mode, projectId }: { mode: Mode; projectId?: string }
   );
   const warnings = preview?.warnings ?? [];
 
+  // The reference picker (M4.5): pictures and elements in one dialog.
+  const [picker, setPicker] = useState<"recent" | "elements" | null>(null);
+  const inPrompt = useMemo(
+    () => draft.flatMap((token) => (token.type === "element" && token.element_id ? [token.element_id] : [])),
+    [draft],
+  );
+  // Pictures the prompt's elements already take (their primaries at least).
+  const elementPictures = preview?.elements.filter((e) => e.images > 0).length ?? 0;
+  const room = Math.max(0, maxRefs - usedRefs.length - elementPictures);
+  const addElements = useCallback(
+    (picked: { id: string; handle: string }[]) => {
+      if (!picked.length) return;
+      const current = useComposerStore.getState().drafts[mode] ?? NO_TOKENS;
+      const text = renderTokens(current);
+      const lead = text && !/\s$/.test(text) ? [textToken(" ")] : [];
+      const chips = picked.flatMap((element, index) => [
+        ...(index > 0 ? [textToken(" ")] : []),
+        { type: "element" as const, handle: element.handle, element_id: element.id },
+      ]);
+      setDraft(mode, mergeTokens([...current, ...lead, ...chips, textToken(" ")]));
+    },
+    [mode, setDraft],
+  );
+
   const submit = useCallback(
     (event?: FormEvent) => {
       event?.preventDefault();
@@ -243,6 +277,7 @@ export function Composer({ mode, projectId }: { mode: Mode; projectId?: string }
           limit={maxRefs}
           kinds={model?.limits.reference_kinds ?? ["image"]}
           onChange={setReferences}
+          onOpenPicker={() => setPicker("recent")}
         />
       ) : null}
       {enhancement ? (
@@ -274,6 +309,15 @@ export function Composer({ mode, projectId }: { mode: Mode; projectId?: string }
           auto={auto}
           onChange={(id) => store.setModel(mode, id)}
         />
+        <button
+          type="button"
+          onClick={() => setPicker("elements")}
+          className="inline-flex h-7 items-center gap-1 rounded-full border border-line px-2.5 text-xs text-muted hover:text-ink"
+          data-testid="pick-elements"
+        >
+          <AtSign className="size-3.5" aria-hidden />
+          {t("composer.elements")}
+        </button>
         <RequestPreview resolved={preview} modelName={model?.name} />
         <EnhanceButton
           prompt={prompt}
@@ -350,6 +394,22 @@ export function Composer({ mode, projectId }: { mode: Mode; projectId?: string }
         <p role="status" className="px-1 text-xs text-tungsten" data-testid="prompt-warnings">
           {warnings.join(" ")}
         </p>
+      ) : null}
+      {picker ? (
+        <ReferencePicker
+          open
+          onOpenChange={(open) => !open && setPicker(null)}
+          initialTab={picker}
+          taken={usedRefs.map((r) => r.id)}
+          room={room}
+          limit={maxRefs}
+          kinds={model?.limits.reference_kinds ?? ["image"]}
+          elements={{ inPrompt, projectId }}
+          onAdd={(pictures, elements) => {
+            if (pictures.length) setReferences([...references, ...pictures]);
+            addElements(elements);
+          }}
+        />
       ) : null}
       {blocked.length ? (
         <p role="status" className="px-1 text-xs text-danger" data-testid="composer-problems">

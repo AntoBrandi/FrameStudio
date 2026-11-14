@@ -2,7 +2,7 @@ import { ImagePlus, X } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
-import { LibraryPicker, type Reference } from "./ReferenceTray";
+import { type Reference, ReferencePicker } from "./ReferencePicker";
 
 export interface Frames {
   start: Reference | null;
@@ -101,12 +101,13 @@ export function FrameSlots({
           testId="end-frame"
         />
       ) : null}
-      <LibraryPicker
+      <ReferencePicker
         open={picking !== null}
         onOpenChange={(open) => !open && setPicking(null)}
-        chosen={chosen}
+        taken={chosen.map((c) => c.id)}
         room={1}
         kinds={["image"]}
+        labels={{ title: t("frames.pickTitle"), hint: t("frames.pickHint") }}
         onAdd={([picked]) => {
           if (!picked || !picking) return;
           onChange(picking === "start" ? { ...frames, start: picked } : { ...frames, end: picked });

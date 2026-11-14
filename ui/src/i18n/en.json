@@ -121,7 +121,8 @@
     "randomSeed": "random",
     "newSeed": "Pick a new seed",
     "cost": "about ${{cost}}",
-    "seconds": "~{{seconds}} s"
+    "seconds": "~{{seconds}} s",
+    "elements": "Elements"
   },
   "feed": {
     "emptyImage": "Your images will appear here.",
@@ -491,7 +492,9 @@
     "end": "End frame",
     "clear": "Remove the {{slot}}",
     "endNeedsStart": "Pick a start frame first.",
-    "blockedByReferences": "Remove the reference images to start from a frame."
+    "blockedByReferences": "Remove the reference images to start from a frame.",
+    "pickTitle": "Choose a frame",
+    "pickHint": "Pick one picture from the library."
   },
   "fal": {
     "title": "Add models from fal.ai",
@@ -619,5 +622,39 @@
     "noPictures": "No pictures.",
     "attached": "attached",
     "empty": "Write a prompt to see what is sent."
+  },
+  "refPicker": {
+    "title": "Add references",
+    "hint": "Pictures and elements for this prompt. Elements go into the prompt; the model gets their pictures or their description.",
+    "close": "Close",
+    "sources": "Sources",
+    "tabs": {
+      "recent": "Recent",
+      "uploads": "Uploads",
+      "generations": "Generations",
+      "liked": "Liked",
+      "elements": "Elements",
+      "presets": "Presets"
+    },
+    "searchAssets": "Search names, prompts, captions",
+    "searchElements": "Search elements",
+    "noMatch": "Nothing matches.",
+    "empty": {
+      "recent": "No pictures in the library yet.",
+      "uploads": "No uploaded pictures yet.",
+      "generations": "No generated pictures yet.",
+      "liked": "No liked pictures yet. Like one with the heart on its card."
+    },
+    "noElements": "No elements yet. Make one here or on the Elements page.",
+    "noElementsMatch": "No element matches.",
+    "inPrompt": "in the prompt",
+    "presetsLater": "Presets (looks, palettes, lighting) arrive with the cinema controls; their preview pictures will be offered here.",
+    "counter": "{{used}}/{{limit}} pictures",
+    "selected_one": "{{count}} selected",
+    "selected_other": "{{count}} selected",
+    "full": "the model's limit",
+    "wordsOnly": "this model takes no pictures; elements go in words",
+    "add_one": "Add {{count}}",
+    "add_other": "Add {{count}}"
   }
 }
