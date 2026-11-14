@@ -76,6 +76,11 @@ class Generation(Base):
         ForeignKey("elements.id", ondelete="SET NULL"), nullable=True
     )
     attach_role: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    #: The planned shot this belongs to (M5.7), as a keyframe or as its clip.
+    shot_id: Mapped[str | None] = mapped_column(
+        ForeignKey("shots.id", ondelete="SET NULL", use_alter=True), nullable=True, index=True
+    )
+    shot_role: Mapped[str | None] = mapped_column(String(16), nullable=True)
     params: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
     #: Library assets given to the model as references (M2.5), in order.
     reference_ids: Mapped[list[str]] = mapped_column(JSON, default=list)
@@ -328,3 +333,45 @@ class Preset(Base):
         ForeignKey("assets.id", ondelete="SET NULL"), nullable=True
     )
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
+
+
+class Shot(Base):
+    """A planned shot (M5.7): keyframe stills first, then clips animated from
+    the approved one with the same prompt and cinema controls. Not to be
+    confused with ``Generation.shot``, the ShotSpec a generation was made
+    with; this is the plan that ties a shot's keyframes and clips together
+    (the storyboard of M6.5 orders them into scenes)."""
+
+    __tablename__ = "shots"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=new_id)
+    project_id: Mapped[str | None] = mapped_column(
+        ForeignKey("projects.id", ondelete="CASCADE"), nullable=True, index=True
+    )
+    folder_id: Mapped[str | None] = mapped_column(
+        ForeignKey("folders.id", ondelete="SET NULL"), nullable=True
+    )
+    title: Mapped[str] = mapped_column(String(120), default="")
+    prompt: Mapped[str] = mapped_column(Text, default="")
+    prompt_tokens: Mapped[list[dict[str, Any]]] = mapped_column(JSON, default=list)
+    #: The cinema controls (a ``cinema.ShotSpec``), shared by keyframes and clips.
+    spec: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    video_model: Mapped[str] = mapped_column(String(128))
+    video_params: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    keyframe_model: Mapped[str] = mapped_column(String(128))
+    keyframe_params: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    #: The approved keyframe (the clip's first frame) and an optional last frame.
+    keyframe_id: Mapped[str | None] = mapped_column(
+        ForeignKey("assets.id", ondelete="SET NULL"), nullable=True
+    )
+    end_frame_id: Mapped[str | None] = mapped_column(
+        ForeignKey("assets.id", ondelete="SET NULL"), nullable=True
+    )
+    #: The clip (generation id) this shot continues from, when it extends one.
+    continues_from: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    #: Continuity per clip: how closely its first and last frames match the
+    #: keyframes, ``{generation_id: {"start": 0.97, "end": 0.95 | None}}``.
+    checks: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    archived: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, index=True)
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, onupdate=utcnow)

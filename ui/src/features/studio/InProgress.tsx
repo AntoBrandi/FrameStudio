@@ -12,11 +12,14 @@ const DAY = 86_400_000;
 
 /** Which of a project's generations belong in the strip: those still running,
  * and those that failed in the last day and were not dismissed. Finished
- * results are in the grid itself. */
+ * results are in the grid itself; planned shots have their own cards. */
 export function inProgress(generations: GenerationOut[], dismissed: Record<string, true>, now = Date.now()) {
   return generations.filter(
     (g) =>
-      ACTIVE.has(g.status) || (ENDED.has(g.status) && !dismissed[g.id] && now - new Date(g.created_at).getTime() < DAY),
+      // A planned shot's keyframes and clips show on its card instead (M5.7).
+      !g.shot_id &&
+      (ACTIVE.has(g.status) ||
+        (ENDED.has(g.status) && !dismissed[g.id] && now - new Date(g.created_at).getTime() < DAY)),
   );
 }
 

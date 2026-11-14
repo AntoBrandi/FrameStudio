@@ -1,7 +1,9 @@
 """Mock engine (decision D8): a PNG showing the prompt on a seed-coloured
-background, or an ffmpeg test-pattern MP4 with an optional tone. Latency and
-failure rate come from settings, or per request from ``latency_seconds`` and
-``force_failure`` params."""
+background, or an ffmpeg test-pattern MP4 with an optional tone. Given a start
+frame (M5.7) the clip starts on that picture and pushes in slowly; given an
+end frame too, it fades to that picture, so keyframe-then-shot can be tried
+and checked offline. Latency and failure rate come from settings, or per
+request from ``latency_seconds`` and ``force_failure`` params."""
 
 from __future__ import annotations
 
@@ -109,21 +111,78 @@ def render_png(request: GenerationRequest, path: str, size: tuple[int, int]) -> 
     image.save(path, format="PNG", optimize=False)
 
 
+#: Frames per second of mock clips.
+FPS = 24
+
+
+def _still(width: int, height: int, push: bool, frames: int) -> str:
+    """Filters that fit a picture to the clip (cover, centred) and, with
+    ``push``, zoom in slowly from exactly the picture (frame 0 is unzoomed)."""
+    fit = (
+        f"scale={width}:{height}:force_original_aspect_ratio=increase,"
+        f"crop={width}:{height},setsar=1"
+    )
+    if not push:
+        return f"{fit},fps={FPS},format=yuv420p"
+    rate = 0.12 / max(1, frames)
+    zoom = (
+        f"zoompan=z='1+{rate:.6f}*on':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
+        f":s={width}x{height}:fps={FPS}"
+    )
+    return f"{fit},{zoom},format=yuv420p"
+
+
+def _frames_inputs(
+    request: GenerationRequest, width: int, height: int, duration: float
+) -> tuple[list[str], str]:
+    """Inputs and filter graph for a clip from the start (and end) frame."""
+    assert request.start_frame is not None
+    frames = round(duration * FPS)
+    args = [
+        "-loop",
+        "1",
+        "-framerate",
+        str(FPS),
+        "-t",
+        f"{duration:g}",
+        "-i",
+        str(request.start_frame),
+    ]
+    if request.end_frame is None:
+        return args, f"[0:v]{_still(width, height, True, frames)}[v]"
+    half = duration / 2
+    args += ["-loop", "1", "-framerate", str(FPS), "-t", f"{half:g}", "-i", str(request.end_frame)]
+    graph = (
+        f"[0:v]{_still(width, height, True, frames)}[a];"
+        f"[1:v]{_still(width, height, False, frames)}[b];"
+        f"[a][b]xfade=transition=fade:duration={half * 0.8:g}:offset={half:g}[v]"
+    )
+    return args, graph
+
+
 def render_mp4(
     request: GenerationRequest, path: str, size: tuple[int, int], duration: float, tone: bool
 ) -> None:
     width, height = size
-    args = [
-        "-f",
-        "lavfi",
-        "-i",
-        f"testsrc2=size={width}x{height}:rate=24:duration={duration:g}",
-    ]
+    if request.start_frame is not None:
+        args, graph = _frames_inputs(request, width, height, duration)
+    else:
+        args = [
+            "-f",
+            "lavfi",
+            "-i",
+            f"testsrc2=size={width}x{height}:rate={FPS}:duration={duration:g}",
+        ]
+        graph = f"[0:v]hue=h={seed_hue_degrees(request.seed)}[v]"
+    audio_input = 1 + (request.end_frame is not None) if request.start_frame is not None else 1
     if tone:
         frequency = 220 + (request.seed % 6) * 110
         sine = f"sine=frequency={frequency}:sample_rate=48000:duration={duration:g}"
         args += ["-f", "lavfi", "-i", sine]
-    args += ["-vf", f"hue=h={seed_hue_degrees(request.seed)}"]
+    args += ["-filter_complex", graph, "-map", "[v]"]
+    if tone:
+        args += ["-map", f"{audio_input}:a"]
+    args += ["-t", f"{duration:g}"]
     if has_encoder("libx264"):
         args += ["-c:v", "libx264", "-preset", "veryfast", "-pix_fmt", "yuv420p"]
     else:

@@ -5,6 +5,7 @@ import {
   Clapperboard,
   Copy,
   Download,
+  FastForward,
   FolderSearch,
   Heart,
   ImagePlus,
@@ -26,14 +27,14 @@ import { type PointerEvent, type ReactNode, useEffect, useRef, useState, type Wh
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
-import { $api, type AssetOut, fetchClient } from "@/api/client";
+import { $api, type AssetOut, errorMessage, fetchClient } from "@/api/client";
 import { Button } from "@/components/ui/button";
 import { Tooltip } from "@/components/ui/misc";
 import { shellBridge } from "@/lib/shell";
 import { cn, formatBytes } from "@/lib/utils";
-import { addAsReference, pageOf, recreate, turnToVideo } from "@/features/generate/handoffs";
+import { addAsReference, extendClip, pageOf, recreate, turnToVideo } from "@/features/generate/handoffs";
 import { GradeDialog } from "@/features/cinema/PalettePicker";
-import { useComposerStore } from "@/features/generate/store";
+import { AUTO, useComposerStore } from "@/features/generate/store";
 import type { Mode } from "@/features/generate/params";
 import { DescribeActions } from "./Describe";
 import { assetName, type MoveTarget, useLibraryActions } from "./api";
@@ -279,6 +280,20 @@ export function AssetViewer({ asset, items, projectId, onNavigate, onClose, onSe
       });
     } else void navigate({ to: pageOf(mode) });
   }
+  async function extend() {
+    if (!asset) return;
+    try {
+      await extendClip(asset);
+    } catch (error) {
+      toast.error(t("viewer.extendFailed", { error: errorMessage(error) }));
+      return;
+    }
+    // The clip's own model if it starts from pictures, else Auto.
+    const model = models.find((m) => m.id === asset.generation?.model_id);
+    useComposerStore.getState().setModel("video", model?.capabilities.includes("image_to_video") ? model.id : AUTO);
+    toast.success(t("viewer.extended"));
+    goTo("video");
+  }
   function handOff(kind: "recreate" | "reference" | "video") {
     if (!asset) return;
     if (kind === "recreate") {
@@ -415,6 +430,9 @@ export function AssetViewer({ asset, items, projectId, onNavigate, onClose, onSe
             </Tooltip>
             {!trashed && asset.generation
               ? action(t("viewer.recreate"), <RotateCw />, () => handOff("recreate"), "handoff-recreate")
+              : null}
+            {!trashed && asset.kind === "video"
+              ? action(t("viewer.extend"), <FastForward />, () => void extend(), "handoff-extend")
               : null}
             {!trashed && asset.kind === "image" ? (
               <>

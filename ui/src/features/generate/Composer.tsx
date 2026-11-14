@@ -5,7 +5,8 @@ import { type FormEvent, type ReactNode, useCallback, useDeferredValue, useMemo,
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { $api, errorMessage, type GenerationOut, type Schemas } from "@/api/client";
-import { insertGenerations } from "@/api/events";
+import { insertGenerations, refresh, SHOTS_KEY } from "@/api/events";
+import { KeyframeFirst } from "@/features/shots/KeyframeFirst";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/misc";
 import { cn } from "@/lib/utils";
@@ -80,7 +81,9 @@ function ModeToggle({ mode, onMode }: { mode: Mode; onMode?: (mode: Mode) => voi
   );
 }
 
-function Estimate({ estimate, pending }: { estimate: Schemas["GenerationEstimate"] | undefined; pending: boolean }) {
+type EstimateLike = Pick<Schemas["GenerationEstimate"], "ok" | "cost_usd" | "seconds">;
+
+function Estimate({ estimate, pending }: { estimate: EstimateLike | undefined; pending: boolean }) {
   const { t } = useTranslation();
   if (!estimate || !estimate.ok) return null;
   const parts = [];
@@ -154,6 +157,9 @@ export function Composer({ mode, projectId, folderId, onMode, prepare, onCreated
   const setReferences = (next: Reference[]) => store.setAttachments(mode, { references: next });
   const setFrames = (next: Frames) => store.setAttachments(mode, next);
 
+  // Keyframe first (M5.7): stills from this prompt, then the chosen one animates.
+  const keyframing = mode === "video" && store.keyframeFirst;
+
   // Auto (M2.9): the router picks a model for what is given.
   const auto = store.models[mode] === AUTO;
   const { data: routed } = $api.useQuery(
@@ -164,7 +170,7 @@ export function Composer({ mode, projectId, folderId, onMode, prepare, onCreated
         query: {
           mode,
           references: references.length,
-          start_frame: Boolean(attachments.start),
+          start_frame: Boolean(attachments.start) || keyframing,
           end_frame: Boolean(attachments.end),
         },
       },
@@ -181,12 +187,12 @@ export function Composer({ mode, projectId, folderId, onMode, prepare, onCreated
     () => (model ? normalize(model, mode, store.params[paramsKey(model.id, mode)] ?? {}) : {}),
     [model, mode, store.params],
   );
-  const maxBatch = model?.limits.max_batch ?? 4;
+  const maxBatch = keyframing ? 4 : (model?.limits.max_batch ?? 4);
   const batch = Math.min(store.batch, maxBatch);
   const maxRefs = model?.limits.max_references ?? 0;
   // A model that takes fewer references uses the first ones.
   const usedRefs = useMemo(() => references.slice(0, maxRefs), [references, maxRefs]);
-  const takesFrames = mode === "video" && Boolean(model?.capabilities.includes("image_to_video"));
+  const takesFrames = mode === "video" && !keyframing && Boolean(model?.capabilities.includes("image_to_video"));
   const takesEnd = takesFrames && Boolean(model?.capabilities.includes("start_end_frames"));
   const start = takesFrames ? frames.start : null;
   const end = takesEnd && start ? frames.end : null;
@@ -226,7 +232,35 @@ export function Composer({ mode, projectId, folderId, onMode, prepare, onCreated
     "post",
     "/api/generations/estimate",
     { body: estimateBody! },
-    { enabled: estimateBody !== null, placeholderData: (previous) => previous },
+    { enabled: estimateBody !== null && !keyframing, placeholderData: (previous) => previous },
+  );
+
+  // Keyframe first: a planned shot with its keyframes, priced as keyframes plus one clip.
+  const createShot = $api.useMutation("post", "/api/shots");
+  const shotBody = useMemo(
+    () =>
+      keyframing && model
+        ? {
+            prompt: prompt.trim(),
+            prompt_tokens: trimTokens(draft),
+            ...(shot ? { spec: shot } : {}),
+            ...(projectId ? { project_id: projectId } : {}),
+            ...(folderId ? { folder_id: folderId } : {}),
+            video_model: model.id,
+            video_params: params,
+            keyframe_model: store.keyframeModel,
+            count: batch,
+            ...(store.seed != null ? { seed: store.seed } : {}),
+          }
+        : null,
+    [keyframing, model, prompt, draft, shot, projectId, folderId, params, store.keyframeModel, batch, store.seed],
+  );
+  const shotEstimateBody = useDeferredValue(shotBody ? { ...shotBody, prompt: "", prompt_tokens: NO_TOKENS } : null);
+  const { data: shotEstimate, isFetching: shotPricing } = $api.useQuery(
+    "post",
+    "/api/shots/estimate",
+    { body: shotEstimateBody! },
+    { enabled: shotEstimateBody !== null, placeholderData: (previous) => previous },
   );
 
   // What the model will be given (M4.4), and warnings about it: unknown
@@ -282,9 +316,10 @@ export function Composer({ mode, projectId, folderId, onMode, prepare, onCreated
   const submit = useCallback(
     async (event?: FormEvent) => {
       event?.preventDefault();
-      if (!body || create.isPending || preparing) return;
-      if (estimate && !estimate.ok) {
-        toast.error(estimate.problems[0] ?? t("composer.failed", { error: "" }));
+      if (!body || create.isPending || createShot.isPending || preparing) return;
+      const priced = keyframing ? shotEstimate : estimate;
+      if (priced && !priced.ok) {
+        toast.error(priced.problems[0] ?? t("composer.failed", { error: "" }));
         return;
       }
       let target = projectId;
@@ -301,6 +336,20 @@ export function Composer({ mode, projectId, folderId, onMode, prepare, onCreated
           setPreparing(false);
         }
       }
+      if (keyframing && shotBody) {
+        createShot.mutate(
+          { body: target ? { ...shotBody, project_id: target, folder_id: undefined } : shotBody },
+          {
+            onSuccess: (made) => {
+              insertGenerations(queryClient, made.keyframes);
+              void refresh(queryClient, { queryKey: SHOTS_KEY });
+              onCreated?.(made.keyframes, target);
+            },
+            onError: (error) => toast.error(t("composer.failed", { error: errorMessage(error) })),
+          },
+        );
+        return;
+      }
       create.mutate(
         { body: target ? { ...body, project_id: target } : body },
         {
@@ -312,7 +361,21 @@ export function Composer({ mode, projectId, folderId, onMode, prepare, onCreated
         },
       );
     },
-    [body, create, estimate, preparing, prepare, projectId, onCreated, queryClient, t],
+    [
+      body,
+      create,
+      createShot,
+      estimate,
+      shotEstimate,
+      keyframing,
+      shotBody,
+      preparing,
+      prepare,
+      projectId,
+      onCreated,
+      queryClient,
+      t,
+    ],
   );
 
   const submitNow = useCallback(() => void submit(), [submit]);
@@ -321,9 +384,13 @@ export function Composer({ mode, projectId, folderId, onMode, prepare, onCreated
   const blocked =
     auto && routed && !routed.model
       ? [routed.reason]
-      : estimate && !estimate.ok
-        ? estimate.problems
-        : (preview?.problems ?? []);
+      : keyframing
+        ? shotEstimate && !shotEstimate.ok
+          ? shotEstimate.problems
+          : []
+        : estimate && !estimate.ok
+          ? estimate.problems
+          : (preview?.problems ?? []);
   return (
     <form
       onSubmit={(event) => void submit(event)}
@@ -339,7 +406,7 @@ export function Composer({ mode, projectId, folderId, onMode, prepare, onCreated
           onChange={setFrames}
         />
       ) : null}
-      {maxRefs > 0 && !start ? (
+      {maxRefs > 0 && !start && !keyframing ? (
         <ReferenceTray
           references={usedRefs}
           limit={maxRefs}
@@ -385,6 +452,15 @@ export function Composer({ mode, projectId, folderId, onMode, prepare, onCreated
           auto={auto}
           onChange={(id) => store.setModel(mode, id)}
         />
+        {mode === "video" ? (
+          <KeyframeFirst
+            on={keyframing}
+            onToggle={store.setKeyframeFirst}
+            models={models}
+            model={store.keyframeModel}
+            onModel={store.setKeyframeModel}
+          />
+        ) : null}
         <button
           type="button"
           onClick={() => setPicker("elements")}
@@ -458,12 +534,13 @@ export function Composer({ mode, projectId, folderId, onMode, prepare, onCreated
           type="submit"
           variant="primary"
           className="ml-auto uppercase tracking-wide"
-          disabled={create.isPending || preparing || !model || blocked.length > 0}
+          disabled={create.isPending || createShot.isPending || preparing || !model || blocked.length > 0}
           data-testid="generate-button"
+          title={keyframing ? t("composer.keyframesHint") : undefined}
         >
           <Sparkles />
-          {t("composer.generate")}
-          <Estimate estimate={estimate} pending={isFetching} />
+          {keyframing ? t("composer.keyframes") : t("composer.generate")}
+          <Estimate estimate={keyframing ? shotEstimate : estimate} pending={keyframing ? shotPricing : isFetching} />
         </Button>
       </div>
       {warnings.length ? (

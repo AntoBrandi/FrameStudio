@@ -37,7 +37,10 @@ TABLE = [
     ((), RouteRequest(mode="image", references=2), "mock-cloud"),
     ((), RouteRequest(mode="image", references=5), None),
     ((), RouteRequest(mode="video"), "mock"),
-    ((), RouteRequest(mode="video", start_frame=True), None),
+    # The mock engine starts clips from pictures too (M5.7), so this works offline.
+    ((), RouteRequest(mode="video", start_frame=True), "mock"),
+    ((), RouteRequest(mode="video", start_frame=True, end_frame=True), "mock"),
+    ((), RouteRequest(mode="video", references=9), None),
     (("google",), RouteRequest(mode="image"), "nano-banana-pro"),
     (("google",), RouteRequest(mode="image", references=14), "nano-banana-pro"),
     (("google",), RouteRequest(mode="image", references=15), None),
@@ -67,10 +70,10 @@ def test_router_table(
 
 
 def test_unavailable_models_that_would_fit_are_named(tmp_path: Path) -> None:
-    result = route(services_with(tmp_path), RouteRequest(mode="video", start_frame=True))
+    result = route(services_with(tmp_path), RouteRequest(mode="video", references=9))
     assert "Connect a provider for Seedance 2.0" in result.reason
     options = {o.id: o for o in result.options}
-    assert options["mock"].misfit == "does not start from an image"
+    assert options["mock"].misfit == "takes at most 0 references"
     assert options["seedance-2-0"].misfit is None and not options["seedance-2-0"].available
 
 
@@ -109,12 +112,13 @@ def test_auto_through_the_api(client: TestClient) -> None:
     assert (
         created.json()[0]["model_id"] == "nano-banana-pro"
     )  # the stored spec names the real model
+    nine = [f"r{i}" for i in range(9)]  # more references than any offline model takes
     nothing = client.post(
-        "/api/generations", json={"model": "auto", "mode": "video", "start_frame": "x"}
+        "/api/generations", json={"model": "auto", "mode": "video", "references": nine}
     )
     assert nothing.status_code == 422
     assert "No connected model" in nothing.json()["detail"]
     blocked = client.post(
-        "/api/generations/estimate", json={"model": "auto", "mode": "video", "start_frame": "x"}
+        "/api/generations/estimate", json={"model": "auto", "mode": "video", "references": nine}
     ).json()
     assert not blocked["ok"] and blocked["model"] is None

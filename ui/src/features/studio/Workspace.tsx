@@ -15,6 +15,7 @@ import { LibraryView } from "@/features/library/LibraryView";
 import { cn } from "@/lib/utils";
 import { NotFound } from "@/pages/LibraryPages";
 import { BriefEditor } from "./Brief";
+import { ShotsTray } from "@/features/shots/ShotsTray";
 import { InProgress } from "./InProgress";
 import { projectExportUrl } from "./projects";
 
@@ -68,7 +69,12 @@ function ProjectAssets({
         onView={(view) => setSearch({ view })}
         onSetCover={setCover}
         exportHref={projectExportUrl(project.id, folder?.id)}
-        banner={<InProgress projectId={project.id} />}
+        banner={
+          <>
+            <ShotsTray projectId={project.id} onOpen={(view) => setSearch({ view })} />
+            <InProgress projectId={project.id} />
+          </>
+        }
         bottomSpace={COMPOSER_SPACE}
         onSelecting={setSelecting}
       />

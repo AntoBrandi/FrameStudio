@@ -17,7 +17,15 @@ from framestudio import prompts
 from framestudio.catalog import ParamError, estimate_cost, validate_params
 from framestudio.cinema import ShotSpec
 from framestudio.db.base import utcnow
-from framestudio.db.models import Asset, Element, ElementMedia, ElementUse, Generation, Job
+from framestudio.db.models import (
+    Asset,
+    Element,
+    ElementMedia,
+    ElementUse,
+    Generation,
+    Job,
+    Shot,
+)
 from framestudio.jobs.base import JobContext, JobError, JobKind, JobSnapshot, PollResult
 from framestudio.library.assets import (
     AssetOut,
@@ -89,6 +97,10 @@ class GenerationCreate(BaseModel):
     #: Add the result to this element's pictures, with this role (M4.6).
     attach_element_id: str | None = None
     attach_role: Literal["sheet", "angle", "turntable"] = "sheet"
+    #: The planned shot this belongs to (M5.7) and its part in it; set by
+    #: ``cinema.keyframes``.
+    shot_id: str | None = None
+    shot_role: Literal["keyframe", "clip"] | None = None
 
 
 class GenerationOut(BaseModel):
@@ -117,6 +129,9 @@ class GenerationOut(BaseModel):
     folder_id: str | None
     #: The element the result is added to (M4.6), if any.
     attach_element_id: str | None = None
+    #: The planned shot (M5.7) and whether this is one of its keyframes or a clip.
+    shot_id: str | None = None
+    shot_role: Literal["keyframe", "clip"] | None = None
     asset: AssetOut | None
     created_at: datetime
     started_at: datetime | None
@@ -161,6 +176,8 @@ def generation_out(session: Session, generation: Generation) -> GenerationOut:
         project_id=generation.project_id,
         folder_id=generation.folder_id,
         attach_element_id=generation.attach_element_id,
+        shot_id=generation.shot_id,
+        shot_role=generation.shot_role,  # type: ignore[arg-type]
         asset=asset_out(asset, generation) if asset else None,
         created_at=generation.created_at,
         started_at=generation.started_at,
@@ -830,6 +847,14 @@ async def create_generations(
 
         if not await asyncio.to_thread(element_exists):
             raise LookupError("element")
+    if request.shot_id is not None:
+
+        def shot_exists() -> bool:
+            with services.db.session() as session:
+                return session.get(Shot, request.shot_id) is not None
+
+        if not await asyncio.to_thread(shot_exists):
+            raise LookupError("shot")
     tokens, prompt_text = await asyncio.to_thread(
         tokens_for, services, request, placement.project_id
     )
@@ -885,6 +910,8 @@ async def create_generations(
                 folder_id=placement.folder_id,
                 attach_element_id=request.attach_element_id,
                 attach_role=request.attach_role if request.attach_element_id else None,
+                shot_id=request.shot_id,
+                shot_role=(request.shot_role or "clip") if request.shot_id else None,
             )
             session.add(generation)
             session.flush()

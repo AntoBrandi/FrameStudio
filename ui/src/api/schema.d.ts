@@ -212,6 +212,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/assets/{asset_id}/frame": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Clip Frame
+     * @description A clip's first or last frame as a new picture beside it (to extend a clip).
+     */
+    post: operations["clip_frame"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/assets/{asset_id}/location": {
     parameters: {
       query?: never;
@@ -1417,6 +1437,127 @@ export interface paths {
     patch: operations["patch_settings"];
     trace?: never;
   };
+  "/api/shots": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Shots */
+    get: operations["list_shots"];
+    put?: never;
+    /**
+     * Create Shot
+     * @description Plan a shot and start its keyframes: stills from the same prompt and
+     *     cinema controls, at the clip's aspect ratio.
+     */
+    post: operations["create_shot"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/shots/estimate": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Estimate Shot
+     * @description Cost and time of the keyframes plus one clip, without starting anything.
+     */
+    post: operations["estimate_shot"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/shots/{shot_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Shot */
+    get: operations["get_shot"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** Patch Shot */
+    patch: operations["patch_shot"];
+    trace?: never;
+  };
+  "/api/shots/{shot_id}/animate": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Animate Shot
+     * @description Approve a keyframe (and an end frame, where the model takes one) and
+     *     animate the clip from it with the shot's prompt and controls.
+     */
+    post: operations["animate_shot"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/shots/{shot_id}/extend": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Extend Shot
+     * @description Continue a finished clip: a new shot starts from its last frame.
+     */
+    post: operations["extend_shot"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/shots/{shot_id}/keyframes": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * More Keyframes
+     * @description More keyframes to choose from, with the same settings.
+     */
+    post: operations["more_keyframes"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/storage": {
     parameters: {
       query?: never;
@@ -1502,6 +1643,21 @@ export interface components {
       model: string;
       /** Name */
       name: string;
+    };
+    /** Animate */
+    Animate: {
+      /** End Frame Id */
+      end_frame_id?: string | null;
+      /** Keyframe Id */
+      keyframe_id: string;
+      /** Seed */
+      seed?: number | null;
+      /** Video Model */
+      video_model?: string | null;
+      /** Video Params */
+      video_params?: {
+        [key: string]: unknown;
+      } | null;
     };
     /**
      * AppSettings
@@ -1789,6 +1945,15 @@ export interface components {
       /** Monthly Cap Usd */
       monthly_cap_usd?: number | null;
     };
+    /** Continuity */
+    Continuity: {
+      /** End */
+      end: number | null;
+      /** Matches */
+      matches: boolean;
+      /** Start */
+      start: number | null;
+    };
     /** DescribeQueued */
     DescribeQueued: {
       /** Job Ids */
@@ -2035,6 +2200,20 @@ export interface components {
       /** Prompt */
       prompt: string;
     };
+    /** Extend */
+    Extend: {
+      /** Generation Id */
+      generation_id: string;
+      /** Prompt Tokens */
+      prompt_tokens?:
+        | (
+            | components["schemas"]["TextToken"]
+            | components["schemas"]["ElementToken"]
+            | components["schemas"]["MoveToken"]
+            | components["schemas"]["SkillToken"]
+          )[]
+        | null;
+    };
     /** ExtractedPalette */
     ExtractedPalette: {
       /** Shares */
@@ -2147,6 +2326,15 @@ export interface components {
       /** Sort Order */
       sort_order?: number | null;
     };
+    /** FrameRequest */
+    FrameRequest: {
+      /**
+       * Which
+       * @default last
+       * @enum {string}
+       */
+      which?: "first" | "last";
+    };
     /** GenerationCreate */
     GenerationCreate: {
       /** Attach Element Id */
@@ -2209,6 +2397,10 @@ export interface components {
       /** Seed */
       seed?: number | null;
       shot?: components["schemas"]["ShotSpec"] | null;
+      /** Shot Id */
+      shot_id?: string | null;
+      /** Shot Role */
+      shot_role?: ("keyframe" | "clip") | null;
       /** Start Frame */
       start_frame?: string | null;
     };
@@ -2290,6 +2482,10 @@ export interface components {
       /** Seed */
       seed: number | null;
       shot?: components["schemas"]["ShotSpec"] | null;
+      /** Shot Id */
+      shot_id?: string | null;
+      /** Shot Role */
+      shot_role?: ("keyframe" | "clip") | null;
       /** Start Frame */
       start_frame: string | null;
       /** Started At */
@@ -2683,6 +2879,16 @@ export interface components {
       count: number;
       /** Month */
       month: string;
+    };
+    /** MoreKeyframes */
+    MoreKeyframes: {
+      /**
+       * Count
+       * @default 4
+       */
+      count?: number;
+      /** Seed */
+      seed?: number | null;
     };
     /**
      * MoveAssets
@@ -3257,6 +3463,141 @@ export interface components {
     SessionCreate: {
       /** Token */
       token: string;
+    };
+    /** ShotCreate */
+    ShotCreate: {
+      /**
+       * Count
+       * @default 4
+       */
+      count?: number;
+      /** Folder Id */
+      folder_id?: string | null;
+      /**
+       * Keyframe Model
+       * @default auto
+       */
+      keyframe_model?: string;
+      /** Keyframe Params */
+      keyframe_params?: {
+        [key: string]: unknown;
+      };
+      /** Project Id */
+      project_id?: string | null;
+      /**
+       * Prompt
+       * @default
+       */
+      prompt?: string;
+      /** Prompt Tokens */
+      prompt_tokens?:
+        | (
+            | components["schemas"]["TextToken"]
+            | components["schemas"]["ElementToken"]
+            | components["schemas"]["MoveToken"]
+            | components["schemas"]["SkillToken"]
+          )[]
+        | null;
+      /** Seed */
+      seed?: number | null;
+      spec?: components["schemas"]["ShotSpec"] | null;
+      /**
+       * Video Model
+       * @default auto
+       */
+      video_model?: string;
+      /** Video Params */
+      video_params?: {
+        [key: string]: unknown;
+      };
+    };
+    /** ShotEstimate */
+    ShotEstimate: {
+      clip: components["schemas"]["GenerationEstimate"] | null;
+      /** Cost Usd */
+      cost_usd: number | null;
+      /** Keyframe Model */
+      keyframe_model: string | null;
+      keyframes: components["schemas"]["GenerationEstimate"] | null;
+      /** Ok */
+      ok: boolean;
+      /** Problems */
+      problems: string[];
+      /** Seconds */
+      seconds: number | null;
+      /** Video Model */
+      video_model: string | null;
+    };
+    /** ShotOut */
+    ShotOut: {
+      /** Archived */
+      archived: boolean;
+      /** Checks */
+      checks: {
+        [key: string]: components["schemas"]["Continuity"];
+      };
+      /** Clips */
+      clips: components["schemas"]["GenerationOut"][];
+      /** Continues From */
+      continues_from: string | null;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** End Frame Id */
+      end_frame_id: string | null;
+      /** Folder Id */
+      folder_id: string | null;
+      /** Id */
+      id: string;
+      /** Keyframe Id */
+      keyframe_id: string | null;
+      /** Keyframe Model */
+      keyframe_model: string;
+      /** Keyframe Params */
+      keyframe_params: {
+        [key: string]: unknown;
+      };
+      /** Keyframes */
+      keyframes: components["schemas"]["GenerationOut"][];
+      /** Project Id */
+      project_id: string | null;
+      /** Prompt */
+      prompt: string;
+      /** Prompt Tokens */
+      prompt_tokens: (
+        | components["schemas"]["TextToken"]
+        | components["schemas"]["ElementToken"]
+        | components["schemas"]["MoveToken"]
+        | components["schemas"]["SkillToken"]
+      )[];
+      spec: components["schemas"]["ShotSpec"] | null;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "keyframes" | "choose" | "animating" | "done" | "failed";
+      /** Title */
+      title: string;
+      /**
+       * Updated At
+       * Format: date-time
+       */
+      updated_at: string;
+      /** Video Model */
+      video_model: string;
+      /** Video Params */
+      video_params: {
+        [key: string]: unknown;
+      };
+    };
+    /** ShotPatch */
+    ShotPatch: {
+      /** Archived */
+      archived?: boolean | null;
+      /** Title */
+      title?: string | null;
     };
     /**
      * ShotSpec
@@ -3931,6 +4272,48 @@ export interface operations {
         };
         content: {
           "application/octet-stream": unknown;
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  clip_frame: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        asset_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["FrameRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AssetOut"];
         };
       };
       /** @description Not found */
@@ -6607,6 +6990,319 @@ export interface operations {
         content: {
           "application/json": components["schemas"]["AppSettings"];
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  list_shots: {
+    parameters: {
+      query?: {
+        /** @description A project id, or 'none' */
+        project_id?: string | null;
+        archived?: boolean;
+        limit?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ShotOut"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  create_shot: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ShotCreate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ShotOut"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  estimate_shot: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ShotCreate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ShotEstimate"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  get_shot: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        shot_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ShotOut"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  patch_shot: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        shot_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ShotPatch"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ShotOut"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  animate_shot: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        shot_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["Animate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ShotOut"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  extend_shot: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        shot_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["Extend"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ShotOut"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  more_keyframes: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        shot_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["MoreKeyframes"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ShotOut"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Validation Error */
       422: {

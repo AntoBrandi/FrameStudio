@@ -118,6 +118,10 @@ scripts/   dev, start and setup commands (plain Node, any OS)
   Lighting: presets (silhouette, practicals, window, …) or your own rig of up to four lights placed
   on a 3D sphere around a lit head (direction, height, colour, brightness, softness, plus ambient
   fill). The rig is turned into lighting words for the prompt and can be saved as a preset.
+  Keyframe first: in Video mode, Generate can make keyframe stills from the prompt and its cinema
+  settings (at the clip's aspect ratio); choose one (and an end frame, where the model takes one)
+  and Animate makes the clip from it with the same settings. Each clip is checked to open on its
+  keyframe and close on its end frame; a finished clip can be extended from its last frame.
 - **Test doubles ship with the product** (D8): the mock engine, a hosted "Mock cloud" model,
   fake local and remote jobs, a scripted fake LLM, and offline key checks
   (`FRAMESTUDIO_FAKE_PROVIDERS=1`, where keys starting `fs-test-ok` pass).

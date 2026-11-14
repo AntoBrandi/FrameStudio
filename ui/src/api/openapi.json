@@ -27,6 +27,65 @@
         "title": "AdherenceRow",
         "type": "object"
       },
+      "Animate": {
+        "additionalProperties": false,
+        "properties": {
+          "end_frame_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Frame Id"
+          },
+          "keyframe_id": {
+            "title": "Keyframe Id",
+            "type": "string"
+          },
+          "seed": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seed"
+          },
+          "video_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Video Model"
+          },
+          "video_params": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Video Params"
+          }
+        },
+        "required": [
+          "keyframe_id"
+        ],
+        "title": "Animate",
+        "type": "object"
+      },
       "AppSettings": {
         "additionalProperties": false,
         "description": "Every user-changeable setting with its default.",
@@ -1055,6 +1114,43 @@
         "title": "ConnectionUpdate",
         "type": "object"
       },
+      "Continuity": {
+        "properties": {
+          "end": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End"
+          },
+          "matches": {
+            "title": "Matches",
+            "type": "boolean"
+          },
+          "start": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start"
+          }
+        },
+        "required": [
+          "start",
+          "end",
+          "matches"
+        ],
+        "title": "Continuity",
+        "type": "object"
+      },
       "DescribeQueued": {
         "properties": {
           "job_ids": {
@@ -1821,6 +1917,57 @@
         "title": "EnhanceResult",
         "type": "object"
       },
+      "Extend": {
+        "additionalProperties": false,
+        "properties": {
+          "generation_id": {
+            "title": "Generation Id",
+            "type": "string"
+          },
+          "prompt_tokens": {
+            "anyOf": [
+              {
+                "items": {
+                  "discriminator": {
+                    "mapping": {
+                      "element": "#/components/schemas/ElementToken",
+                      "move": "#/components/schemas/MoveToken",
+                      "skill": "#/components/schemas/SkillToken",
+                      "text": "#/components/schemas/TextToken"
+                    },
+                    "propertyName": "type"
+                  },
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/TextToken"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ElementToken"
+                    },
+                    {
+                      "$ref": "#/components/schemas/MoveToken"
+                    },
+                    {
+                      "$ref": "#/components/schemas/SkillToken"
+                    }
+                  ]
+                },
+                "maxItems": 2000,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prompt Tokens"
+          }
+        },
+        "required": [
+          "generation_id"
+        ],
+        "title": "Extend",
+        "type": "object"
+      },
       "ExtractedPalette": {
         "properties": {
           "shares": {
@@ -2169,6 +2316,21 @@
         "title": "FolderPatch",
         "type": "object"
       },
+      "FrameRequest": {
+        "properties": {
+          "which": {
+            "default": "last",
+            "enum": [
+              "first",
+              "last"
+            ],
+            "title": "Which",
+            "type": "string"
+          }
+        },
+        "title": "FrameRequest",
+        "type": "object"
+      },
       "GenerationCreate": {
         "additionalProperties": false,
         "properties": {
@@ -2341,6 +2503,32 @@
                 "type": "null"
               }
             ]
+          },
+          "shot_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shot Id"
+          },
+          "shot_role": {
+            "anyOf": [
+              {
+                "enum": [
+                  "keyframe",
+                  "clip"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shot Role"
           },
           "start_frame": {
             "anyOf": [
@@ -2646,6 +2834,32 @@
                 "type": "null"
               }
             ]
+          },
+          "shot_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shot Id"
+          },
+          "shot_role": {
+            "anyOf": [
+              {
+                "enum": [
+                  "keyframe",
+                  "clip"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shot Role"
           },
           "start_frame": {
             "anyOf": [
@@ -3851,6 +4065,31 @@
           "count"
         ],
         "title": "MonthCount",
+        "type": "object"
+      },
+      "MoreKeyframes": {
+        "additionalProperties": false,
+        "properties": {
+          "count": {
+            "default": 4,
+            "maximum": 4.0,
+            "minimum": 1.0,
+            "title": "Count",
+            "type": "integer"
+          },
+          "seed": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seed"
+          }
+        },
+        "title": "MoreKeyframes",
         "type": "object"
       },
       "MoveAssets": {
@@ -5555,6 +5794,447 @@
         "title": "SessionCreate",
         "type": "object"
       },
+      "ShotCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "count": {
+            "default": 4,
+            "maximum": 4.0,
+            "minimum": 1.0,
+            "title": "Count",
+            "type": "integer"
+          },
+          "folder_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Folder Id"
+          },
+          "keyframe_model": {
+            "default": "auto",
+            "title": "Keyframe Model",
+            "type": "string"
+          },
+          "keyframe_params": {
+            "additionalProperties": true,
+            "title": "Keyframe Params",
+            "type": "object"
+          },
+          "project_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Id"
+          },
+          "prompt": {
+            "default": "",
+            "maxLength": 4000,
+            "title": "Prompt",
+            "type": "string"
+          },
+          "prompt_tokens": {
+            "anyOf": [
+              {
+                "items": {
+                  "discriminator": {
+                    "mapping": {
+                      "element": "#/components/schemas/ElementToken",
+                      "move": "#/components/schemas/MoveToken",
+                      "skill": "#/components/schemas/SkillToken",
+                      "text": "#/components/schemas/TextToken"
+                    },
+                    "propertyName": "type"
+                  },
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/TextToken"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ElementToken"
+                    },
+                    {
+                      "$ref": "#/components/schemas/MoveToken"
+                    },
+                    {
+                      "$ref": "#/components/schemas/SkillToken"
+                    }
+                  ]
+                },
+                "maxItems": 2000,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prompt Tokens"
+          },
+          "seed": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seed"
+          },
+          "spec": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ShotSpec"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "video_model": {
+            "default": "auto",
+            "title": "Video Model",
+            "type": "string"
+          },
+          "video_params": {
+            "additionalProperties": true,
+            "title": "Video Params",
+            "type": "object"
+          }
+        },
+        "title": "ShotCreate",
+        "type": "object"
+      },
+      "ShotEstimate": {
+        "properties": {
+          "clip": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GenerationEstimate"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cost_usd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Usd"
+          },
+          "keyframe_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Keyframe Model"
+          },
+          "keyframes": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GenerationEstimate"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "problems": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Problems",
+            "type": "array"
+          },
+          "seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seconds"
+          },
+          "video_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Video Model"
+          }
+        },
+        "required": [
+          "ok",
+          "problems",
+          "keyframes",
+          "clip",
+          "cost_usd",
+          "seconds",
+          "keyframe_model",
+          "video_model"
+        ],
+        "title": "ShotEstimate",
+        "type": "object"
+      },
+      "ShotOut": {
+        "properties": {
+          "archived": {
+            "title": "Archived",
+            "type": "boolean"
+          },
+          "checks": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Continuity"
+            },
+            "title": "Checks",
+            "type": "object"
+          },
+          "clips": {
+            "items": {
+              "$ref": "#/components/schemas/GenerationOut"
+            },
+            "title": "Clips",
+            "type": "array"
+          },
+          "continues_from": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Continues From"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "end_frame_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Frame Id"
+          },
+          "folder_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Folder Id"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "keyframe_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Keyframe Id"
+          },
+          "keyframe_model": {
+            "title": "Keyframe Model",
+            "type": "string"
+          },
+          "keyframe_params": {
+            "additionalProperties": true,
+            "title": "Keyframe Params",
+            "type": "object"
+          },
+          "keyframes": {
+            "items": {
+              "$ref": "#/components/schemas/GenerationOut"
+            },
+            "title": "Keyframes",
+            "type": "array"
+          },
+          "project_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Id"
+          },
+          "prompt": {
+            "title": "Prompt",
+            "type": "string"
+          },
+          "prompt_tokens": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "element": "#/components/schemas/ElementToken",
+                  "move": "#/components/schemas/MoveToken",
+                  "skill": "#/components/schemas/SkillToken",
+                  "text": "#/components/schemas/TextToken"
+                },
+                "propertyName": "type"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/TextToken"
+                },
+                {
+                  "$ref": "#/components/schemas/ElementToken"
+                },
+                {
+                  "$ref": "#/components/schemas/MoveToken"
+                },
+                {
+                  "$ref": "#/components/schemas/SkillToken"
+                }
+              ]
+            },
+            "title": "Prompt Tokens",
+            "type": "array"
+          },
+          "spec": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ShotSpec"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "enum": [
+              "keyframes",
+              "choose",
+              "animating",
+              "done",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "video_model": {
+            "title": "Video Model",
+            "type": "string"
+          },
+          "video_params": {
+            "additionalProperties": true,
+            "title": "Video Params",
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "project_id",
+          "folder_id",
+          "title",
+          "prompt",
+          "prompt_tokens",
+          "spec",
+          "video_model",
+          "video_params",
+          "keyframe_model",
+          "keyframe_params",
+          "keyframe_id",
+          "end_frame_id",
+          "continues_from",
+          "status",
+          "keyframes",
+          "clips",
+          "checks",
+          "archived",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ShotOut",
+        "type": "object"
+      },
+      "ShotPatch": {
+        "additionalProperties": false,
+        "properties": {
+          "archived": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Archived"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "title": "ShotPatch",
+        "type": "object"
+      },
       "ShotSpec": {
         "additionalProperties": false,
         "description": "The cinema controls of one shot (M5.1). The prompt's tokens, its\nelements and the model's own parameters (aspect, duration, audio) travel\nbeside it in the generation request.",
@@ -7107,6 +7787,63 @@
         },
         "summary": "Asset File",
         "tags": [
+          "assets"
+        ]
+      }
+    },
+    "/api/assets/{asset_id}/frame": {
+      "post": {
+        "description": "A clip's first or last frame as a new picture beside it (to extend a clip).",
+        "operationId": "clip_frame",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "asset_id",
+            "required": true,
+            "schema": {
+              "title": "Asset Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FrameRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Clip Frame",
+        "tags": [
+          "shots",
           "assets"
         ]
       }
@@ -10720,6 +11457,434 @@
         "summary": "Patch Settings",
         "tags": [
           "settings"
+        ]
+      }
+    },
+    "/api/shots": {
+      "get": {
+        "operationId": "list_shots",
+        "parameters": [
+          {
+            "description": "A project id, or 'none'",
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A project id, or 'none'",
+              "title": "Project Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "archived",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Archived",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ShotOut"
+                  },
+                  "title": "Response List Shots",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Shots",
+        "tags": [
+          "shots"
+        ]
+      },
+      "post": {
+        "description": "Plan a shot and start its keyframes: stills from the same prompt and\ncinema controls, at the clip's aspect ratio.",
+        "operationId": "create_shot",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShotCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShotOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Shot",
+        "tags": [
+          "shots"
+        ]
+      }
+    },
+    "/api/shots/estimate": {
+      "post": {
+        "description": "Cost and time of the keyframes plus one clip, without starting anything.",
+        "operationId": "estimate_shot",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShotCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShotEstimate"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Estimate Shot",
+        "tags": [
+          "shots"
+        ]
+      }
+    },
+    "/api/shots/{shot_id}": {
+      "get": {
+        "operationId": "get_shot",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "shot_id",
+            "required": true,
+            "schema": {
+              "title": "Shot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShotOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Shot",
+        "tags": [
+          "shots"
+        ]
+      },
+      "patch": {
+        "operationId": "patch_shot",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "shot_id",
+            "required": true,
+            "schema": {
+              "title": "Shot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShotPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShotOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Patch Shot",
+        "tags": [
+          "shots"
+        ]
+      }
+    },
+    "/api/shots/{shot_id}/animate": {
+      "post": {
+        "description": "Approve a keyframe (and an end frame, where the model takes one) and\nanimate the clip from it with the shot's prompt and controls.",
+        "operationId": "animate_shot",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "shot_id",
+            "required": true,
+            "schema": {
+              "title": "Shot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Animate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShotOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Animate Shot",
+        "tags": [
+          "shots"
+        ]
+      }
+    },
+    "/api/shots/{shot_id}/extend": {
+      "post": {
+        "description": "Continue a finished clip: a new shot starts from its last frame.",
+        "operationId": "extend_shot",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "shot_id",
+            "required": true,
+            "schema": {
+              "title": "Shot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Extend"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShotOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Extend Shot",
+        "tags": [
+          "shots"
+        ]
+      }
+    },
+    "/api/shots/{shot_id}/keyframes": {
+      "post": {
+        "description": "More keyframes to choose from, with the same settings.",
+        "operationId": "more_keyframes",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "shot_id",
+            "required": true,
+            "schema": {
+              "title": "Shot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MoreKeyframes"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShotOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "More Keyframes",
+        "tags": [
+          "shots"
         ]
       }
     },

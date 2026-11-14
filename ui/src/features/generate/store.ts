@@ -34,6 +34,10 @@ interface ComposerState {
   shots: Partial<Record<Mode, ShotSpec>>;
   /** The mode of the Studio's composer (M5.6), which switches in place. */
   studioMode: Mode;
+  /** Video: make keyframe stills first, then animate the approved one (M5.7). */
+  keyframeFirst: boolean;
+  /** The image model for keyframes, or "auto". */
+  keyframeModel: string;
   setModel: (mode: Mode, model: string) => void;
   setParams: (model: string, mode: Mode, params: Params) => void;
   setBatch: (batch: number) => void;
@@ -42,6 +46,8 @@ interface ComposerState {
   setAttachments: (mode: Mode, patch: Partial<Attachments>) => void;
   setShot: (mode: Mode, shot: ShotSpec | null) => void;
   setStudioMode: (mode: Mode) => void;
+  setKeyframeFirst: (on: boolean) => void;
+  setKeyframeModel: (model: string) => void;
 }
 
 export const paramsKey = (model: string, mode: Mode) => `${model}|${mode}`;
@@ -59,6 +65,10 @@ export const useComposerStore = create<ComposerState>()(
       shots: {},
       studioMode: "image",
       setStudioMode: (studioMode) => set({ studioMode }),
+      keyframeFirst: false,
+      keyframeModel: AUTO,
+      setKeyframeFirst: (keyframeFirst) => set({ keyframeFirst }),
+      setKeyframeModel: (keyframeModel) => set({ keyframeModel }),
       setModel: (mode, model) => set((s) => ({ models: { ...s.models, [mode]: model } })),
       setParams: (model, mode, params) => set((s) => ({ params: { ...s.params, [paramsKey(model, mode)]: params } })),
       setBatch: (batch) => set({ batch }),
@@ -79,13 +89,15 @@ export const useComposerStore = create<ComposerState>()(
     {
       name: "framestudio.composer",
       storage: createJSONStorage(() => localStorage),
-      partialize: ({ models, params, batch, seed, shots, studioMode }) => ({
+      partialize: ({ models, params, batch, seed, shots, studioMode, keyframeFirst, keyframeModel }) => ({
         models,
         params,
         batch,
         seed,
         shots,
         studioMode,
+        keyframeFirst,
+        keyframeModel,
       }),
     },
   ),

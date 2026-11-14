@@ -2,11 +2,11 @@
 # test-pattern clips, so every flow can be tried and tested without a GPU or a key.
 id: mock
 name: Mock engine
-description: Placeholder images and test-pattern clips for trying the app without a model.
+description: Placeholder images and test-pattern clips for trying the app without a model; clips can start on a picture and end on another.
 provider: mock
 runtime: local
 modes: [image, video]
-capabilities: [text_to_image, text_to_video, native_audio]
+capabilities: [text_to_image, text_to_video, image_to_video, start_end_frames, native_audio]
 params:
   aspect:
     type: enum
@@ -58,7 +58,9 @@ license:
   commercial_use: "yes"
   credit: FrameStudio contributors
   source_url: https://github.com/AntoBrandi/FrameStudio
-  notes: Draws the prompt on a coloured card or renders an ffmpeg test pattern; no model involved.
+  notes: >-
+    Draws the prompt on a coloured card or renders an ffmpeg test pattern; from a start frame
+    it pushes in slowly on that picture (and fades to the end frame). No model involved.
 tags: [test, offline]
 # Auto prefers lower ranks (test doubles last, so Auto always works offline).
 auto_rank: 900

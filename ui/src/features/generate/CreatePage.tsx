@@ -8,6 +8,7 @@ import { ViewOptions } from "@/features/library/FilterBar";
 import { Gallery } from "@/features/library/Gallery";
 import type { LayoutItem } from "@/features/library/layout";
 import { usePagePrefs } from "@/features/library/prefs";
+import { ShotsTray } from "@/features/shots/ShotsTray";
 import { cn } from "@/lib/utils";
 import { Composer, type Mode } from "./Composer";
 import { GenerationCard } from "./GenerationCard";
@@ -57,6 +58,7 @@ export function CreatePage({ mode, view }: { mode: Mode; view?: string }) {
           <ViewOptions view={prefs.view} onView={prefs.setView} />
         </div>
       </div>
+      {mode === "video" ? <ShotsTray projectId="none" onOpen={(id) => open(id)} /> : null}
       <Gallery
         items={generations}
         toLayout={toLayout}

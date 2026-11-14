@@ -1,4 +1,4 @@
-import type { AssetOut } from "@/api/client";
+import { type AssetOut, errorMessage, fetchClient } from "@/api/client";
 import type { Mode, Params } from "./params";
 import { type Reference, toReference } from "./ReferenceTray";
 import { AUTO, NO_ATTACHMENTS, paramsKey, type ShotSpec, useComposerStore } from "./store";
@@ -54,6 +54,25 @@ export function turnToVideo(asset: AssetOut): void {
   store.setAttachments("video", { ...NO_ATTACHMENTS, start: toReference(asset) });
   store.setModel("video", AUTO);
   if (!store.drafts.video?.length && asset.generation?.prompt) store.setDraft("video", promptOf(asset.generation));
+}
+
+/** Extend (M5.7): the clip's last frame becomes a new picture and the start
+ * frame of the next clip, with the clip's prompt and cinema controls.
+ * Throws with the reason when the frame cannot be taken. */
+export async function extendClip(asset: AssetOut): Promise<void> {
+  const { data, error } = await fetchClient.POST("/api/assets/{asset_id}/frame", {
+    params: { path: { asset_id: asset.id } },
+    body: { which: "last" },
+  });
+  if (error || !data) throw new Error(errorMessage(error));
+  const store = useComposerStore.getState();
+  store.setKeyframeFirst(false);
+  store.setAttachments("video", { ...NO_ATTACHMENTS, start: toReference(data) });
+  const spec = asset.generation;
+  if (spec) {
+    store.setDraft("video", promptOf(spec));
+    store.setShot("video", (spec.shot as ShotSpec | null | undefined) ?? null);
+  }
 }
 
 export { paramsKey };

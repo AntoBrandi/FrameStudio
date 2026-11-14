@@ -18,6 +18,7 @@ export const JOBS_KEY = ["get", "/api/jobs"] as const;
 export const GENERATIONS_KEY = ["get", "/api/generations"] as const;
 export const ASSETS_KEY = ["get", "/api/assets"] as const;
 export const SETTINGS_KEY = ["get", "/api/settings"] as const;
+export const SHOTS_KEY = ["get", "/api/shots"] as const;
 
 const ACTIVE = new Set(["queued", "submitting", "running"]);
 
@@ -91,6 +92,8 @@ const LIBRARY_PATHS = [
   "/api/generations",
   "/api/storage",
   "/api/elements",
+  // A finished clip's continuity is scored when its shot is next read.
+  "/api/shots",
 ];
 
 /** Everything the library shows: lists, counts, summaries, feeds. */
@@ -144,7 +147,11 @@ export function connectEvents(queryClient: QueryClient, handlers: EventHandlers 
       // update on screen while the fetch starts over.
       if (inFlight) void refresh(queryClient, { queryKey: query.queryKey, exact: true });
     }
+    // A planned shot (M5.7) shows its keyframes and clips as they progress.
+    if (generation.shot_id) void refresh(queryClient, { queryKey: SHOTS_KEY });
   });
+
+  source.addEventListener("shot.updated", () => void refresh(queryClient, { queryKey: SHOTS_KEY }));
 
   // Library changes (here or in another window) refresh lists, counts and summaries.
   const refreshLibrary = () => void refresh(queryClient, libraryFilter);

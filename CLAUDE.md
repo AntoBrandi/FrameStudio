@@ -159,6 +159,18 @@ Test media: `backend/tests/fixtures/media` (regenerate with `make_corpus.py`).
   Cached generation lists are matched by mode and project (`listsGeneration`/`insertGenerations`
   in `api/events.ts`). Export: `GET /api/projects/{id}/export[?folder_id=]` (zip written to the
   media tmp dir, stored uncompressed, deleted after sending; `<slug>/<folder>/<name>`).
+- Keyframe then shot (M5.7): `cinema/keyframes.py` — a planned `Shot` (table `shots`; not
+  `generations.shot`, which is a ShotSpec) keeps the prompt, spec, video and keyframe models.
+  Keyframes are image generations with `shot_id` and `shot_role="keyframe"` at the clip's aspect
+  (`keyframe_params_for`); `animate` makes the clip (`shot_role="clip"`) from the approved keyframe
+  (and end frame) with the same tokens and spec; `extend` starts a new shot from a clip's last frame
+  (`frame_asset`; frame pictures never set `source_generation_id`, since a generation's result is its
+  newest asset). `cinema/continuity.py` scores a clip's first and last frames against its pictures
+  (block SSIM, `SAME` = 0.75), cached in `shots.checks` when the shot is read. Routes under
+  `/api/shots`, plus `POST /api/assets/{id}/frame`. The mock engine animates start and end frames
+  (push-in, fade), so offline Auto routes start frames to it. UI: `features/shots/` (`KeyframeFirst`
+  in the video composer, `ShotsTray`/`ShotCard` on the Video page and in a workspace); the viewer's
+  "Extend from last frame".
 - LLM contract fixtures: `backend/tests/contracts/fixtures/llm/<provider>/<case>.json`, synthetic
   until recorded (`uv run python -m tests.contracts.llm_wire` rewrites synthetic ones). Live runs:
   `LIVE_API=1 FRAMESTUDIO_LIVE_<PROVIDER>_KEY=… uv run pytest tests/contracts` (paid);

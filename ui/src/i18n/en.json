@@ -122,7 +122,9 @@
     "newSeed": "Pick a new seed",
     "cost": "about ${{cost}}",
     "seconds": "~{{seconds}} s",
-    "elements": "Elements"
+    "elements": "Elements",
+    "keyframes": "Keyframes",
+    "keyframesHint": "Make keyframe stills from this prompt first; animate the one you choose."
   },
   "feed": {
     "emptyImage": "Your images will appear here.",
@@ -183,7 +185,10 @@
     "recreated": "The composer now has this generation's model, prompt, settings and seed.",
     "useAsReference": "Use as reference",
     "referenceAdded": "Added to the image composer's references.",
-    "turnToVideo": "Turn to video"
+    "turnToVideo": "Turn to video",
+    "extend": "Extend from last frame",
+    "extended": "The last frame is the start of the next clip",
+    "extendFailed": "Could not take the last frame: {{error}}"
   },
   "placeholder": {
     "studio": "Projects, briefs and the floating composer arrive with the Studio workspace.",
@@ -836,5 +841,45 @@
     "exportAll": "Export project",
     "exportHint": "A zip with a {{slug}}/ folder: the brief, each folder as a subfolder, and every asset that is not in the trash.",
     "trashHint": "The project and its assets go to the trash; restore them from there until it is emptied."
+  },
+  "shots": {
+    "title": "Shots",
+    "keyframeFirst": "Keyframe first",
+    "keyframeFirstHint": "Make stills from this prompt and its cinema settings first, choose one, then animate it with the same settings.",
+    "keyframeModel": "Model for the keyframes",
+    "autoStills": "Keyframes: Auto",
+    "keyframes": "Keyframes",
+    "keyframesOn": "Keyframes · {{model}}",
+    "more": "More keyframes",
+    "useAsStart": "Use as the first frame",
+    "start": "Start",
+    "end": "End",
+    "asEnd": "End here",
+    "noEnd": "No end",
+    "animate": "Animate",
+    "pickFirst": "Choose a keyframe first",
+    "clips": "Clips",
+    "openClip": "Open the clip",
+    "extend": "Extend",
+    "extendHint": "Continue from this clip's last frame with the same settings",
+    "checking": "Checking…",
+    "opens": "opens",
+    "closes": "closes",
+    "matchHint": "The clip opens on its keyframe (and closes on its end frame): the composition carried over.",
+    "driftHint": "The clip does not open on its keyframe as closely as expected; the model changed the composition.",
+    "failed": "Failed",
+    "actionFailed": "That did not work: {{error}}",
+    "archive": "Hide {{title}}",
+    "statuses": {
+      "queued": "Queued",
+      "running": "Generating"
+    },
+    "states": {
+      "keyframes": "Keyframes",
+      "choose": "Choose",
+      "animating": "Animating",
+      "done": "Done",
+      "failed": "Failed"
+    }
   }
 }
